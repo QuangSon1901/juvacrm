@@ -1,0 +1,9 @@
+@layer utilities {
+    .bg-custom-gradient {
+        background: linear-gradient(90deg, rgba(246,246,249,1) 0%, rgba(219,202,254,1) 80%, rgba(219,202,254,1) 100%);
+    }
+
+    .dark .bg-custom-gradient {
+        background: var(--tw-page-bg-dark);
+    }
+}
