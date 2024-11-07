@@ -3,6 +3,7 @@
 @include('dashboard.layouts.head')
 
 <body class="antialiased flex h-full text-base text-gray-700 [--tw-page-bg:#F6F6F9] [--tw-page-bg-dark:var(--tw-coal-200)] [--tw-content-bg:var(--tw-light)] [--tw-content-bg-dark:var(--tw-coal-500)] [--tw-content-scrollbar-color:#e8e8e8] [--tw-header-height:60px] [--tw-sidebar-width:90px] bg-custom-gradient">
+    @include('dashboard.layouts.loader')
     <div class="flex grow">
         @include('dashboard.layouts.header')
         <div class="flex flex-col lg:flex-row grow pt-[--tw-header-height] lg:pt-0">

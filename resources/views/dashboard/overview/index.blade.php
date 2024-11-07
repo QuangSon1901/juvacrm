@@ -215,8 +215,11 @@
                 <div class="card h-full">
                     <div class="card-header">
                         <h3 class="card-title">
-                            <i class="ki-filled ki-calendar-edit text-green-900 text-2xl"></i>&nbsp;Tổng quan công việc
+                            <i class="ki-filled ki-calendar-edit text-green-900 text-2xl"></i>&nbsp;<span>Tổng quan công việc</span>
                         </h3>
+                        <a class="btn btn-link" href="/">
+                            Đến trang công việc
+                        </a>
                     </div>
                     <div class="card-body">
                         <div class="grid lg:grid-cols-4 gap-4 items-stretch">
@@ -279,6 +282,18 @@
         </div>
         <div class="lg:col-span-1">
             <div class="grid gap-5 lg:gap-7.5">
+                <div id="weather-card" class="card h-full relative overflow-hidden bg-left hidden" style="background-image: url({{asset('assets/images/background/hochiminhcity.png')}});">
+                    <div class="absolute inset-0 opacity-50 bg-black"></div>
+                    <div class="card-body z-10 text-center">
+                        <p class="text-white">Thời tiết hôm nay</p>
+                        <div class="flex items-center justify-around">
+                            <img class="icon" src="https://openweathermap.org/img/wn/02d@2x.png" alt="Thời tiết">
+                            <span class="text-white text-4xl temp">22</span>
+                        </div>
+                        <p class="text-white status">Trời nắng</p>
+                        <p class="text-white font-semibold city">Hồ Chí Minh</p>
+                    </div>
+                </div>
                 <div class="card h-full">
                     <div class="card-header">
                         <div class="flex items-center">
@@ -383,3 +398,46 @@
     </div>
 </div>
 @endsection
+@push("scripts")
+<script>
+    $(document).ready(function() {
+        fetchLocation();
+    });
+
+    async function fetchLocation() {
+        let method = "get",
+            url = `https://api.ipapi.com/api/check?access_key=${ipapiAccessKey}`,
+            data = null,
+            params = {};
+        let res = await axiosTemplate(method, url, params, data);
+        let {
+            latitude,
+            longitude
+        } = res.data;
+
+        fetchWeather(latitude, longitude);
+    }
+
+    async function fetchWeather(lat, lon) {
+        let method = "get",
+            url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${openWeatherApiKey}&units=metric&lang=vi`,
+            data = null,
+            params = {};
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.status) {
+            case 200:
+                if (res.data.cod == 200) {
+                    $("#weather-card").removeClass("hidden");
+                    $("#weather-card .icon").attr("src", `https://openweathermap.org/img/wn/${res.data.weather[0].icon}@2x.png`);
+                    $("#weather-card .temp").text(res.data.main.temp + "°C");
+                    $("#weather-card .status").text(res.data.weather[0].description);
+                    $("#weather-card .city").text(res.data.name);
+                }
+                break;
+            default:
+                break;
+        }
+
+    }
+</script>
+@endpush

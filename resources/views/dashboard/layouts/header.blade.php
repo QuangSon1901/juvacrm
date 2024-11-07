@@ -1,5 +1,5 @@
 <!-- Header -->
-<header class="flex lg:hidden items-center fixed z-10 top-0 start-0 end-0 shrink-0 bg-[--tw-page-bg] dark:bg-[--tw-page-bg-dark] h-[--tw-header-height]" id="header">
+<header class="flex lg:hidden items-center fixed z-10 top-0 start-0 end-0 shrink-0  bg-custom-gradient h-[--tw-header-height]" id="header">
     <!-- Container -->
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <a href="/metronic/tailwind/demo8/">

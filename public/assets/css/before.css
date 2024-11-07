@@ -1,0 +1,66 @@
+
+.theme-loader {
+    height: 100%;
+    width: 100%;
+    background-color: #fff;
+    position: fixed;
+    z-index: 999999;
+    top: 0
+}
+
+.theme-loader .ball-scale {
+    left: 50%;
+    top: 50%;
+    position: absolute;
+    height: 50px;
+    width: 50px;
+    margin: -25px 0 0 -25px
+}
+
+.theme-loader .ball-scale .contain {
+    height: 100%;
+    width: 100%
+}
+
+.theme-loader .ball-scale .contain .ring {
+    display: none;
+    box-shadow: none;
+}
+
+.theme-loader .ball-scale .contain .ring:first-child {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border-radius: 50%;
+    padding: 10px;
+    border: 3px solid transparent;
+    border-left-color: #01a9ac;
+    border-right-color: #01a9ac;
+    -webkit-animation: round-rotate 1.5s ease-in-out infinite;
+    animation: round-rotate 1.5s ease-in-out infinite
+}
+
+.theme-loader .ball-scale .contain .ring:first-child .frame {
+    height: 100%;
+    width: 100%;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-left-color: #0ac282;
+    border-right-color: #0ac282;
+    -webkit-animation: round-rotate 1.5s ease-in-out infinite;
+    animation: round-rotate 1.5s ease-in-out infinite
+}
+
+@-webkit-keyframes round-rotate {
+    100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg)
+    }
+}
+
+@keyframes round-rotate {
+    100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg)
+    }
+}
