@@ -5,7 +5,7 @@
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
-                Hồ sơ tài khoản
+                Hồ sơ nhân viên
             </h1>
         </div>
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
@@ -128,7 +128,7 @@
                                         CCCD/CMND
                                     </td>
                                     <td class="py-3 text-gray-700 text-2sm font-normal">
-                                        Bạn chưa có CCCD/CMND
+                                        Nhân viên chưa có CCCD/CMND
                                     </td>
                                     <td class="py-3 text-center">
                                         <a class="btn btn-link btn-sm" href="#">
@@ -141,7 +141,7 @@
                                         Địa chỉ
                                     </td>
                                     <td class="py-3 text-gray-700 text-2sm font-normal">
-                                        Bạn chưa có địa chỉ
+                                        Nhân viên chưa có địa chỉ
                                     </td>
                                     <td class="py-3 text-center">
                                         <a class="btn btn-link btn-sm" href="#">
@@ -155,6 +155,11 @@
                                     </td>
                                     <td class="py-3 text-gray-700 text-2sm font-normal">
                                         7,000,000
+                                    </td>
+                                    <td class="py-3 text-center">
+                                        <a class="btn btn-link btn-sm" href="#">
+                                            Thêm
+                                        </a>
                                     </td>
                                 </tr>
                                 <tr>
@@ -187,19 +192,17 @@
                                             JUVA000001
                                         </a>
                                     </td>
-                                </tr>
-                                <tr>
-                                    <td class="text-gray-600 font-normal">
-                                        Mật khẩu
-                                    </td>
-                                    <td class="text-gray-700 font-normal text-2sm">
-                                        Mật khẩu được thay đổi lần cuối cách đây 2 tháng
-                                    </td>
                                     <td class="text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
-                                        </a>
+                                        <div class="flex items-center">
+                                            <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                                <i class="ki-filled ki-key">
+                                                </i>
+                                            </a>
+                                            <a class="btn btn-sm btn-icon btn-clear btn-danger" href="#">
+                                                <i class="ki-filled ki-lock">
+                                                </i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -251,6 +254,43 @@
                                     <i class="ki-filled ki-notepad-edit">
                                     </i>
                                 </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header gap-2">
+                        <h3 class="card-title">
+                            Phòng ban trực thuộc
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="flex flex-col gap-2 lg:gap-5">
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center grow gap-2.5">
+                                    @include("dashboard.layouts.icons.gear")
+                                    <div class="flex flex-col">
+                                        <a class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px" href="/team/123">
+                                            Phòng kinh doanh
+                                        </a>
+                                        <span class="text-xs font-semibold text-gray-600">
+                                            Trưởng phòng
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center grow gap-2.5">
+                                    @include("dashboard.layouts.icons.gear")
+                                    <div class="flex flex-col">
+                                        <a class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px" href="/team/123">
+                                            Phòng kỹ thuật
+                                        </a>
+                                        <span class="text-xs font-semibold text-gray-600">
+                                            Thành viên
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

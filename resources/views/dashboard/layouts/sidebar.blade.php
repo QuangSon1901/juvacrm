@@ -131,21 +131,14 @@
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.account.team.team')}}">
                                     <span class="menu-title">
                                         Bộ phận/phòng ban
                                     </span>
                                 </a>
                             </div>
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
-                                    <span class="menu-title">
-                                        Phân quyền hệ thống
-                                    </span>
-                                </a>
-                            </div>
-                            <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.account.member.member')}}">
                                     <span class="menu-title">
                                         Nhân sự
                                     </span>
@@ -153,32 +146,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
-                        <div class="menu-link grow cursor-pointer">
+                    <div class="menu-item">
+                        <a class="menu-link" href="{{route('dashboard.account.timekeeping.timekeeping')}}">
                             <span class="menu-title">
-                                Chấm công
+                                Quản lý chấm công
                             </span>
-                            <span class="menu-arrow">
-                                <i class="ki-filled ki-right text-3xs rtl:translate rtl:rotate-180">
-                                </i>
-                            </span>
-                        </div>
-                        <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
-                            <div class="menu-item">
-                                <a class="menu-link" href="/">
-                                    <span class="menu-title">
-                                        Quản lý chấm công
-                                    </span>
-                                </a>
-                            </div>
-                            <div class="menu-item">
-                                <a class="menu-link" href="/">
-                                    <span class="menu-title">
-                                        Duyệt tăng ca
-                                    </span>
-                                </a>
-                            </div>
-                        </div>
+                        </a>
                     </div>
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
@@ -192,14 +165,14 @@
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.account.task.task')}}">
                                     <span class="menu-title">
                                         Danh sách công việc
                                     </span>
                                 </a>
                             </div>
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.account.task.config')}}">
                                     <span class="menu-title">
                                         Thiết lập công việc
                                     </span>
@@ -219,14 +192,14 @@
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.account.training.document.document')}}">
                                     <span class="menu-title">
                                         File tài liệu hướng dẫn
                                     </span>
                                 </a>
                             </div>
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.account.training.document.blank')}}">
                                     <span class="menu-title">
                                         Lịch sử đào tạo
                                     </span>

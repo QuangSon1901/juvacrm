@@ -1,0 +1,428 @@
+@extends('dashboard.layouts.layout')
+@section('dashboard_content')
+<div class="pb-5">
+    <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center flex-wrap gap-1 lg:gap-5">
+            <h1 class="font-medium text-base text-gray-900">
+                Phòng kinh doanh
+            </h1>
+        </div>
+        <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
+            <button class="btn btn-icon btn-icon-lg size-8 rounded-md hover:bg-gray-200 dropdown-open:bg-gray-200 hover:text-primary text-gray-600" data-modal-toggle="#search_modal">
+                <i class="ki-filled ki-magnifier !text-base">
+                </i>
+            </button>
+        </div>
+    </div>
+</div>
+<div class="container-fixed">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 lg:gap-7.5">
+        <div class="col-span-2">
+            <div class="flex flex-col gap-5 lg:gap-7.5">
+                <div class="card min-w-full">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            Thông tin phòng ban
+                        </h3>
+                    </div>
+                    <div class="card-table scrollable-x-auto pb-3">
+                        <table class="table align-middle text-sm">
+                            <tbody>
+                                <tr>
+                                    <td class="py-2 min-w-32 text-gray-600 font-normal">
+                                        Hình ảnh
+                                    </td>
+                                    <td class="py-2 text-gray-700 font-normal min-w-32 text-2sm">
+                                        150x150px JPEG, PNG Image
+                                    </td>
+                                    <td class="py-2 text-center min-w-16">
+                                        <div class="image-input size-16" data-image-input="true">
+                                            <input accept=".png, .jpg, .jpeg" name="avatar" type="file">
+                                            <input name="avatar_remove" type="hidden">
+                                            <div class="btn btn-icon btn-icon-xs btn-light shadow-default absolute z-1 size-5 -top-0.5 -end-0.5 rounded-full" data-image-input-remove="" data-tooltip="#image_input_tooltip" data-tooltip-trigger="hover">
+                                                <i class="ki-filled ki-cross">
+                                                </i>
+                                            </div>
+                                            <span class="tooltip" id="image_input_tooltip">
+                                                Nhấn để xoá hoặc quay lại
+                                            </span>
+                                            <div class="image-input-placeholder rounded-full border-2 border-success image-input-empty:border-gray-300" style="background-image:url({{asset('assets/images/icons/blank.png')}})">
+                                                <div class="image-input-preview rounded-full" style="background-image:url()">
+                                                </div>
+                                                <div class="flex items-center justify-center cursor-pointer h-5 left-0 right-0 bottom-0 bg-dark-clarity absolute">
+                                                    <svg class="fill-light opacity-80" height="12" viewBox="0 0 14 12" width="14" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M11.6665 2.64585H11.2232C11.0873 2.64749 10.9538 2.61053 10.8382 2.53928C10.7225 2.46803 10.6295 2.36541 10.5698 2.24335L10.0448 1.19918C9.91266 0.931853 9.70808 0.707007 9.45438 0.550249C9.20068 0.393491 8.90806 0.311121 8.60984 0.312517H5.38984C5.09162 0.311121 4.799 0.393491 4.5453 0.550249C4.2916 0.707007 4.08701 0.931853 3.95484 1.19918L3.42984 2.24335C3.37021 2.36541 3.27716 2.46803 3.1615 2.53928C3.04584 2.61053 2.91234 2.64749 2.7765 2.64585H2.33317C1.90772 2.64585 1.49969 2.81486 1.19885 3.1157C0.898014 3.41654 0.729004 3.82457 0.729004 4.25002V10.0834C0.729004 10.5088 0.898014 10.9168 1.19885 11.2177C1.49969 11.5185 1.90772 11.6875 2.33317 11.6875H11.6665C12.092 11.6875 12.5 11.5185 12.8008 11.2177C13.1017 10.9168 13.2707 10.5088 13.2707 10.0834V4.25002C13.2707 3.82457 13.1017 3.41654 12.8008 3.1157C12.5 2.81486 12.092 2.64585 11.6665 2.64585ZM6.99984 9.64585C6.39413 9.64585 5.80203 9.46624 5.2984 9.12973C4.79478 8.79321 4.40225 8.31492 4.17046 7.75532C3.93866 7.19572 3.87802 6.57995 3.99618 5.98589C4.11435 5.39182 4.40602 4.84613 4.83432 4.41784C5.26262 3.98954 5.80831 3.69786 6.40237 3.5797C6.99644 3.46153 7.61221 3.52218 8.1718 3.75397C8.7314 3.98576 9.2097 4.37829 9.54621 4.88192C9.88272 5.38554 10.0623 5.97765 10.0623 6.58335C10.0608 7.3951 9.73765 8.17317 9.16365 8.74716C8.58965 9.32116 7.81159 9.64431 6.99984 9.64585Z" fill="">
+                                                        </path>
+                                                        <path d="M7 8.77087C8.20812 8.77087 9.1875 7.7915 9.1875 6.58337C9.1875 5.37525 8.20812 4.39587 7 4.39587C5.79188 4.39587 4.8125 5.37525 4.8125 6.58337C4.8125 7.7915 5.79188 8.77087 7 8.77087Z" fill="">
+                                                        </path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-gray-600 font-normal">
+                                        Tên phòng ban
+                                    </td>
+                                    <td class="py-2 text-gray-700 font-normal">
+                                        Phòng kinh doanh
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-gray-600 font-normal">
+                                        Ghi chú
+                                    </td>
+                                    <td class="py-2 text-gray-700 font-normal">
+                                        Quan hệ khách hàng, thực hiện chiến lược bán hàng
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 text-gray-600 font-normal">
+                                        Trạng thái
+                                    </td>
+                                    <td class="py-3 text-gray-700">
+                                        <span class="badge badge-sm badge-outline badge-success">
+                                            Đang hoạt động
+                                        </span>
+                                    </td>
+                                    <td class="py-3 text-center">
+                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card card-grid min-w-full">
+                    <div class="card-header py-5 flex-wrap gap-2">
+                        <h3 class="card-title">
+                            Danh sách thành viên
+                        </h3>
+                        <div class="flex gap-6">
+                            <label class="switch switch-sm">
+                                <input class="order-2" name="check" type="checkbox" value="1">
+                                <span class="switch-label order-1">
+                                    Đang hoạt động
+                                </span>
+                            </label>
+                            <div class="relative">
+                                <i class="ki-filled ki-magnifier leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3">
+                                </i>
+                                <input class="input input-sm ps-8" placeholder="Tìm kiếm" type="text">
+                            </div>
+                            <div class="menu" data-menu="true">
+                                <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                                    <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                        <i class="ki-filled ki-dots-vertical">
+                                        </i>
+                                    </button>
+                                    <div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true">
+                                        <div class="menu-item">
+                                            <a class="menu-link" href="#">
+                                                <span class="menu-icon">
+                                                    <i class="ki-filled ki-plus">
+                                                    </i>
+                                                </span>
+                                                <span class="menu-title">
+                                                    Thêm thành viên
+                                                </span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div data-datatable="true" data-datatable-page-size="5" class="datatable-initialized">
+                            <div class="scrollable-x-auto">
+                                <table class="table table-auto table-border" data-datatable-table="true">
+                                    <thead>
+                                        <tr>
+                                            <th class="w-[60px] text-center">
+                                                <input class="checkbox checkbox-sm" data-datatable-check="true" type="checkbox">
+                                            </th>
+                                            <th class="min-w-[250px]">
+                                                <span class="sort asc">
+                                                    <span class="sort-label text-gray-700 font-normal">
+                                                        Thành viên
+                                                    </span>
+                                                    <span class="sort-icon">
+                                                    </span>
+                                                </span>
+                                            </th>
+                                            <th class="min-w-[250px]">
+                                                <span class="sort asc">
+                                                    <span class="sort-label text-gray-700 font-normal">
+                                                        Chức vụ
+                                                    </span>
+                                                    <span class="sort-icon">
+                                                    </span>
+                                                </span>
+                                            </th>
+                                            <th class="min-w-[120px]">
+                                                <span class="sort">
+                                                    <span class="sort-label text-gray-700 font-normal">
+                                                        Trạng thái
+                                                    </span>
+                                                    <span class="sort-icon">
+                                                    </span>
+                                                </span>
+                                            </th>
+                                            <th class="w-[60px]">
+                                            </th>
+                                        </tr>
+                                    </thead>
+
+                                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" data-datatable-spinner="true" style="display: none;">
+                                        <div class="flex items-center gap-2 px-4 py-2 font-medium leading-none text-2sm border border-gray-200 shadow-default rounded-md text-gray-500 bg-light">
+                                            <svg class="animate-spin -ml-1 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Loading...
+                                        </div>
+                                    </div>
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-center"><input class="checkbox checkbox-sm" data-datatable-row-check="true" type="checkbox" value="1"></td>
+                                            <td>
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="">
+                                                        <img class="h-9 rounded-full object-contain" src="{{asset('assets/images/logo/juva-rectangle.png')}}">
+                                                    </div>
+                                                    <div class="flex flex-col gap-0.5">
+                                                        <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="#">
+                                                            Tyler Hero
+                                                        </a>
+                                                        <span class="text-2sm text-gray-700 font-normal">
+                                                            26 tasks
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="leading-none text-gray-800 font-normal">
+                                                        Trưởng phòng
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-pill badge-outline badge-success gap-1 items-center">
+                                                    <span class="badge badge-dot size-1.5 badge-success">
+                                                    </span>
+                                                    In Office
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="menu" data-menu="true">
+                                                    <div class="menu-item" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                                                        <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                                            <i class="ki-filled ki-dots-vertical">
+                                                            </i>
+                                                        </button>
+                                                        <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true" style="">
+                                                            <div class="menu-item">
+                                                                <a class="menu-link" href="#">
+                                                                    <span class="menu-icon">
+                                                                        <i class="ki-filled ki-search-list">
+                                                                        </i>
+                                                                    </span>
+                                                                    <span class="menu-title">
+                                                                        Xem chi tiết
+                                                                    </span>
+                                                                </a>
+                                                            </div>
+                                                            <div class="menu-separator">
+                                                            </div>
+                                                            <div class="menu-item">
+                                                                <a class="menu-link" href="#">
+                                                                    <span class="menu-icon">
+                                                                        <i class="ki-filled ki-pencil">
+                                                                        </i>
+                                                                    </span>
+                                                                    <span class="menu-title">
+                                                                        Chỉnh sửa
+                                                                    </span>
+                                                                </a>
+                                                            </div>
+                                                            <div class="menu-item">
+                                                                <a class="menu-link" href="#">
+                                                                    <span class="menu-icon">
+                                                                        <i class="ki-filled ki-copy">
+                                                                        </i>
+                                                                    </span>
+                                                                    <span class="menu-title">
+                                                                        Tạo bản sao
+                                                                    </span>
+                                                                </a>
+                                                            </div>
+                                                            <div class="menu-separator">
+                                                            </div>
+                                                            <div class="menu-item">
+                                                                <a class="menu-link" href="#">
+                                                                    <span class="menu-icon">
+                                                                        <i class="ki-filled ki-trash">
+                                                                        </i>
+                                                                    </span>
+                                                                    <span class="menu-title">
+                                                                        Gỡ
+                                                                    </span>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-gray-600 text-2sm font-medium">
+                                <div class="flex items-center gap-2 order-2 md:order-1">
+                                    Hiển thị
+                                    <select class="select select-sm w-16" data-datatable-size="true" name="perpage">
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="20">20</option>
+                                        <option value="30">30</option>
+                                        <option value="50">50</option>
+                                    </select>
+                                    mỗi trang
+                                </div>
+                                <div class="flex items-center gap-4 order-1 md:order-2">
+                                    <span data-datatable-info="true">1-5 trong 33</span>
+                                    <div class="pagination" data-datatable-pagination="true">
+                                        <div class="pagination"><button class="btn disabled" disabled=""><i class="ki-outline ki-black-left rtl:transform rtl:rotate-180"></i></button><button class="btn active disabled" disabled="">1</button><button class="btn">2</button><button class="btn">3</button><button class="btn">...</button><button class="btn"><i class="ki-outline ki-black-right rtl:transform rtl:rotate-180"></i></button></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-span-1">
+            <div class="grid grid-cols-1 gap-5">
+                <div class="card">
+                    <div class="card-header gap-2">
+                        <h3 class="card-title">
+                            Danh sách chức vụ
+                        </h3>
+                        <div class="menu" data-menu="true">
+                            <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                                <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                    <i class="ki-filled ki-dots-vertical">
+                                    </i>
+                                </button>
+                                <div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true">
+                                    <div class="menu-item">
+                                        <a class="menu-link" href="#">
+                                            <span class="menu-icon">
+                                                <i class="ki-filled ki-plus">
+                                                </i>
+                                            </span>
+                                            <span class="menu-title">
+                                                Thêm chức vụ
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="flex flex-col gap-2 lg:gap-5">
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center grow gap-2.5">
+                                    @include("dashboard.layouts.icons.gear")
+                                    <div class="flex flex-col">
+                                        <a class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px" href="/role/123">
+                                            Trưởng phòng
+                                        </a>
+                                        <span class="text-xs font-semibold text-gray-600">
+                                            1 người
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="menu" data-menu="true">
+                                    <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                                        <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                            <i class="ki-filled ki-dots-vertical">
+                                            </i>
+                                        </button>
+                                        <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
+                                            <div class="menu-item">
+                                                <a class="menu-link" href="/role/123">
+                                                    <span class="menu-icon">
+                                                        <i class="ki-filled ki-setting-2">
+                                                        </i>
+                                                    </span>
+                                                    <span class="menu-title">
+                                                        Phân quyền
+                                                    </span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center grow gap-2.5">
+                                    @include("dashboard.layouts.icons.gear")
+                                    <div class="flex flex-col">
+                                        <a class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px" href="#">
+                                            Thành viên
+                                        </a>
+                                        <span class="text-xs font-semibold text-gray-600">
+                                            3 người
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="menu" data-menu="true">
+                                    <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                                        <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                            <i class="ki-filled ki-dots-vertical">
+                                            </i>
+                                        </button>
+                                        <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
+                                            <div class="menu-item">
+                                                <a class="menu-link" href="#">
+                                                    <span class="menu-icon">
+                                                        <i class="ki-filled ki-setting-2">
+                                                        </i>
+                                                    </span>
+                                                    <span class="menu-title">
+                                                        Phân quyền
+                                                    </span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

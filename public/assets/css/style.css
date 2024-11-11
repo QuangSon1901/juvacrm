@@ -7,3 +7,9 @@
         background: var(--tw-page-bg-dark);
     }
 }
+
+.menu-separator.simple {
+    border-bottom: var(--tw-dropdown-border);
+    margin-top: .625rem;
+    margin-bottom: .625rem;
+}
