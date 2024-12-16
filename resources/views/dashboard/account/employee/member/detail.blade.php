@@ -1,7 +1,6 @@
 @extends('dashboard.layouts.layout')
 @section('dashboard_content')
 <div class="pb-5">
-    <!-- Container -->
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
@@ -15,12 +14,11 @@
             </button>
         </div>
     </div>
-    <!-- End of Container -->
 </div>
 <div class="container-fixed">
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 lg:gap-7.5">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <div class="col-span-2">
-            <div class="grid gap-5 lg:gap-7.5">
+            <div class="grid gap-5">
                 <div class="card min-w-full">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -69,7 +67,7 @@
                                     <td class="py-2 text-gray-600 font-normal">
                                         Họ tên
                                     </td>
-                                    <td class="py-2 text-gray-800 font-normaltext-sm">
+                                    <td class="py-2 text-gray-800 text-sm">
                                         Vũ Quang Sơn
                                     </td>
                                     <td class="py-2 text-center">
@@ -124,10 +122,10 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="py-3">
+                                    <td class="py-2 text-gray-600 font-normal">
                                         CCCD/CMND
                                     </td>
-                                    <td class="py-3 text-gray-700 text-2sm font-normal">
+                                    <td class="py-3 text-gray-300 text-sm font-normal">
                                         Nhân viên chưa có CCCD/CMND
                                     </td>
                                     <td class="py-3 text-center">
@@ -137,10 +135,10 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="py-3">
+                                    <td class="py-2 text-gray-600 font-normal">
                                         Địa chỉ
                                     </td>
-                                    <td class="py-3 text-gray-700 text-2sm font-normal">
+                                    <td class="py-3 text-gray-300 text-sm font-normal">
                                         Nhân viên chưa có địa chỉ
                                     </td>
                                     <td class="py-3 text-center">
@@ -150,7 +148,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="py-3">
+                                    <td class="py-2 text-gray-600 font-normal">
                                         Lương cơ bản
                                     </td>
                                     <td class="py-3 text-gray-700 text-2sm font-normal">
@@ -163,7 +161,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="py-3">
+                                    <td class="py-2 text-gray-600 font-normal">
                                         Ngày vào làm
                                     </td>
                                     <td class="py-3 text-gray-700 text-2sm font-normal">
@@ -212,7 +210,7 @@
             </div>
         </div>
         <div class="col-span-1">
-            <div class="grid gap-5 lg:gap-7.5">
+            <div class="grid gap-5">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">

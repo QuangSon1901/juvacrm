@@ -32,14 +32,14 @@
                 </div>
                 <div class="menu-default menu-dropdown gap-0.5 w-[220px] scrollable-y-auto lg:overflow-visible max-h-[50vh]">
                     <div class="menu-item">
-                        <a class="menu-link" href="/">
+                        <a class="menu-link" href="{{route('dashboard.customer.support.customer-support')}}">
                             <span class="menu-title">
                                 Chăm sóc khách hàng
                             </span>
                         </a>
                     </div>
                     <div class="menu-item">
-                        <a class="menu-link" href="/">
+                        <a class="menu-link" href="{{route('dashboard.customer.client.customer-leads')}}">
                             <span class="menu-title">
                                 Khách hàng tiềm năng
                             </span>
@@ -57,14 +57,14 @@
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.customer.manage.leads')}}">
                                     <span class="menu-title">
                                         Lead khách hàng
                                     </span>
                                 </a>
                             </div>
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.customer.manage.customer-type')}}">
                                     <span class="menu-title">
                                         Phân loại khách hàng
                                     </span>

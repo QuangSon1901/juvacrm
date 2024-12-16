@@ -4,7 +4,7 @@
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
-                Nhân sự
+                Khách hàng tiềm năng
             </h1>
         </div>
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
@@ -16,73 +16,36 @@
     </div>
 </div>
 <div class="container-fixed">
-    <div class="grid gap-5 lg:gap-7.5">
+    <div class="grid gap-5">
         <div class="card card-grid min-w-full">
-            <div class="card-header py-5 flex-wrap gap-2">
+            <div class="card-header flex-wrap gap-2">
                 <h3 class="card-title">
-                    Danh sách nhân viên
+                    Danh sách khách hàng
                 </h3>
-                <div class="flex gap-6">
-                    <label class="switch switch-sm">
-                        <input class="order-2" name="check" type="checkbox" value="1">
-                        <span class="switch-label order-1">
-                            Đang hoạt động
-                        </span>
-                    </label>
-                    <div class="relative">
-                        <i class="ki-filled ki-magnifier leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3">
-                        </i>
-                        <input class="input input-sm pl-8" data-datatable-search="#members_table" placeholder="Tìm kiếm" type="text">
-                    </div>
-                </div>
             </div>
             <div class="card-body">
                 <div data-datatable="true" data-datatable-page-size="10" class="datatable-initialized">
                     <div class="scrollable-x-auto">
-                        <table class="table table-border" data-datatable-table="true" id="members_table">
+                        <table class="table table-border" data-datatable-table="true" id="clients_table">
                             <thead>
                                 <tr>
-                                    <th class="w-[60px] text-center">
-                                        <input class="checkbox checkbox-sm" data-datatable-check="true" type="checkbox">
+                                    <th class="text-gray-700 font-normal w-[100px]">
+                                        #
                                     </th>
-                                    <th class="min-w-[300px]">
-                                        <span class="sort asc">
-                                            <span class="sort-label text-gray-700 font-normal">
-                                                Họ tên
-                                            </span>
-                                            <span class="sort-icon">
-                                            </span>
-                                        </span>
+                                    <th class="text-gray-700 font-normal min-w-[250px]">
+                                        Họ tên
+                                    </th>
+                                    <th class="text-gray-700 font-normal min-w-[200px]">
+                                        Liên hệ
                                     </th>
                                     <th class="text-gray-700 font-normal min-w-[220px]">
-                                        Phòng ban
+                                        Nguồn
                                     </th>
-                                    <th class="min-w-[165px]">
-                                        <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">
-                                                Liên hệ
-                                            </span>
-                                            <span class="sort-icon">
-                                            </span>
-                                        </span>
+                                    <th class="text-gray-700 font-normal min-w-[200px]">
+                                        Trạng thái
                                     </th>
-                                    <th class="min-w-[165px]">
-                                        <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">
-                                                Trạng thái
-                                            </span>
-                                            <span class="sort-icon">
-                                            </span>
-                                        </span>
-                                    </th>
-                                    <th class="min-w-[165px]">
-                                        <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">
-                                                Tham gia
-                                            </span>
-                                            <span class="sort-icon">
-                                            </span>
-                                        </span>
+                                    <th class="text-gray-700 font-normal min-w-[100px]">
+                                        Lần tương tác gần nhất
                                     </th>
                                     <th class="w-[60px]">
                                     </th>
@@ -100,30 +63,16 @@
                             </div>
                             <tbody>
                                 <tr>
-                                    <td class="text-center"><input class="checkbox checkbox-sm" data-datatable-row-check="true" type="checkbox" value="1"></td>
-                                    <td>
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="">
-                                                <img class="h-9 rounded-full object-contain" src="{{asset('assets/images/logo/juva-rectangle.png')}}">
-                                            </div>
-                                            <div class="flex flex-col gap-0.5">
-                                                <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/member/123">
-                                                    Tyler Hero
-                                                </a>
-                                                <span class="text-xs text-gray-700 font-normal">
-                                                    26 tasks
-                                                </span>
-                                            </div>
-                                        </div>
+                                    <td class="text-gray-800 font-normal">
+                                        <a class="leading-none hover:text-primary" href="/customer/123">
+                                            1901
+                                        </a>
                                     </td>
                                     <td>
-                                        <div class="flex flex-wrap gap-2.5 mb-2">
-                                            <span class="badge badge-sm badge-light badge-outline">
-                                                Phòng kỹ thuật
-                                            </span>
-                                            <span class="badge badge-sm badge-light badge-outline">
-                                                Phòng kinh doanh
-                                            </span>
+                                        <div class="flex flex-col gap-1.5">
+                                            <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/customer/123">
+                                                <span>Yenny Dao</span>
+                                            </a>
                                         </div>
                                     </td>
                                     <td>
@@ -144,10 +93,11 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td><span class="badge badge-sm badge-outline badge-success">
-                                            Đang hoạt động
-                                        </span></td>
-                                    <td class="text-gray-800 font-normal">11 Năm, 11 Tháng</td>
+                                    <td class="text-sm text-gray-800 font-normal">Facebook</td>
+                                    <td class="text-sm text-gray-800 font-normal">Đang tiếp cận</td>
+                                    <th class="text-gray-700 font-normal min-w-[220px]">
+                                        08:10 12/12/2024
+                                    </th>
                                     <td class="w-[60px]">
                                         <div class="menu" data-menu="true">
                                             <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
@@ -155,9 +105,9 @@
                                                     <i class="ki-filled ki-dots-vertical">
                                                     </i>
                                                 </button>
-                                                <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true" style="">
+                                                <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
                                                     <div class="menu-item">
-                                                        <a class="menu-link" href="/member/123">
+                                                        <a class="menu-link" href="/customer/123">
                                                             <span class="menu-icon">
                                                                 <i class="ki-filled ki-search-list">
                                                                 </i>
@@ -166,11 +116,7 @@
                                                                 Xem chi tiết
                                                             </span>
                                                         </a>
-                                                    </div>
-                                                    <div class="menu-separator">
-                                                    </div>
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="/member/123">
+                                                        <a class="menu-link" href="/customer/123">
                                                             <span class="menu-icon">
                                                                 <i class="ki-filled ki-pencil">
                                                                 </i>
@@ -180,40 +126,16 @@
                                                             </span>
                                                         </a>
                                                     </div>
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="#">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-copy">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title">
-                                                                Tạo bản sao
-                                                            </span>
-                                                        </a>
-                                                    </div>
                                                     <div class="menu-separator">
                                                     </div>
                                                     <div class="menu-item">
-                                                        <a class="menu-link" href="#">
+                                                        <a class="menu-link" href="/member/123">
                                                             <span class="menu-icon">
-                                                                <i class="ki-filled ki-key">
+                                                                <i class="ki-filled ki-abstract-23">
                                                                 </i>
                                                             </span>
                                                             <span class="menu-title">
-                                                                Đặt lại mật khẩu
-                                                            </span>
-                                                        </a>
-                                                    </div>
-                                                    <div class="menu-separator">
-                                                    </div>
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="#">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-lock !text-red-600">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title !text-red-600">
-                                                                Khoá tài khoản
+                                                                Chuyển sang chăm sóc
                                                             </span>
                                                         </a>
                                                     </div>
