@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard\Customer\Manage;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 
 class CustomerTypeController extends Controller

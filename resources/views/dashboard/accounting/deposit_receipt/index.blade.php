@@ -4,7 +4,7 @@
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
-                Phân loại khách hàng
+                Biên nhận cọc
             </h1>
         </div>
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
@@ -20,17 +20,26 @@
         <div class="card card-grid min-w-full">
             <div class="card-header flex-wrap gap-2">
                 <h3 class="card-title">
-                    Dữ liệu khách hàng
+                    Danh sách biên nhận
                 </h3>
                 <div class="flex flex-wrap gap-2 lg:gap-5">
                     <div class="flex flex-wrap gap-2.5">
                         <select class="select select-sm w-40">
-                            <option selected="">
-                                Đang hoạt động
+                            <option selected>
+                                Tất cả biên nhận
                             </option>
-                            <option>
-                                Đã ẩn
+                            <option value="">Biên nhận cọc</option>
+                            <option value="">Tất toán</option>
+                            <option value="">Thưởng</option>
+                            <option value="">Khấu trừ</option>
+                        </select>
+                        <select class="select select-sm w-40">
+                            <option selected>
+                                Tất cả trạng thái
                             </option>
+                            <option value="">Chưa thanh toán</option>
+                            <option value="">Đã thanh toán</option>
+                            <option value="">Đã huỷ</option>
                         </select>
                     </div>
                 </div>
@@ -45,13 +54,25 @@
                                         #
                                     </th>
                                     <th class="text-gray-700 font-normal min-w-[250px]">
-                                        Tên
+                                        Mã hợp đồng
                                     </th>
                                     <th class="text-gray-700 font-normal min-w-[250px]">
-                                        Mô tả
+                                        Loại
+                                    </th>
+                                    <th class="text-gray-700 font-normal min-w-[200px]">
+                                        Giá tiền
+                                    </th>
+                                    <th class="text-gray-700 font-normal min-w-[200px]">
+                                        Phương thức thanh toán
+                                    </th>
+                                    <th class="text-gray-700 font-normal min-w-[200px]">
+                                        Hạn thanh toán
                                     </th>
                                     <th class="text-gray-700 font-normal min-w-[200px]">
                                         Trạng thái
+                                    </th>
+                                    <th class="text-gray-700 font-normal min-w-[200px]">
+                                        Ngày tạo
                                     </th>
                                     <th class="w-[60px]">
                                     </th>
@@ -74,9 +95,21 @@
                                             1901
                                         </a>
                                     </td>
-                                    <td class="text-sm text-gray-800 font-normal">Mới</td>
-                                    <td class="text-sm text-gray-800 font-normal">---</td>
-                                    <td class="text-sm text-gray-800 font-normal">Đang hoạt động</td>
+                                    <td class="text-gray-800 font-normal">
+                                        <a class="leading-none hover:text-primary" href="/customer/123">
+                                            3216
+                                        </a>
+                                    </td>
+                                    <td class="text-sm text-gray-800 font-normal">Biên nhận cọc</td>
+                                    <td class="text-sm text-gray-800 font-normal">200.000</td>
+                                    <td class="text-sm text-gray-800 font-normal">Tiền mặt</td>
+                                    <td class="text-sm text-gray-800 font-normal">16/12/2024</td>
+                                    <td class="text-sm text-gray-800 font-normal">
+                                        <span class="badge badge-sm badge-outline badge-success">
+                                            Đang hoàn tất
+                                        </span>
+                                    </td>
+                                    <td class="text-sm text-gray-800 font-normal">16/12/2024</td>
                                     <td class="w-[60px]">
                                         <div class="menu" data-menu="true">
                                             <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
@@ -86,6 +119,16 @@
                                                 </button>
                                                 <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
                                                     <div class="menu-item">
+                                                        <a class="menu-link" href="/member/123">
+                                                            <span class="menu-icon">
+                                                                <i class="ki-filled ki-shield-tick">
+                                                                </i>
+                                                            </span>
+                                                            <span class="menu-title">
+                                                                Xác nhận
+                                                            </span>
+                                                        </a>
+                                                        <div class="menu-separator"></div>
                                                         <a class="menu-link" href="/customer/123">
                                                             <span class="menu-icon">
                                                                 <i class="ki-filled ki-pencil">
@@ -95,13 +138,14 @@
                                                                 Chỉnh sửa
                                                             </span>
                                                         </a>
+                                                        <div class="menu-separator"></div>
                                                         <a class="menu-link" href="/customer/123">
                                                             <span class="menu-icon">
                                                                 <i class="ki-filled ki-shield-cross !text-red-600">
                                                                 </i>
                                                             </span>
                                                             <span class="menu-title !text-red-600">
-                                                                Ẩn
+                                                                Huỷ
                                                             </span>
                                                         </a>
                                                     </div>

@@ -4,7 +4,7 @@
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
-                Phân loại khách hàng
+               Quản lý hợp đồng
             </h1>
         </div>
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
@@ -20,19 +20,34 @@
         <div class="card card-grid min-w-full">
             <div class="card-header flex-wrap gap-2">
                 <h3 class="card-title">
-                    Dữ liệu khách hàng
+                    Danh sách hợp đồng
                 </h3>
-                <div class="flex flex-wrap gap-2 lg:gap-5">
+                <div class="flex flex-wrap gap-2">
                     <div class="flex flex-wrap gap-2.5">
                         <select class="select select-sm w-40">
                             <option selected="">
-                                Đang hoạt động
+                                Tất cả
                             </option>
                             <option>
-                                Đã ẩn
+                                Chờ ký
+                            </option>
+                            <option>
+                                Trì hoãn
+                            </option>
+                            <option>
+                                Đang chạy
+                            </option>
+                            <option>
+                                Đã hoàn tất
+                            </option>
+                            <option>
+                                Đã huỷ
                             </option>
                         </select>
                     </div>
+                    <a href="/contract/create-view" class="btn btn-primary btn-sm">
+                        Tạo hợp đồng
+                    </a>
                 </div>
             </div>
             <div class="card-body">
@@ -45,12 +60,18 @@
                                         #
                                     </th>
                                     <th class="text-gray-700 font-normal min-w-[250px]">
-                                        Tên
+                                        Tên khách hàng
                                     </th>
                                     <th class="text-gray-700 font-normal min-w-[250px]">
-                                        Mô tả
+                                        Nhân viên phụ trách
                                     </th>
-                                    <th class="text-gray-700 font-normal min-w-[200px]">
+                                    <th class="text-gray-700 font-normal">
+                                        Ngày tạo
+                                    </th>
+                                    <th class="text-gray-700 font-normal">
+                                        Dự kiến bàn giao
+                                    </th>
+                                    <th class="text-gray-700 font-normal">
                                         Trạng thái
                                     </th>
                                     <th class="w-[60px]">
@@ -70,13 +91,19 @@
                             <tbody>
                                 <tr>
                                     <td class="text-gray-800 font-normal">
-                                        <a class="leading-none hover:text-primary" href="/customer/123">
+                                        <a class="leading-none hover:text-primary" href="/contract/123">
                                             1901
                                         </a>
                                     </td>
-                                    <td class="text-sm text-gray-800 font-normal">Mới</td>
-                                    <td class="text-sm text-gray-800 font-normal">---</td>
-                                    <td class="text-sm text-gray-800 font-normal">Đang hoạt động</td>
+                                    <td class="text-sm text-gray-800 font-normal">Vũ Quang Sơn</td>
+                                    <td class="text-sm text-gray-800 font-normal">Nguyễn Trung Hiếu</td>
+                                    <td class="text-sm text-gray-800 font-normal">13/12/2024 10:44:14</td>
+                                    <td class="text-sm text-gray-800 font-normal">14/12/2024 07:00:00</td>
+                                    <td>
+                                        <span class="badge badge-sm badge-outline badge-warning">
+                                            Chờ ký
+                                        </span>
+                                    </td>
                                     <td class="w-[60px]">
                                         <div class="menu" data-menu="true">
                                             <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
@@ -86,22 +113,13 @@
                                                 </button>
                                                 <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
                                                     <div class="menu-item">
-                                                        <a class="menu-link" href="/customer/123">
+                                                        <a class="menu-link" href="/contract/123">
                                                             <span class="menu-icon">
                                                                 <i class="ki-filled ki-pencil">
                                                                 </i>
                                                             </span>
                                                             <span class="menu-title">
                                                                 Chỉnh sửa
-                                                            </span>
-                                                        </a>
-                                                        <a class="menu-link" href="/customer/123">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-shield-cross !text-red-600">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title !text-red-600">
-                                                                Ẩn
                                                             </span>
                                                         </a>
                                                     </div>

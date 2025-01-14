@@ -1,7 +1,6 @@
 @extends('dashboard.layouts.layout')
 @section('dashboard_content')
 <div class="pb-5">
-    <!-- Container -->
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
@@ -15,9 +14,7 @@
             </button>
         </div>
     </div>
-    <!-- End of Container -->
 </div>
-<!-- Container -->
 <div class="container-fixed">
     <div class="grid gap-5 lg:gap-7.5">
         <div class="card card-grid min-w-full">
@@ -25,9 +22,9 @@
                 <h3 class="card-title">
                     Danh sách bộ phận/phòng ban
                 </h3>
-                <div class="flex gap-6">
+                <div class="flex flex-wrap gap-2">
                     <label class="switch switch-sm">
-                        <input class="order-2" name="check" type="checkbox" value="1">
+                        <input class="order-2" id="filter-active" name="check" type="checkbox" value="1">
                         <span class="switch-label order-1">
                             Đang hoạt động
                         </span>
@@ -35,18 +32,21 @@
                     <div class="relative">
                         <i class="ki-filled ki-magnifier leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3">
                         </i>
-                        <input class="input input-sm ps-8" data-datatable-search="#teams_table" placeholder="Tìm kiếm" type="text">
+                        <input class="input input-sm ps-8" id="search-input" placeholder="Tìm kiếm" type="text">
                     </div>
+                    <a href="{{ route('dashboard.account.team.create') }}" class="btn btn-primary btn-sm">
+                        Thêm bộ phận
+                    </a>
                 </div>
             </div>
             <div class="card-body">
-                <div data-datatable="true" data-datatable-page-size="10" id="teams_table" class="datatable-initialized">
+                <div id="departments-table" class="datatable-initialized">
                     <div class="scrollable-x-auto">
-                        <table class="table table-fixed table-border" data-datatable-table="true">
+                        <table class="table table-fixed table-border">
                             <thead>
                                 <tr>
-                                    <th class="w-[60px] text-center">
-                                        <input class="checkbox checkbox-sm" data-datatable-check="true" type="checkbox">
+                                    <th class="w-[120px] text-center">
+                                        #
                                     </th>
                                     <th class="w-[350px]">
                                         <span class="sort asc">
@@ -88,115 +88,20 @@
                                     </th>
                                 </tr>
                             </thead>
-
-                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" data-datatable-spinner="true" style="display: none;">
+                            <div class="table-loading absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 hidden" data-datatable-spinner="true">
                                 <div class="flex items-center gap-2 px-4 py-2 font-medium leading-none text-2sm border border-gray-200 shadow-default rounded-md text-gray-500 bg-light">
                                     <svg class="animate-spin -ml-1 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Loading...
+                                    Đang tải...
                                 </div>
                             </div>
-                            <tbody>
-                                <tr>
-                                    <td class="text-center"><input class="checkbox checkbox-sm" data-datatable-row-check="true" type="checkbox" value="1"></td>
-                                    <td>
-                                        <div class="flex flex-col gap-1.5">
-                                            <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/team/123">
-                                                Phòng kinh doanh
-                                            </a>
-                                            <span class="text-2sm text-gray-700 font-normal">
-                                                Quan hệ khách hàng, thực hiện chiến lược bán hàng
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td class="text-sm text-gray-800 font-normal">09/11/2024</td>
-                                    <td>
-                                        <div class="flex -space-x-2">
-                                            <div class="flex">
-                                                <img class="hover:z-5 relative border border-gray-500 object-contain shrink-0 rounded-full ring-1 ring-light-light size-[30px]" src="{{asset('assets/images/logo/juva-rectangle.png')}}">
-                                            </div>
-                                            <div class="flex">
-                                                <span class="relative inline-flex items-center justify-center shrink-0 rounded-full ring-1 font-semibold leading-none text-3xs size-[30px] text-success-inverse ring-success-light bg-success">
-                                                    +10
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-pill badge-outline badge-success gap-1 items-center">
-                                            <span class="badge badge-dot size-1.5 badge-success">
-                                            </span>
-                                            Đang hoạt động
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="menu" data-menu="true">
-                                            <div class="menu-item" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
-                                                <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
-                                                    <i class="ki-filled ki-dots-vertical">
-                                                    </i>
-                                                </button>
-                                                <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true" style="">
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="/team/123">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-search-list">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title">
-                                                                Xem chi tiết
-                                                            </span>
-                                                        </a>
-                                                    </div>
-                                                    <div class="menu-separator">
-                                                    </div>
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="/team/123">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-pencil">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title">
-                                                                Chỉnh sửa
-                                                            </span>
-                                                        </a>
-                                                    </div>
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="#">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-copy">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title">
-                                                                Tạo bản sao
-                                                            </span>
-                                                        </a>
-                                                    </div>
-                                                    <div class="menu-separator">
-                                                    </div>
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="#">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-trash">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title">
-                                                                Xoá
-                                                            </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
                     <div class="card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-gray-600 text-2sm font-medium">
-                        <div class="flex items-center gap-2 order-2 md:order-1">
+                        <!-- <div class="flex items-center gap-2 order-2 md:order-1">
                             Hiển thị
                             <select class="select select-sm w-16" data-datatable-size="true" name="perpage">
                                 <option value="5">5</option>
@@ -212,12 +117,15 @@
                             <div class="pagination" data-datatable-pagination="true">
                                 <div class="pagination"><button class="btn disabled" disabled=""><i class="ki-outline ki-black-left rtl:transform rtl:rotate-180"></i></button><button class="btn active disabled" disabled="">1</button><button class="btn">2</button><button class="btn">3</button><button class="btn"><i class="ki-outline ki-black-right rtl:transform rtl:rotate-180"></i></button></div>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<!-- End of Container -->
+
 @endsection
+@push("scripts")
+<script type="text/javascript" src="{{ asset('assets\js\dashboard\account\employee\team\index.js')}}"></script>
+@endpush

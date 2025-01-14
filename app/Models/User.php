@@ -2,43 +2,47 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Model;
 
-class User extends Authenticatable
+class User extends Model
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    protected $table = 'tbl_users';
+
     protected $fillable = [
         'name',
+        'birth_date',
+        'phone',
         'email',
+        'address',
+        'gender',
+        'cccd',
+        'avatar',
+        'username',
         'password',
+        'salary',
+        'status',
+        'is_active',
+        'last_login',
+        'note',
+        'login_attempts',
+        'ended_at',
+        'created_at',
+        'updated_at'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    public function level()
+    {
+        return $this->belongsTo(Level::class, 'level_id', 'id')
+                    ->using(UserDepartment::class); // Dùng UserDepartment để kết nối thông qua pivot
+    }
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    public function departments()
+    {
+        return $this->belongsToMany(Department::class, 'tbl_user_departments', 'user_id', 'department_id')
+            ->withPivot('level_id', 'is_active')
+            ->wherePivot('is_active', 1);
+    }
 }

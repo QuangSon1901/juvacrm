@@ -4,7 +4,7 @@
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
-                Phân loại khách hàng
+                Loại hình dịch vụ
             </h1>
         </div>
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
@@ -20,16 +20,13 @@
         <div class="card card-grid min-w-full">
             <div class="card-header flex-wrap gap-2">
                 <h3 class="card-title">
-                    Dữ liệu khách hàng
+                    Danh sách dịch vụ
                 </h3>
                 <div class="flex flex-wrap gap-2 lg:gap-5">
                     <div class="flex flex-wrap gap-2.5">
                         <select class="select select-sm w-40">
-                            <option selected="">
-                                Đang hoạt động
-                            </option>
-                            <option>
-                                Đã ẩn
+                            <option selected>
+                                Chụp ảnh sản phẩm
                             </option>
                         </select>
                     </div>
@@ -74,7 +71,7 @@
                                             1901
                                         </a>
                                     </td>
-                                    <td class="text-sm text-gray-800 font-normal">Mới</td>
+                                    <td class="text-sm text-gray-800 font-normal">Flatrlay trắng Ng Lớn</td>
                                     <td class="text-sm text-gray-800 font-normal">---</td>
                                     <td class="text-sm text-gray-800 font-normal">Đang hoạt động</td>
                                     <td class="w-[60px]">

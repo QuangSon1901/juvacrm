@@ -33,7 +33,7 @@
                                         Họ tên
                                     </td>
                                     <td class="py-2 text-gray-800 text-sm">
-                                        Vũ Quang Sơn
+                                        {{$details['name']}}
                                     </td>
                                     <td class="py-2 text-center">
                                         <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
@@ -47,7 +47,7 @@
                                         Số điện thoại
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                        0123654789
+                                        {{$details['phone']}}
                                     </td>
                                     <td class="py-2 text-center">
                                         <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
@@ -61,7 +61,7 @@
                                         Email
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                        abc@gmail.com
+                                        {{$details['email']}}
                                     </td>
                                     <td class="py-2 text-center">
                                         <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
@@ -74,12 +74,13 @@
                                     <td class="py-2 text-gray-600 font-normal">
                                         Địa chỉ
                                     </td>
-                                    <td class="py-3 text-gray-300 text-sm font-normal">
-                                        Chưa có địa chỉ
+                                    <td class="py-3 text-gray-700 text-sm font-normal">
+                                        {{$details['address']}}
                                     </td>
-                                    <td class="py-3 text-center">
-                                        <a class="btn btn-link btn-sm" href="#">
-                                            Thêm
+                                    <td class="py-2 text-center">
+                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
                                         </a>
                                     </td>
                                 </tr>
@@ -87,12 +88,13 @@
                                     <td class="py-2 text-gray-600 font-normal">
                                         Ghi chú
                                     </td>
-                                    <td class="py-3 text-gray-300 text-sm font-normal">
-                                        Chưa có ghi chú
+                                    <td class="py-3 text-gray-700 text-sm font-normal">
+                                        {{$details['note']}}
                                     </td>
-                                    <td class="py-3 text-center">
-                                        <a class="btn btn-link btn-sm" href="#">
-                                            Thêm
+                                    <td class="py-2 text-center">
+                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
                                         </a>
                                     </td>
                                 </tr>
@@ -101,7 +103,7 @@
                                         Nguồn
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                        Facebook
+                                        {{$details['source']['name']}}
                                     </td>
                                     <td class="py-2 text-center">
                                         <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
@@ -115,7 +117,10 @@
                                         Hình thức liên hệ
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                        Nhắn tin FB
+                                        @foreach ($details['contacts'] as $contact)
+                                        {{$contact['name']}}
+                                        <br>
+                                        @endforeach
                                     </td>
                                     <td class="py-2 text-center">
                                         <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
@@ -129,13 +134,7 @@
                                         Lần tương tác gần nhất
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                        08:10 12/12/2024
-                                    </td>
-                                    <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
-                                        </a>
+                                        {{$contact['updated_at']}}
                                     </td>
                                 </tr>
                             </tbody>
@@ -156,7 +155,7 @@
                                         Tên công ty
                                     </td>
                                     <td class="py-2 text-gray-800 text-sm font-normal">
-                                        Juva
+                                        {{$details['company']}}
                                     </td>
                                     <td class="py-2 text-center">
                                         <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
@@ -165,7 +164,7 @@
                                         </a>
                                     </td>
                                 </tr>
-                                <tr>
+                                <!-- <tr>
                                     <td class="py-2 text-gray-600 font-normal">
                                         Ngành
                                     </td>
@@ -178,7 +177,7 @@
                                             </i>
                                         </a>
                                     </td>
-                                </tr>
+                                </tr> -->
                             </tbody>
                         </table>
                     </div>
@@ -199,13 +198,13 @@
                                 Tổng số hợp đồng:
                             </span>
                             <span class="checkbox-label text-gray-800">
-                                2 hợp đồng
+                                0 hợp đồng
                             </span>
                         </label>
                         <div class="flex items-center flex-wrap gap-2">
                             <div class="grid grid-cols-1 content-between gap-1.5 border border-dashed border-green-400 bg-green-100 shrink-0 rounded-md px-3.5 py-2 min-w-24 max-w-auto">
                                 <span class="text-green-900 text-md leading-none font-medium">
-                                    1
+                                    0
                                 </span>
                                 <span class="text-green-700 text-2sm">
                                     Hoàn thành
@@ -213,7 +212,7 @@
                             </div>
                             <div class="grid grid-cols-1 content-between gap-1.5 border border-dashed border-blue-400 bg-blue-100 shrink-0 rounded-md px-3.5 py-2 min-w-24 max-w-auto">
                                 <span class="text-blue-900 text-md leading-none font-medium">
-                                    1
+                                    0
                                 </span>
                                 <span class="text-blue-700 text-2sm">
                                     Đang thực hiện
@@ -233,7 +232,7 @@
                                 Tổng số dư tài chính:
                             </span>
                             <span class="checkbox-label text-gray-800">
-                                2.500.000 đ
+                                0 đ
                             </span>
                         </label>
                         <ul class="list-disc ml-4">
@@ -242,7 +241,7 @@
                                     Số tiền đã thu:
                                 </span>
                                 <span class="text-green-700 text-2sm font-medium">
-                                    2.000.000 đ
+                                    0 đ
                                 </span>
                             </li>
                             <li>
@@ -250,7 +249,7 @@
                                     Số tiền còn nợ:
                                 </span>
                                 <span class="text-red-700 text-2sm font-medium">
-                                    500.000 đ
+                                    0 đ
                                 </span>
                             </li>
                         </ul>
@@ -260,7 +259,7 @@
                             </span>
                         </label>
                         <ul class="list-disc ml-4">
-                            <li>
+                            <!-- <li>
                                 <span class="text-gray-800 text-2sm leading-none">
                                     Chuyển khoản ngân hàng
                                 </span>
@@ -269,7 +268,7 @@
                                 <span class="text-gray-800 text-2sm leading-none">
                                     Tiền mặt
                                 </span>
-                            </li>
+                            </li> -->
                         </ul>
                     </div>
                 </div>
@@ -281,12 +280,11 @@
                     </div>
                     <div class="card-body">
                         <div class="flex flex-wrap gap-2.5 mb-2">
+                            @foreach ($details['services'] as $service)
                             <span class="badge badge-sm badge-light badge-outline">
-                                Flatrlay trắng Ng Lớn
+                                {{$service['name']}}
                             </span>
-                            <span class="badge badge-sm badge-light badge-outline">
-                                Flaylay Concept Ng Lớn
-                            </span>
+                            @endforeach
                         </div>
                     </div>
                 </div>

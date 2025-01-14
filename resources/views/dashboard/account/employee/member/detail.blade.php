@@ -68,7 +68,7 @@
                                         Họ tên
                                     </td>
                                     <td class="py-2 text-gray-800 text-sm">
-                                        Vũ Quang Sơn
+                                        {{$details['name']}}
                                     </td>
                                     <td class="py-2 text-center">
                                         <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
@@ -82,8 +82,8 @@
                                         Trạng thái
                                     </td>
                                     <td class="py-3 text-gray-800 font-normal">
-                                        <span class="badge badge-sm badge-outline badge-success">
-                                            Đang hoạt động
+                                        <span class="badge badge-sm badge-outline badge-{{$details['status'] ? 'success' : 'danger'}}">
+                                            {{$details['is_active'] ? 'Đang hoạt động' : 'Đã khoá'}}
                                         </span>
                                     </td>
                                     <td class="py-3 text-center">
@@ -98,7 +98,7 @@
                                         Ngày sinh
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                        28/05/1996
+                                    {{$details['birth_date']}}
                                     </td>
                                     <td class="py-3 text-center">
                                         <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
@@ -112,7 +112,7 @@
                                         Giới tính
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                        Nam
+                                    {{$details['gender'] == 0 ? 'Nam' : 'Nữ'}}
                                     </td>
                                     <td class="py-3 text-center">
                                         <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
@@ -125,12 +125,13 @@
                                     <td class="py-2 text-gray-600 font-normal">
                                         CCCD/CMND
                                     </td>
-                                    <td class="py-3 text-gray-300 text-sm font-normal">
-                                        Nhân viên chưa có CCCD/CMND
+                                    <td class="py-3 text-gray-700 text-sm font-normal">
+                                    {{$details['cccd']}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-link btn-sm" href="#">
-                                            Thêm
+                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
                                         </a>
                                     </td>
                                 </tr>
@@ -138,12 +139,13 @@
                                     <td class="py-2 text-gray-600 font-normal">
                                         Địa chỉ
                                     </td>
-                                    <td class="py-3 text-gray-300 text-sm font-normal">
-                                        Nhân viên chưa có địa chỉ
+                                    <td class="py-3 text-gray-700 text-sm font-normal">
+                                    {{$details['address']}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-link btn-sm" href="#">
-                                            Thêm
+                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
                                         </a>
                                     </td>
                                 </tr>
@@ -152,11 +154,12 @@
                                         Lương cơ bản
                                     </td>
                                     <td class="py-3 text-gray-700 text-2sm font-normal">
-                                        7,000,000
+                                    {{$details['salary']}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-link btn-sm" href="#">
-                                            Thêm
+                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
                                         </a>
                                     </td>
                                 </tr>
@@ -165,7 +168,7 @@
                                         Ngày vào làm
                                     </td>
                                     <td class="py-3 text-gray-700 text-2sm font-normal">
-                                        05/11/2022
+                                    {{$details['created_at']}}
                                     </td>
                                 </tr>
                             </tbody>
@@ -187,7 +190,7 @@
                                     </td>
                                     <td class="min-w-60 w-full">
                                         <a class="text-gray-800 text-sm font-normal hover:text-primary-active" href="#">
-                                            JUVA000001
+                                        {{$details['username']}}
                                         </a>
                                     </td>
                                     <td class="text-center">
@@ -227,7 +230,7 @@
                                             Số điện thoại
                                         </a>
                                         <a class="text-2sm text-gray-700 hover:text-primary-active" href="#">
-                                            0123 456 789
+                                        {{$details['phone']}}
                                         </a>
                                     </div>
                                 </div>
@@ -244,7 +247,7 @@
                                             Gmail
                                         </a>
                                         <a class="text-2sm text-gray-700 hover:text-primary-active" href="#">
-                                            sonvq@nicetech.vn
+                                        {{$details['email']}}
                                         </a>
                                     </div>
                                 </div>
@@ -264,32 +267,21 @@
                     </div>
                     <div class="card-body">
                         <div class="flex flex-col gap-2 lg:gap-5">
+                            @foreach ($details['departments'] as $department)
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center grow gap-2.5">
                                     @include("dashboard.layouts.icons.gear")
                                     <div class="flex flex-col">
-                                        <a class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px" href="/team/123">
-                                            Phòng kinh doanh
+                                        <a class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px" href="/team/{{$department['id']}}">
+                                            {{$department['name']}}
                                         </a>
                                         <span class="text-xs font-semibold text-gray-600">
-                                            Trưởng phòng
+                                            {{$department['level_name']}}
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <div class="flex items-center grow gap-2.5">
-                                    @include("dashboard.layouts.icons.gear")
-                                    <div class="flex flex-col">
-                                        <a class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px" href="/team/123">
-                                            Phòng kỹ thuật
-                                        </a>
-                                        <span class="text-xs font-semibold text-gray-600">
-                                            Thành viên
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>

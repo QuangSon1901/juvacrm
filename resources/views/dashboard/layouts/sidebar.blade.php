@@ -86,21 +86,21 @@
                 </div>
                 <div class="menu-default menu-dropdown gap-0.5 w-[220px] scrollable-y-auto lg:overflow-visible max-h-[50vh]">
                     <div class="menu-item">
-                        <a class="menu-link" href="/">
+                        <a class="menu-link" href="{{route('dashboard.contract.contract')}}">
                             <span class="menu-title">
                                 Hợp đồng
                             </span>
                         </a>
                     </div>
                     <div class="menu-item">
-                        <a class="menu-link" href="/">
+                        <a class="menu-link" href="{{route('dashboard.service.services')}}">
                             <span class="menu-title">
                                 Loại hình dịch vụ
                             </span>
                         </a>
                     </div>
                     <div class="menu-item">
-                        <a class="menu-link" href="/">
+                        <a class="menu-link" href="{{route('dashboard.accounting.deposit-receipt.deposit-receipt')}}">
                             <span class="menu-title">
                                 Biên nhận cọc
                             </span>

@@ -23,7 +23,7 @@
                     Danh sách thành viên
                 </h3>
                 <div class="flex gap-6">
-                    <label class="switch switch-sm">
+                    <!-- <label class="switch switch-sm">
                         <input class="order-2" name="check" type="checkbox" value="1">
                         <span class="switch-label order-1">
                             Đang hoạt động
@@ -33,28 +33,10 @@
                         <i class="ki-filled ki-magnifier leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3">
                         </i>
                         <input class="input input-sm ps-8" placeholder="Tìm kiếm" type="text">
-                    </div>
-                    <div class="menu" data-menu="true">
-                        <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
-                            <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
-                                <i class="ki-filled ki-dots-vertical">
-                                </i>
-                            </button>
-                            <div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true">
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-icon">
-                                            <i class="ki-filled ki-plus">
-                                            </i>
-                                        </span>
-                                        <span class="menu-title">
-                                            Thêm thành viên
-                                        </span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    </div> -->
+                    <a href="/team/add-member/{{$details['department']->id}}" class="btn btn-light btn-sm">
+                        Thêm nhân viên
+                    </a>
                 </div>
             </div>
             <div class="card-body">
@@ -63,9 +45,6 @@
                         <table class="table table-auto table-border" data-datatable-table="true">
                             <thead>
                                 <tr>
-                                    <th class="w-[60px] text-center">
-                                        <input class="checkbox checkbox-sm" data-datatable-check="true" type="checkbox">
-                                    </th>
                                     <th class="min-w-[250px]">
                                         <span class="sort asc">
                                             <span class="sort-label text-gray-700 font-normal">
@@ -84,7 +63,7 @@
                                             </span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[120px]">
+                                    <!-- <th class="min-w-[120px]">
                                         <span class="sort">
                                             <span class="sort-label text-gray-700 font-normal">
                                                 Trạng thái
@@ -92,13 +71,13 @@
                                             <span class="sort-icon">
                                             </span>
                                         </span>
-                                    </th>
+                                    </th> -->
                                     <th class="w-[60px]">
                                     </th>
                                 </tr>
                             </thead>
 
-                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" data-datatable-spinner="true" style="display: none;">
+                            <!-- <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" data-datatable-spinner="true" style="display: none;">
                                 <div class="flex items-center gap-2 px-4 py-2 font-medium leading-none text-2sm border border-gray-200 shadow-default rounded-md text-gray-500 bg-light">
                                     <svg class="animate-spin -ml-1 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
@@ -106,21 +85,18 @@
                                     </svg>
                                     Loading...
                                 </div>
-                            </div>
+                            </div> -->
                             <tbody>
+                                @foreach($details['users'] as $user)
                                 <tr>
-                                    <td class="text-center"><input class="checkbox checkbox-sm" data-datatable-row-check="true" type="checkbox" value="1"></td>
                                     <td>
                                         <div class="flex items-center gap-2.5">
-                                            <div class="">
-                                                <img class="h-9 rounded-full object-contain" src="{{asset('assets/images/logo/juva-rectangle.png')}}">
-                                            </div>
                                             <div class="flex flex-col gap-0.5">
                                                 <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="#">
-                                                    Tyler Hero
+                                                    {{ $user['name'] }}
                                                 </a>
                                                 <span class="text-2sm text-gray-700 font-normal">
-                                                    26 tasks
+                                                    ###
                                                 </span>
                                             </div>
                                         </div>
@@ -128,14 +104,9 @@
                                     <td>
                                         <div class="flex items-center gap-1.5">
                                             <span class="leading-none text-gray-800 font-normal">
-                                                Trưởng phòng
+                                                {{ $user['level']['name'] }}
                                             </span>
                                         </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-pill badge-outline badge-success gap-1 items-center">
-                                            Đang hoạt động
-                                        </span>
                                     </td>
                                     <td>
                                         <div class="menu" data-menu="true">
@@ -144,7 +115,7 @@
                                                     <i class="ki-filled ki-dots-vertical">
                                                     </i>
                                                 </button>
-                                                <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true" style="">
+                                                <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
                                                     <div class="menu-item">
                                                         <a class="menu-link" href="#">
                                                             <span class="menu-icon">
@@ -159,31 +130,7 @@
                                                     <div class="menu-separator">
                                                     </div>
                                                     <div class="menu-item">
-                                                        <a class="menu-link" href="#">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-pencil">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title">
-                                                                Chỉnh sửa
-                                                            </span>
-                                                        </a>
-                                                    </div>
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="#">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-copy">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title">
-                                                                Tạo bản sao
-                                                            </span>
-                                                        </a>
-                                                    </div>
-                                                    <div class="menu-separator">
-                                                    </div>
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="#">
+                                                        <button class="menu-link" onclick="saveRemoveMemberTeam({{ $user['id'] }}, {{ $details['department']->id }})">
                                                             <span class="menu-icon">
                                                                 <i class="ki-filled ki-trash">
                                                                 </i>
@@ -191,17 +138,18 @@
                                                             <span class="menu-title">
                                                                 Gỡ
                                                             </span>
-                                                        </a>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
-                    <div class="card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-gray-600 text-2sm font-medium">
+                    <!-- <div class="card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-gray-600 text-2sm font-medium">
                         <div class="flex items-center gap-2 order-2 md:order-1">
                             Hiển thị
                             <select class="select select-sm w-16" data-datatable-size="true" name="perpage">
@@ -219,7 +167,7 @@
                                 <div class="pagination"><button class="btn disabled" disabled=""><i class="ki-outline ki-black-left rtl:transform rtl:rotate-180"></i></button><button class="btn active disabled" disabled="">1</button><button class="btn">2</button><button class="btn">3</button><button class="btn">...</button><button class="btn"><i class="ki-outline ki-black-right rtl:transform rtl:rotate-180"></i></button></div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
@@ -291,3 +239,26 @@
     </div>
 </div>
 @endsection
+@push("scripts")
+<script>
+    async function saveRemoveMemberTeam(user_id, department_id) {
+        let method = "post",
+            url = "/team/remove-member",
+            params = null,
+            data = {
+                user_id,
+                department_id
+            }
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                alert(res.data.message)
+                window.location.reload();
+                break;
+            default:
+                alert(res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
+                break;
+        }
+    }
+</script>
+@endpush
