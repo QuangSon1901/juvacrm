@@ -1,5 +1,5 @@
-@extends('dashboard.layouts.layout')
-@section('dashboard_content')
+{{-- @extends('dashboard.layouts.layout')
+@section('dashboard_content') --}}
 <div class="pb-5">
     <!-- Container -->
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
@@ -19,7 +19,9 @@
 </div>
 <div class="container-fixed">
     <div class="flex items-center justify-center">
-        <img src="http://127.0.0.1:8000/assets/images/icons/comingsoon.png" class="h-60" alt="">
+        <!-- <img src="http://127.0.0.1:8000/assets/images/icons/comingsoon.png" class="h-60" alt=""> -->
+        <img src="https://juvamedia.hcm.ss.bfcplatform.vn/uploads/iehabcsu2vbhfzeh4x43.jpg" style="height: 200px;" alt="">
+        <img src="https://res.cloudinary.com/drgvvh4sv/image/upload/v1713517957/iehabcsu2vbhfzeh4x43.jpg" style="height: 200px;" alt="">
     </div>
 </div>
-@endsection
+{{-- @endsection --}}

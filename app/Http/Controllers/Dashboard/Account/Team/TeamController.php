@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\Level;
 use App\Models\User;
 use App\Models\UserDepartment;
+use App\Services\PaginationService;
 use Illuminate\Http\Request;
 
 class TeamController extends Controller
@@ -15,7 +16,35 @@ class TeamController extends Controller
         return view("dashboard.account.employee.team.index");
     }
 
-    public function data(Request $request)
+    public function data(Request $request) {
+        $currentPage = $request->input('page', 1);
+        $query = Department::query()
+            ->isActive((int)$request['filter']['is_active'] ?? 0)
+            ->search($request['filter']['search'] ?? '');
+            
+        $paginationResult = PaginationService::paginate($query, $currentPage, TABLE_PERPAGE_NUM);
+        $offset = $paginationResult['sorter']['offset'];
+
+        $result = $paginationResult['data']->map(function ($department, $key) use ($offset) {
+            return [
+                'index' => $offset + $key + 1,
+                'id' => $department->id,
+                'name' => $department->name,
+                'updated_at' => $department->updated_at->format('d/m/Y H:i:s'),
+                'description' => $department->note,
+                'member_count' => $department->users->count(),
+                'status' => $department->is_active,
+            ];
+        });
+
+        return response()->json([
+            'status' => 200,
+            'content' => view('dashboard.account.employee.team.ajax-index', ['data' => $result])->render(),
+            'sorter' => $paginationResult['sorter'],
+        ]);
+    }
+
+    public function dataOld(Request $request)
     {
         $search = $request->input('search', '');
         $isActive = $request->input('is_active', null);

@@ -7,6 +7,7 @@ use App\Models\Consultation;
 use App\Models\ConsultationLog;
 use App\Models\Customer;
 use App\Models\Service;
+use App\Services\PaginationService;
 use Illuminate\Http\Request;
 
 class CustomerSupportController extends Controller
@@ -49,8 +50,46 @@ class CustomerSupportController extends Controller
         return view("dashboard.customer.support.consultation", ['details' => $result]);
     }
 
-    public function data(Request $request)
+    public function data(Request $request) {
+        $currentPage = $request->input('page', 1);
+        $search = $request->input('search', '');
+        $type = $request->input('lead') ? 'lead' : 'non-lead';
+
+        $customersQuery = Customer::query()
+            ->filterByType($type)
+            ->search($search);
+
+        $paginationResult = PaginationService::paginate($customersQuery, $currentPage, TABLE_PERPAGE_NUM);
+
+        $result = $paginationResult['data']->map(function ($customer) {
+            return [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'email' => $customer->email,
+                'phone' => $customer->phone,
+                'address' => $customer->address,
+                'services' => $customer->getServicesArray(),
+                'company' => $customer->company,
+                'status' => $customer->status,
+                'classification' => $customer->classification,
+                'source' => $customer->source,
+                'staff' => $customer->user,
+                'updated_at' => $customer->updated_at,
+            ];
+        });
+
+        return response()->json([
+            'status' => 200,
+            'content' => view('dashboard.customer.support.ajax-index', ['data' => $result])->render(),
+            'sorter' => $paginationResult['sorter'],
+        ]);
+    }
+
+    public function dataOld(Request $request)
     {
+        $currentPage = isset($request['page']) && is_numeric($request['page']) ? (int)$request['page'] - 1 : 0;
+        $offset = $currentPage * TABLE_PERPAGE_NUM;
+
         $search = $request->input('search', '');
 
         if ($request['lead']) {
@@ -65,7 +104,9 @@ class CustomerSupportController extends Controller
             });
         }
 
-        $result = $customers->get()->map(function ($customer) {
+        $totalRecord = $customers->count();
+
+        $result = $customers->offset($offset)->limit(TABLE_PERPAGE_NUM)->get()->map(function ($customer) {
             return [
                 'id' => $customer->id,
                 'name' => $customer->name,
@@ -82,7 +123,16 @@ class CustomerSupportController extends Controller
             ];
         });
 
-        return view("dashboard.customer.support.ajax-index", ['data' => $result]);
+        return response()->json([
+            'status' => 200,
+            'content' => view("dashboard.customer.support.ajax-index", ['data' => $result])->render(),
+            'sorter' => [
+                'perpage' => TABLE_PERPAGE_NUM,
+                'totalpages' => (int)ceil($totalRecord / TABLE_PERPAGE_NUM),
+                'sorterpage' => $currentPage + 1,
+                'sorterrecords' => $totalRecord,
+            ]
+        ]);
     }
 
     public function consultationCreate(Request $request) {

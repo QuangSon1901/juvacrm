@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\BizFlyController;
 use App\Http\Controllers\Dashboard\Account\Member\MemberController;
 use App\Http\Controllers\Dashboard\Account\Role\RoleController;
 use App\Http\Controllers\Dashboard\Account\Task\TaskController;
@@ -27,6 +28,14 @@ Route::group(
         Route::get('/login', [LoginController::class, "index"])->name("login");
     }
 );
+
+Route::get('/test', function() {
+    return response()->json(['url' => 'success'], 200);
+});
+
+Route::post('/upload', [BizFlyController::class, 'uploadFile'])->name('bizfly.upload');
+Route::get('/file-url/{key}', [BizFlyController::class, 'getFileUrl'])->name('bizfly.get_url');
+
 
 /************************************************** Group Dashboard **************************************************/
 Route::group(

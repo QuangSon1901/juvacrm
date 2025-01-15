@@ -30,4 +30,18 @@ class Department extends Model
             'user_id'        // Local key on tbl_user_departments
         )->where('tbl_user_departments.is_active', 1);
     }
+
+    public function scopeSearch($query, $search)
+    {
+        if (!empty($search)) return $query->where('name', 'like', "%$search%")->orWhere('note', 'like', "%$search%");;
+        return $query;
+    }
+
+    public function scopeIsActive($query, $type)
+    {
+        if ($type) {
+            return $query->where('is_active', 1);
+        };
+        return $query;
+    }
 }

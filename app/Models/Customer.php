@@ -8,11 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Customer extends Model
 {
     use HasFactory;
-
-    // Tên bảng trong database
     protected $table = 'tbl_customers';
-
-    // Các thuộc tính có thể gán (fillable)
     protected $fillable = [
         'name',
         'phone',
@@ -74,5 +70,17 @@ class Customer extends Model
         }
 
         return CustomerLead::whereIn('id', explode('|', $this->contact_methods))->where('type', 0)->get()->toArray();
+    }
+
+    public function scopeFilterByType($query, $type)
+    {
+        if ($type === 'lead') return $query->where('type', 0);
+        return $query->where('type', '!=', 0);
+    }
+
+    public function scopeSearch($query, $search)
+    {
+        if (!empty($search)) return $query->where('name', 'like', "%$search%");
+        return $query;
     }
 }
