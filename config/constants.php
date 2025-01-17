@@ -1,3 +1,47 @@
 <?php
 
 const TABLE_PERPAGE_NUM = 5;
+
+const ACCOUNT_CURRENT_SESSION = 'ACCOUNT_CURRENT_SESSION';
+
+const ADD_ENUM_TYPE = 'ADD';
+const REMOVE_ENUM_TYPE = 'REMOVE';
+
+const TASK_ENUM_LOG = 'TASK_ENUM_LOG';
+
+const MESSAGE_VALIDATE = [
+    'required' => ':attribute không được để trống',
+    'string' => ':attribute phải là chuỗi ký tự',
+    'integer' => ':attribute phải là số nguyên',
+    'numeric' => ':attribute phải là số',
+    'max' => ':attribute không được vượt quá :max ký tự',
+    'min' => ':attribute phải lớn hơn hoặc bằng :min',
+    'boolean' => ':attribute phải là true hoặc false',
+    'date' => ':attribute phải là một ngày hợp lệ',
+    'between' => ':attribute phải nằm trong khoảng :min đến :max',
+    'exists' => ':attribute không tồn tại trong hệ thống',
+];
+
+const FIELD_VALIDATE = [
+    'name' => 'Tên',
+    'description' => 'Mô tả',
+    'note' => 'Ghi chú',
+    'contract_id' => 'Hợp đồng',
+    'progress' => 'Tiến độ',
+    'service_id' => 'Dịch vụ',
+    'service_other' => 'Dịch vụ khác',
+    'priority_id' => 'Độ ưu tiên',
+    'status_id' => 'Trạng thái',
+    'issue_id' => 'Vấn đề',
+    'estimate_time' => 'Thời gian ước tính',
+    'spend_time' => 'Thời gian thực tế',
+    'due_date' => 'Hạn chót',
+    'parent_id' => 'Công việc cha',
+    'assign_id' => 'Người được giao',
+    'sub_name' => 'Tên phụ',
+    'start_date' => 'Ngày bắt đầu',
+    'bonus_amount' => 'Tiền thưởng',
+    'deduction_amount' => 'Tiền phạt',
+    'sub_task' => 'Chỉ mục',
+    'type' => 'Loại',
+];

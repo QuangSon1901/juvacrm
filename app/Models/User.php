@@ -4,8 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Model
+class User extends Authenticatable implements AuthenticatableContract
 {
     use HasFactory;
 
@@ -29,8 +31,11 @@ class User extends Model
         'note',
         'login_attempts',
         'ended_at',
-        'created_at',
-        'updated_at'
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     public function level()
@@ -44,5 +49,20 @@ class User extends Model
         return $this->belongsToMany(Department::class, 'tbl_user_departments', 'user_id', 'department_id')
             ->withPivot('level_id', 'is_active')
             ->wherePivot('is_active', 1);
+    }
+
+    
+    public function scopeSearch($query, $search)
+    {
+        if (!empty($search)) return $query->where('name', 'like', "%$search%")->orWhere('note', 'like', "%$search%");;
+        return $query;
+    }
+
+    public function scopeIsActive($query, $type)
+    {
+        if ($type) {
+            return $query->where('is_active', 1);
+        };
+        return $query;
     }
 }

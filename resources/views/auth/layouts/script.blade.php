@@ -1,29 +1,14 @@
+<!-- Core Theme -->
+<script src="{{asset('assets/js/core.bundle.js')}}"></script>
 
-    <!-- Required Jquery -->
-    <script type="text/javascript" src="{{asset('files\bower_components\jquery\js\jquery.min.js')}}"></script>
-    <script type="text/javascript" src="{{asset('files\bower_components\jquery-ui\js\jquery-ui.min.js')}}"></script>
-    <script type="text/javascript" src="{{asset('files\bower_components\popper.js\js\popper.min.js')}}"></script>
-    <script type="text/javascript" src="{{asset('files\bower_components\bootstrap\js\bootstrap.min.js')}}"></script>
-    <!-- jquery slimscroll js -->
-    <script type="text/javascript" src="{{asset('files\bower_components\jquery-slimscroll\js\jquery.slimscroll.js')}}"></script>
-    <!-- modernizr js -->
-    <script type="text/javascript" src="{{asset('files\bower_components\modernizr\js\modernizr.js')}}"></script>
-    <script type="text/javascript" src="{{asset('files\bower_components\modernizr\js\css-scrollbars.js')}}"></script>
-    <!-- i18next.min.js -->
-    <script type="text/javascript" src="{{asset('files\bower_components\i18next\js\i18next.min.js')}}"></script>
-    <script type="text/javascript" src="{{asset('files\bower_components\i18next-xhr-backend\js\i18nextXHRBackend.min.js')}}"></script>
-    <script type="text/javascript" src="{{asset('files\bower_components\i18next-browser-languagedetector\js\i18nextBrowserLanguageDetector.min.js')}}"></script>
-    <script type="text/javascript" src="{{asset('files\bower_components\jquery-i18next\js\jquery-i18next.min.js')}}"></script>
-    <script type="text/javascript" src="{{asset('files\assets\js\common-pages.js')}}"></script>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async="" src="https://www.googletagmanager.com/gtag/js?id=UA-23581568-13"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
+<!-- Moment JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment-with-locales.min.js" integrity="sha512-4F1cxYdMiAW98oomSLaygEwmCnIP38pb4Kx70yQYqRwLVCs3DbRumfBq82T08g/4LJ/smbFGFpmeFlQgoDccgg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag('js', new Date());
+<!-- Notiflix -->
+<script src="{{asset('assets/notiflix/dist/notiflix-3.2.8.min.js')}}"></script>
 
-        gtag('config', 'UA-23581568-13');
-    </script>
+<!-- JS -->
+<script src="{{asset('assets/js/global/index.js')}}"></script>
+<script src="{{asset('assets/js/global/tooltip.js')}}"></script>
+<script src="{{asset('assets/js/global/notify.js')}}"></script>
+<script src="{{asset('assets/js/global/axios.js')}}"></script>

@@ -125,6 +125,72 @@
                                                 </button>
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td>
+                                                <select class="select" name="employee">
+                                                    <option selected disabled>
+                                                        Chọn nhân viên
+                                                    </option>
+                                                    @foreach ($users as $user)
+                                                    <option value="{{$user['id']}}">{{$user['name']}}</option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center gap-2">
+                                                    <select class="select" name="level">
+                                                        <option selected disabled>
+                                                            Chọn chức vụ
+                                                        </option>
+                                                        @foreach ($levels as $level)
+                                                        <option value="{{$level['id']}}">{{$level['name']}}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <button class="input !w-max" data-modal-toggle="#create-level-modal">
+                                                        Thêm
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-icon btn-light btn-clear" onclick="removeRowLevelTable($(this))">
+                                                    <i class="ki-filled ki-trash !text-red-600">
+                                                    </i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <select class="select" name="employee">
+                                                    <option selected disabled>
+                                                        Chọn nhân viên
+                                                    </option>
+                                                    @foreach ($users as $user)
+                                                    <option value="{{$user['id']}}">{{$user['name']}}</option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center gap-2">
+                                                    <select class="select" name="level">
+                                                        <option selected disabled>
+                                                            Chọn chức vụ
+                                                        </option>
+                                                        @foreach ($levels as $level)
+                                                        <option value="{{$level['id']}}">{{$level['name']}}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <button class="input !w-max" data-modal-toggle="#create-level-modal">
+                                                        Thêm
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-icon btn-light btn-clear" onclick="removeRowLevelTable($(this))">
+                                                    <i class="ki-filled ki-trash !text-red-600">
+                                                    </i>
+                                                </button>
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>

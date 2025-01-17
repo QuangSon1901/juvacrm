@@ -5,7 +5,7 @@ $(document).ready(function () {
         let levelName = $('#create-level-modal input[type="text"]').val().trim();
 
         if (!levelName) {
-            alert('Vui lòng nhập tên chức vụ!');
+            showAlert('warning', 'Vui lòng nhập tên chức vụ!');
             return;
         }
 
@@ -73,7 +73,7 @@ async function saveAddMemberTeam(id) {
             }
         });
     } catch (error) {
-        alert("Vui lòng chọn thông tin nhân viên");
+        showAlert('warning', "Vui lòng chọn thông tin nhân viên");
         return;
     }
     let method = "post",
@@ -86,11 +86,11 @@ async function saveAddMemberTeam(id) {
     let res = await axiosTemplate(method, url, params, data);
     switch (res.data.status) {
         case 200:
-            alert(res.data.message)
-            window.location.reload();
+            showAlert('success', res.data.message)
+            window.location.href='/team/' + id;
             break;
         default:
-            alert(res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
+            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
             break;
     }
 }

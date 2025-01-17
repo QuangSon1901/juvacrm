@@ -1,4 +1,4 @@
-async function saveRemoveMemberTeam(user_id, department_id) {
+async function saveRemoveMemberTeam(user_id, department_id, _this) {
     let method = "post",
         url = "/team/remove-member",
         params = null,
@@ -9,11 +9,11 @@ async function saveRemoveMemberTeam(user_id, department_id) {
     let res = await axiosTemplate(method, url, params, data);
     switch (res.data.status) {
         case 200:
-            alert(res.data.message)
-            window.location.reload();
+            showAlert('success', res.data.message);
+            callAjaxDataTable(_this.closest('.card').find('.updater'));
             break;
         default:
-            alert(res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
+            showAlert('error', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
             break;
     }
 }
@@ -29,15 +29,14 @@ async function changeStatusDepartment(id) {
 
         switch (res.data.status) {
             case 200:
-                alert(res.data.message);
+                showAlert('success', res.data.message);
                 window.location.reload();
                 break;
             default:
-                alert("Đã có lỗi xảy ra!");
+                showAlert('warning', "Không thể thay đổi trạng thái. Vui lòng thử lại!");
                 break;
         }
     } catch (error) {
-        console.error("Error:", error);
-        alert("Không thể thay đổi trạng thái. Vui lòng thử lại!");
+        showAlert('error', "Đã có lỗi xảy ra!");
     }
 }

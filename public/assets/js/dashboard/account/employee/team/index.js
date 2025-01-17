@@ -1,4 +1,4 @@
-async function changeStatusDepartment(id) {
+async function changeStatusDepartment(id, _this) {
     let url = `/team/change-status/${id}`;
     let method = "post";
     let params = null;
@@ -9,15 +9,14 @@ async function changeStatusDepartment(id) {
 
         switch (res.data.status) {
             case 200:
-                alert(res.data.message);
-                window.location.reload();
+                showAlert('success', res.data.message);
+                callAjaxDataTable(_this.closest('.card').find('.updater'));
                 break;
             default:
-                alert("Đã có lỗi xảy ra!");
+                showAlert('warning', "Không thể thay đổi trạng thái. Vui lòng thử lại!");
                 break;
         }
     } catch (error) {
-        console.error("Error:", error);
-        alert("Không thể thay đổi trạng thái. Vui lòng thử lại!");
+        alert("Đã có lỗi xảy ra!");
     }
 }

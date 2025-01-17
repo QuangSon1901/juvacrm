@@ -1,6 +1,6 @@
 @layer utilities {
     .bg-custom-gradient {
-        background: linear-gradient(90deg, rgba(246,246,249,1) 0%, rgba(219,202,254,1) 80%, rgba(219,202,254,1) 100%);
+        background: linear-gradient(90deg, rgba(246, 246, 249, 1) 0%, rgba(219, 202, 254, 1) 80%, rgba(219, 202, 254, 1) 100%);
     }
 
     .dark .bg-custom-gradient {
@@ -38,6 +38,12 @@
     color: #721c24;
 }
 
+.alert-warning {
+    background-color: #fff3cd;
+    border: 1px solid #856404;
+    color: #856404;
+}
+
 .alert-info {
     background-color: #d1ecf1;
     border: 1px solid #0c5460;
@@ -52,11 +58,42 @@
     padding-left: 20px;
 }
 
+.ql-editor {
+    appearance: none;
+    box-shadow: none;
+    outline: none;
+    font-weight: 500;
+    font-size: .8125rem;
+    background-color: var(--tw-light-active);
+    border-radius: .375rem;
+    padding: .55rem .75rem;
+    border: 1px solid var(--tw-gray-300);
+    color: var(--tw-gray-700);
+}
+
+.ql-toolbar.ql-snow {
+    appearance: none;
+    box-shadow: none;
+    outline: none;
+    font-weight: 500;
+    font-size: .8125rem;
+    background-color: transparent;
+    border-radius: .375rem;
+    padding: .55rem .75rem;
+    border: 1px solid var(--tw-gray-300);
+    color: var(--tw-gray-700);
+}
+
+.ql-container.ql-snow {
+    border: none !important;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
         transform: translateY(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

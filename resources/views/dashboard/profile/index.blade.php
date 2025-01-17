@@ -1,7 +1,6 @@
 @extends('dashboard.layouts.layout')
 @section('dashboard_content')
 <div class="pb-5">
-    <!-- Container -->
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
@@ -15,12 +14,11 @@
             </button>
         </div>
     </div>
-    <!-- End of Container -->
 </div>
 <div class="container-fixed">
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 lg:gap-7.5">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <div class="col-span-2">
-            <div class="grid gap-5 lg:gap-7.5">
+            <div class="grid gap-5">
                 <div class="card min-w-full">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -69,14 +67,14 @@
                                     <td class="py-2 text-gray-600 font-normal">
                                         Họ tên
                                     </td>
-                                    <td class="py-2 text-gray-800 font-normaltext-sm">
-                                        Vũ Quang Sơn
+                                    <td class="py-2 text-gray-800 text-sm">
+                                        {{$details['name']}}
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="name">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -84,29 +82,24 @@
                                         Trạng thái
                                     </td>
                                     <td class="py-3 text-gray-800 font-normal">
-                                        <span class="badge badge-sm badge-outline badge-success">
-                                            Đang hoạt động
+                                        <span class="badge badge-sm badge-outline badge-{{$details['is_active'] ? 'success' : 'danger'}}">
+                                            {{$details['is_active'] ? 'Đang hoạt động' : 'Đã khoá'}}
                                         </span>
                                     </td>
-                                    <td class="py-3 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
-                                        </a>
-                                    </td>
+                                    <td class="py-3 text-center"></td>
                                 </tr>
                                 <tr>
                                     <td class="py-3 text-gray-600 font-normal">
                                         Ngày sinh
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                        28/05/1996
+                                        {{formatDateTime($details['birth_date'], 'd-m-Y', 'Y-m-d')}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="birth_date">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -114,55 +107,58 @@
                                         Giới tính
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                        Nam
+                                        {{$details['gender'] == 0 ? 'Nam' : 'Nữ'}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="gender">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="py-3">
+                                    <td class="py-2 text-gray-600 font-normal">
                                         CCCD/CMND
                                     </td>
-                                    <td class="py-3 text-gray-700 text-2sm font-normal">
-                                        Bạn chưa có CCCD/CMND
+                                    <td class="py-3 text-gray-700 text-sm font-normal">
+                                        {{$details['cccd'] ?? '---'}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-link btn-sm" href="#">
-                                            Thêm
-                                        </a>
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="cccd">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="py-3">
+                                    <td class="py-2 text-gray-600 font-normal">
                                         Địa chỉ
                                     </td>
-                                    <td class="py-3 text-gray-700 text-2sm font-normal">
-                                        Bạn chưa có địa chỉ
+                                    <td class="py-3 text-gray-700 text-sm font-normal">
+                                        {{$details['address'] ?? '---'}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-link btn-sm" href="#">
-                                            Thêm
-                                        </a>
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="address">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="py-3">
+                                    <td class="py-2 text-gray-600 font-normal">
                                         Lương cơ bản
                                     </td>
                                     <td class="py-3 text-gray-700 text-2sm font-normal">
-                                        7,000,000
+                                        {{formatCurrency($details['salary'] ?? '0')}}
                                     </td>
+                                    <td class="py-3 text-center"></td>
                                 </tr>
                                 <tr>
-                                    <td class="py-3">
+                                    <td class="py-2 text-gray-600 font-normal">
                                         Ngày vào làm
                                     </td>
                                     <td class="py-3 text-gray-700 text-2sm font-normal">
-                                        05/11/2022
+                                        {{formatDateTime($details['created_at'], 'd-m-Y')}}
                                     </td>
                                 </tr>
                             </tbody>
@@ -183,23 +179,24 @@
                                         Tài khoản
                                     </td>
                                     <td class="min-w-60 w-full">
-                                        <a class="text-gray-800 text-sm font-normal hover:text-primary-active" href="#">
-                                            JUVA000001
-                                        </a>
+                                        <span class="text-gray-800 text-sm font-normal">
+                                            {{$details['username']}}
+                                        </span>
                                     </td>
+                                    <td class="text-center"></td>
                                 </tr>
                                 <tr>
-                                    <td class="text-gray-600 font-normal">
+                                    <td class="min-w-56 text-gray-600 font-normal">
                                         Mật khẩu
                                     </td>
-                                    <td class="text-gray-700 font-normal text-2sm">
-                                        Mật khẩu được thay đổi lần cuối cách đây 2 tháng
+                                    <td class="py-3 text-gray-600 text-2sm font-normal">
+                                        <span>Mật khẩu sẽ không được hiển thị</span>
                                     </td>
                                     <td class="text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="password">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -209,7 +206,7 @@
             </div>
         </div>
         <div class="col-span-1">
-            <div class="grid gap-5 lg:gap-7.5">
+            <div class="grid gap-5">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -222,36 +219,62 @@
                                 <div class="flex items-center flex-wrap gap-3.5">
                                     <img alt="" class="size-6 shrink-0" src="{{asset('assets/images/icons/phone.webp')}}">
                                     <div class="flex flex-col">
-                                        <a class="text-sm font-medium text-gray-900 hover:text-primary-active mb-px" href="#">
+                                        <div class="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
                                             Số điện thoại
-                                        </a>
-                                        <a class="text-2sm text-gray-700 hover:text-primary-active" href="#">
-                                            0123 456 789
-                                        </a>
+                                        </div>
+                                        <div class="text-2sm text-gray-700 hover:text-primary-active">
+                                            {{$details['phone'] ?? '---'}}
+                                        </div>
                                     </div>
                                 </div>
-                                <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="phone">
                                     <i class="ki-filled ki-notepad-edit">
                                     </i>
-                                </a>
+                                </button>
                             </div>
                             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                                 <div class="flex items-center flex-wrap gap-3.5">
                                     <img alt="" class="size-6 shrink-0" src="{{asset('assets/images/icons/gmail.png')}}">
                                     <div class="flex flex-col">
-                                        <a class="text-sm font-medium text-gray-900 hover:text-primary-active mb-px" href="#">
+                                        <div class="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
                                             Gmail
-                                        </a>
-                                        <a class="text-2sm text-gray-700 hover:text-primary-active" href="#">
-                                            sonvq@nicetech.vn
-                                        </a>
+                                        </div>
+                                        <div class="text-2sm text-gray-700 hover:text-primary-active">
+                                            {{$details['email'] ?? '---'}}
+                                        </div>
                                     </div>
                                 </div>
-                                <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="email">
                                     <i class="ki-filled ki-notepad-edit">
                                     </i>
-                                </a>
+                                </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header gap-2">
+                        <h3 class="card-title">
+                            Phòng ban trực thuộc
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="flex flex-col gap-2 lg:gap-5">
+                            @foreach ($details['departments'] as $department)
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center grow gap-2.5">
+                                    @include("dashboard.layouts.icons.gear")
+                                    <div class="flex flex-col">
+                                        <a class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px" href="/team/{{$department['id']}}">
+                                            {{$department['name']}}
+                                        </a>
+                                        <span class="text-xs font-semibold text-gray-600">
+                                            {{$department['level_name']}}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -259,4 +282,85 @@
         </div>
     </div>
 </div>
+
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="update-member-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Cập nhật thông tin
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross">
+                </i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form class="grid gap-5 px-0 py-5" data-id="{{$details['id']}}">
+                <div class="flex flex-col gap-2.5">
+                    <input class="input hidden" name="name" type="text" placeholder="Vui lòng nhập họ tên mới">
+                    <input class="input hidden" name="birth_date" type="text" placeholder="Vui lòng nhập ngày sinh mới">
+                    <select name="gender" class="select hidden">
+                        <option value="" disabled selected>
+                            Chọn giới tính
+                        </option>
+                        <option value="0">
+                            Nam
+                        </option>
+                        <option value="1">
+                            Nữ
+                        </option>
+                    </select>
+                    <input class="input hidden" name="cccd" type="text" placeholder="Vui lòng nhập CCCD mới">
+                    <input class="input hidden" name="address" type="text" placeholder="Vui lòng nhập địa chỉ mới">
+                    <input class="input hidden" name="password" type="text" placeholder="Vui lòng nhập mật khẩu mới">
+                    <input class="input hidden" name="phone" type="text" placeholder="Vui lòng nhập số điện thoại mới">
+                    <input class="input hidden" name="email" type="text" placeholder="Vui lòng nhập email mới">
+                </div>
+                <div class="flex flex-col">
+                    <button type="submit" class="btn btn-primary justify-center">
+                        Xong
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
+@push('scripts')
+<script>
+    $(function() {
+        $('button[data-modal-toggle][data-name]').on('click', function() {
+            let _this = $(this);
+            let _modal = $('#update-member-modal');
+            _modal.find('input[name], select[name]').val('').addClass('hidden');
+
+            _modal.find(`input[name=${_this.attr('data-name')}], select[name=${_this.attr('data-name')}]`).removeClass('hidden');
+        })
+
+        $('#update-member-modal form').on('submit', function(e) {
+            e.preventDefault();
+            postUpdateProfile();
+        })
+    })
+
+    async function postUpdateProfile() {
+        let field = $('#update-member-modal form').find('input:not(.hidden),select:not(.hidden)');
+        let method = "post",
+            url = "/profile/update",
+            params = null,
+            data = {
+                [field.attr('name')]: field.val()
+            };
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                break;
+        }
+    }
+</script>
+@endpush

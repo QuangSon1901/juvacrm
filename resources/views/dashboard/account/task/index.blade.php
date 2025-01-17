@@ -28,29 +28,41 @@
                             <span class="switch-label">
                                 Công việc của tôi
                             </span>
-                            <input name="check" type="checkbox" value="1">
+                            <input name="check" data-filter="my_task" type="checkbox" value="1">
                         </label>
                     </div>
                     <div class="flex flex-wrap gap-2.5">
-                        <select class="select select-sm w-40">
-                            <option selected>
-                                Theo hợp đồng
+                        <select data-filter="level_task" class="select select-sm w-40">
+                            <option value="max" selected>
+                                Cấp cao nhất
                             </option>
-                            <option>
-                                Tất cả công việc
+                            <option value="min">
+                                Cấp nhỏ nhất
                             </option>
                         </select>
-                        <select class="select select-sm w-40">
-                            <option>
+                        <select data-filter="priority_task" class="select select-sm w-40">
+                            <option value="" selected>
+                                Tất cả mức độ
+                            </option>
+                            @foreach ($priorities as $priority)
+                            <option value="{{$priority['id']}}">
+                            {{$priority['name']}}
+                            </option>
+                            @endforeach
+                        </select>
+                        <select data-filter="status_task" class="select select-sm w-40">
+                            <option value="" selected>
                                 Tất cả trạng thái
                             </option>
-                            <option>
-                                Đang làm
+                            @foreach ($statuses as $status)
+                            <option value="{{$status['id']}}">
+                            {{$status['name']}}
                             </option>
-                            <option selected>
-                                Đã hoàn thành
-                            </option>
+                            @endforeach
                         </select>
+                        <a href="/task/create" class="btn btn-primary btn-sm">
+                            Thêm công việc
+                        </a>
                     </div>
                 </div>
             </div>
@@ -61,29 +73,23 @@
                             <thead>
                                 <tr>
                                     <th class="w-[100px]">
-                                        <span class="sort asc">
+                                        <span class="sort">
                                             <span class="sort-label">
-                                                #
-                                            </span>
-                                            <span class="sort-icon">
+                                                STT
                                             </span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[240px]">
+                                    <th class="min-w-[150px]">
                                         <span class="sort">
                                             <span class="sort-label">
-                                                Công việc
-                                            </span>
-                                            <span class="sort-icon">
+                                                Trạng thái
                                             </span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[240px]">
+                                    <th class="min-w-[300px]">
                                         <span class="sort">
                                             <span class="sort-label">
-                                                Mức độ ưu tiên
-                                            </span>
-                                            <span class="sort-icon">
+                                                Tên công việc
                                             </span>
                                         </span>
                                     </th>
@@ -92,25 +98,12 @@
                                             <span class="sort-label">
                                                 Người thực hiện
                                             </span>
-                                            <span class="sort-icon">
-                                            </span>
-                                        </span>
-                                    </th>
-                                    <th class="min-w-[240px]">
-                                        <span class="sort">
-                                            <span class="sort-label">
-                                                Trạng thái
-                                            </span>
-                                            <span class="sort-icon">
-                                            </span>
                                         </span>
                                     </th>
                                     <th class="min-w-[240px]">
                                         <span class="sort">
                                             <span class="sort-label">
                                                 Ngày bắt đầu
-                                            </span>
-                                            <span class="sort-icon">
                                             </span>
                                         </span>
                                     </th>
@@ -119,16 +112,12 @@
                                             <span class="sort-label">
                                                 Ngày kết thúc
                                             </span>
-                                            <span class="sort-icon">
-                                            </span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[240px]">
+                                    <th class="min-w-[150px]">
                                         <span class="sort">
                                             <span class="sort-label">
                                                 % hoàn thành
-                                            </span>
-                                            <span class="sort-icon">
                                             </span>
                                         </span>
                                     </th>
@@ -137,8 +126,6 @@
                                             <span class="sort-label">
                                                 Thời gian dự kiến
                                             </span>
-                                            <span class="sort-icon">
-                                            </span>
                                         </span>
                                     </th>
                                     <th class="min-w-[240px]">
@@ -146,111 +133,21 @@
                                             <span class="sort-label">
                                                 Thời gian thực hiện
                                             </span>
-                                            <span class="sort-icon">
-                                            </span>
                                         </span>
                                     </th>
                                     <th class="w-[60px]"></th>
                                 </tr>
                             </thead>
-                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" data-datatable-spinner="true" style="display: none;">
-                                <div class="flex items-center gap-2 px-4 py-2 font-medium leading-none text-2sm border border-gray-200 shadow-default rounded-md text-gray-500 bg-light">
-                                    <svg class="animate-spin -ml-1 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Loading...
-                                </div>
-                            </div>
-                            <tbody>
-                                <tr>
-                                    <td class="text-gray-800 font-normal">
-                                        <a class="leading-none hover:text-primary" href="/task/123">
-                                            1901
-                                        </a>
-                                    </td>
-                                    <td class="text-gray-800 font-normal">
-                                        <a class="leading-none hover:text-primary" href="/task/123">
-                                            1/10 - Juva - Anh Ngọc Khanh
-                                        </a>
-                                    </td>
-                                    <td class="text-gray-800 font-normal">
-                                        <span class="badge badge-sm badge-outline badge-success">
-                                            Tiêu chuẩn
-                                        </span>
-                                    </td>
-                                    <td class="text-gray-800 font-normal">
-                                        <a class="leading-none hover:text-primary" href="/task/123">
-                                            Quang Sơn
-                                        </a>
-                                    </td>
-                                    <td class="text-gray-800 font-normal">
-                                        <span class="badge badge-sm badge-outline badge-success">
-                                            Open
-                                        </span>
-                                    </td>
-                                    <td class="text-gray-800 font-normal"></td>
-                                    <td class="text-gray-800 font-normal"></td>
-                                    <td class="text-gray-800 font-normal"></td>
-                                    <td class="text-gray-800 font-normal"></td>
-                                    <td class="text-gray-800 font-normal"></td>
-                                    <td class="w-[60px]">
-                                        <div class="menu" data-menu="true">
-                                            <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
-                                                <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
-                                                    <i class="ki-filled ki-dots-vertical">
-                                                    </i>
-                                                </button>
-                                                <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true" style="">
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="/member/123">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-search-list">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title">
-                                                                Xem chi tiết
-                                                            </span>
-                                                        </a>
-                                                    </div>
-                                                    <div class="menu-separator">
-                                                    </div>
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="/member/123">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-pencil">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title">
-                                                                Chỉnh sửa
-                                                            </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
+                            @include('dashboard.layouts.tableloader', ['currentlist' => '/task-data'])
                         </table>
                     </div>
                     <div class="card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-gray-600 text-2sm font-medium">
                         <div class="flex items-center gap-2 order-2 md:order-1">
-                            Hiển thị
-                            <select class="select select-sm w-16" data-datatable-size="true" name="perpage">
-                                <option value="5">5</option>
-                                <option value="10">10</option>
-                                <option value="20">20</option>
-                                <option value="30">30</option>
-                                <option value="50">50</option>
-                            </select>
-                            mỗi trang
+                            Hiển thị {{TABLE_PERPAGE_NUM}} mỗi trang
                         </div>
                         <div class="flex items-center gap-4 order-1 md:order-2">
-                            <span data-datatable-info="true">1-10 trong 50</span>
-                            <div class="pagination" data-datatable-pagination="true">
-                                <div class="pagination"><button class="btn disabled" disabled=""><i class="ki-outline ki-black-left rtl:transform rtl:rotate-180"></i></button><button class="btn active disabled" disabled="">1</button><button class="btn">2</button><button class="btn">3</button><button class="btn">...</button><button class="btn"><i class="ki-outline ki-black-right rtl:transform rtl:rotate-180"></i></button></div>
-                            </div>
+                            <p><span class="sorterlow"></span> - <span class="sorterhigh"></span> trong <span class="sorterrecords"></span></p>
+                            <div class="pagination"></div>
                         </div>
                     </div>
                 </div>

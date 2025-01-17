@@ -23,7 +23,7 @@
                     Thông tin nhân viên
                 </h3>
             </div>
-            <form id="create-member-form" method="POST" action="/member/create" class="card-body grid gap-5">
+            <form id="create-member-form" class="card-body grid gap-5">
                 <div class="w-full">
                     <div class="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                         <label class="form-label flex items-center gap-1 max-w-56">
@@ -117,13 +117,13 @@
 </div>
 @endsection
 @push("actions")
-<button class="btn btn-success" onclick="saveCreateMember()">
+<button class="btn btn-success" onclick="postCreateMember()">
     Thêm nhân viên
 </button>
 @endpush
 @push('scripts')
 <script>
-    async function saveCreateMember() {
+    async function postCreateMember() {
         let method = "post",
             url = "/member/create",
             params = null,
@@ -131,11 +131,10 @@
         let res = await axiosTemplate(method, url, params, data);
         switch (res.data.status) {
             case 200:
-                alert(res.data.message)
-                window.location.reload();
+                Notiflix.Report.success(res.data.message, 'Mật khẩu mới: ' + res.data.data.password, 'Okay', () => {window.location.href='/member'});
                 break;
             default:
-                alert(res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
                 break;
         }
     }

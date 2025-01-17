@@ -1,44 +1,29 @@
-    <!-- Warning Section Starts -->
-    <!-- Older IE warning message -->
-    <!--[if lt IE 10]>
-<div class="ie-warning">
-    <h1>Warning!!</h1>
-    <p>You are using an outdated version of Internet Explorer, please upgrade <br/>to any of the following web browsers to access this website.</p>
-    <div class="iew-container">
-        <ul class="iew-download">
-            <li>
-                <a href="http://www.google.com/chrome/">
-                    <img src="{{asset('files/assets/images/browser/chrome.png')}}" alt="Chrome">
-                    <div>Chrome</div>
+<!-- Footer -->
+<footer class="footer">
+    <!-- Container -->
+    <div class="container-fixed">
+        <div class="flex flex-col md:flex-row justify-center md:justify-between items-center gap-3 py-5">
+            <div class="flex order-3 md:order-1 gap-2 font-normal text-2sm">
+                <span class="text-gray-500">
+                    2024©
+                </span>
+                <a class="text-gray-600 hover:text-primary" href="/">
+                    Juva CRM.
                 </a>
-            </li>
-            <li>
-                <a href="https://www.mozilla.org/en-US/firefox/new/">
-                    <img src="{{asset('files/assets/images/browser/firefox.png')}}" alt="Firefox">
-                    <div>Firefox</div>
+            </div>
+            <div class="flex order-1 md:order-2 items-center gap-2.5">
+                @stack('actions')
+            </div>
+            <nav class="flex order-2 md:order-3 gap-4 font-normal text-2sm text-gray-600">
+                <a class="hover:text-primary" href="/">
+                    NiceTechVN
                 </a>
-            </li>
-            <li>
-                <a href="http://www.opera.com">
-                    <img src="{{asset('files/assets/images/browser/opera.png')}}" alt="Opera">
-                    <div>Opera</div>
+                <a class="hover:text-primary" href="/">
+                    Hỗ trợ
                 </a>
-            </li>
-            <li>
-                <a href="https://www.apple.com/safari/">
-                    <img src="{{asset('files/assets/images/browser/safari.png')}}" alt="Safari">
-                    <div>Safari</div>
-                </a>
-            </li>
-            <li>
-                <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">
-                    <img src="{{asset('files/assets/images/browser/ie.png')}}" alt="">
-                    <div>IE (9 & above)</div>
-                </a>
-            </li>
-        </ul>
+            </nav>
+        </div>
     </div>
-    <p>Sorry for the inconvenience!</p>
-</div>
-<![endif]-->
-    <!-- Warning Section Ends -->
+    <!-- End of Container -->
+</footer>
+<!-- End of Footer -->

@@ -12,16 +12,18 @@ use Illuminate\Http\Request;
 
 class TeamController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         return view("dashboard.account.employee.team.index");
     }
 
-    public function data(Request $request) {
+    public function data(Request $request)
+    {
         $currentPage = $request->input('page', 1);
         $query = Department::query()
             ->isActive((int)$request['filter']['is_active'] ?? 0)
             ->search($request['filter']['search'] ?? '');
-            
+
         $paginationResult = PaginationService::paginate($query, $currentPage, TABLE_PERPAGE_NUM);
         $offset = $paginationResult['sorter']['offset'];
 
@@ -44,64 +46,20 @@ class TeamController extends Controller
         ]);
     }
 
-    public function dataOld(Request $request)
+    public function employeeByDepartment($id, Request $request)
     {
-        $search = $request->input('search', '');
-        $isActive = $request->input('is_active', null);
-
-        $query = Department::with(['users']);
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%$search%")
-                    ->orWhere('note', 'like', "%$search%");
-            });
-        }
-
-        if ($isActive !== null) {
-            $query->where('is_active', $isActive);
-        }
-
-        $departments = $query->get()->map(function ($department) {
-            return [
-                'id' => $department->id,
-                'name' => $department->name,
-                'updated_at' => $department->updated_at->format('d/m/Y H:i:s'),
-                'description' => $department->note,
-                'member_count' => $department->users->count(),
-                'status' => $department->is_active,
-            ];
-        });
-
-        return [
-            "status" => 200,
-            "data" => $departments
-        ];
-    }
-
-    public function employeeByDepartment($id, Request $request) {
-        $search = $request->input('search', '');
-        $isActive = $request->input('is_active', null);
+        $currentPage = $request->input('page', 1);
 
         $query = UserDepartment::with(['user', 'level'])
             ->where('department_id', $id)
             ->where('is_active', 1);
-            
 
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%$search%")
-                    ->orWhere('note', 'like', "%$search%");
-            });
-        }
+        $paginationResult = PaginationService::paginate($query, $currentPage, TABLE_PERPAGE_NUM);
+        $offset = $paginationResult['sorter']['offset'];
 
-        if ($isActive !== null) {
-            $query->where('is_active', $isActive);
-        }
-
-
-        $users = $query->get()->map(function ($item) {
+        $result = $paginationResult['data']->map(function ($item, $key) use ($offset) {
             return [
+                'index' => $offset + $key + 1,
                 'id' => $item->user->id,
                 'name' => $item->user->name,
                 'level' => [
@@ -111,10 +69,11 @@ class TeamController extends Controller
             ];
         });
 
-        return [
-            "status" => 200,
-            "data" => $users
-        ];
+        return response()->json([
+            'status' => 200,
+            'content' => view('dashboard.account.employee.team.ajax-detail', ['data' => $result, 'department_id' => $id])->render(),
+            'sorter' => $paginationResult['sorter'],
+        ]);
     }
 
     public function detail($id)
@@ -124,35 +83,20 @@ class TeamController extends Controller
             return abort(404, 'Phòng ban không tồn tại.');
         }
 
-        $usersDetail = UserDepartment::with(['user', 'level'])
+        $levelsDetail = UserDepartment::selectRaw('department_id, level_id, COUNT(*) as total')
             ->where('department_id', $id)
             ->where('is_active', 1)
+            ->groupBy('level_id', 'department_id')
+            ->with(['level', 'department'])
             ->get()
             ->map(function ($item) {
                 return [
-                    'id' => $item->user->id,
-                    'name' => $item->user->name,
-                    'level' => [
-                        'id' => $item->level->id,
-                        'name' => $item->level->name,
-                    ],
+                    'id' => $item->level->id,
+                    'department_id' => $item->department->id,
+                    'name' => $item->level->name,
+                    'total' => $item->total,
                 ];
             });
-
-        $levelsDetail = UserDepartment::selectRaw('department_id, level_id, COUNT(*) as total')
-        ->where('department_id', $id)
-        ->where('is_active', 1)
-        ->groupBy('level_id', 'department_id')
-        ->with(['level', 'department'])
-        ->get()
-        ->map(function ($item) {
-            return [
-                'id' => $item->level->id,
-                'department_id' => $item->department->id,
-                'name' => $item->level->name,
-                'total' => $item->total,
-            ];
-        });
 
         $users = User::select('id', 'name')->get();
         $levels = Level::select('id', 'name')->get();
@@ -161,8 +105,7 @@ class TeamController extends Controller
         return view('dashboard.account.employee.team.detail', [
             'details' => [
                 'department' => $department,
-                'levels' => $levelsDetail,
-                'users' => $usersDetail
+                'levels' => $levelsDetail
             ],
             'levels' => $levels,
             'users' => $users
@@ -177,39 +120,47 @@ class TeamController extends Controller
         return view("dashboard.account.employee.team.create", ["users" => $users, "levels" => $levels]);
     }
 
-    public function createPost(Request $request) {
-        $department = Department::create([
-            'name' => $request['name'],
-            'note' => $request['note'] ?? null,
-            'is_active' => 1,
-        ]);
-
-        foreach ($request['users'] as $user) {
-            $levelId = $user['level']['id'];
-
-            if ($levelId == -1) {
-                $level = Level::create([
-                    'name' => $user['level']['name']
-                ]);
-                $levelId = $level->id;
-            }
-
-            UserDepartment::create([
-                'user_id' => $user['id'],
-                'department_id' => $department->id,
-                'level_id' => $levelId,
+    public function createPost(Request $request)
+    {
+        try {
+            $department = Department::create([
+                'name' => $request['name'],
+                'note' => $request['note'] ?? null,
                 'is_active' => 1,
             ]);
-        }
 
-        return response()->json([
-            'status' => 200,
-            'message' => 'Phòng ban và người dùng đã được lưu thành công!',
-            'department' => $department,
-        ]);
+            foreach ($request['users'] as $user) {
+                $levelId = $user['level']['id'];
+
+                if ($levelId == -1) {
+                    $level = Level::create([
+                        'name' => $user['level']['name']
+                    ]);
+                    $levelId = $level->id;
+                }
+
+                UserDepartment::create([
+                    'user_id' => $user['id'],
+                    'department_id' => $department->id,
+                    'level_id' => $levelId,
+                    'is_active' => 1,
+                ]);
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Phòng ban và người dùng đã được lưu thành công!',
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Có lỗi xảy ra!',
+            ]);
+        }
     }
 
-    public function addMemberView($id) {
+    public function addMemberView($id)
+    {
         $users = User::select('id', 'name')->get();
         $levels = Level::select('id', 'name')->get();
 
@@ -218,42 +169,50 @@ class TeamController extends Controller
         return view("dashboard.account.employee.team.addmember", ["users" => $users, "levels" => $levels, 'department' => $department]);
     }
 
-    public function addMemberSave(Request $request) {
-        $department = Department::find($request['id']);
-        if (!$department) {
-            return response()->json(['status' => 404, 'message' => 'Phòng ban không tồn tại.'], 404);
-        }
-
-        if (!isset($request['users']) || count($request['users']) == 0) {
-            return response()->json(['status' => 404, 'message' => 'Chưa chọn thành viên.'], 404);
-        }
-
-        foreach ($request['users'] as $user) {
-            $levelId = $user['level']['id'];
-
-            if ($levelId == -1) {
-                $level = Level::create([
-                    'name' => $user['level']['name']
-                ]);
-                $levelId = $level->id;
+    public function addMemberSave(Request $request)
+    {
+        try {
+            $department = Department::find($request['id']);
+            if (!$department) {
+                return response()->json(['status' => 404, 'message' => 'Phòng ban không tồn tại.'], 404);
             }
 
-            UserDepartment::create([
-                'user_id' => $user['id'],
-                'department_id' => $department->id,
-                'level_id' => $levelId,
-                'is_active' => 1,
+            if (!isset($request['users']) || count($request['users']) == 0) {
+                return response()->json(['status' => 404, 'message' => 'Chưa chọn thành viên.'], 404);
+            }
+
+            foreach ($request['users'] as $user) {
+                $levelId = $user['level']['id'];
+
+                if ($levelId == -1) {
+                    $level = Level::create([
+                        'name' => $user['level']['name']
+                    ]);
+                    $levelId = $level->id;
+                }
+
+                UserDepartment::create([
+                    'user_id' => $user['id'],
+                    'department_id' => $department->id,
+                    'level_id' => $levelId,
+                    'is_active' => 1,
+                ]);
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Thêm thành viên thành công!',
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Có lỗi xảy ra!',
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'message' => 'Thêm thành viên thành công!',
-            'department' => $department,
-        ]);
     }
 
-    public function removeMember(Request $request) {
+    public function removeMember(Request $request)
+    {
 
         try {
             $userDepartment = UserDepartment::where('user_id', $request->user_id)
@@ -278,9 +237,9 @@ class TeamController extends Controller
         }
     }
 
-    public function update(Request $request) {
+    public function update(Request $request)
+    {
         try {
-            // Tìm phòng ban theo ID
             $department = Department::find($request['id']);
 
             if (!$department) {
@@ -290,7 +249,6 @@ class TeamController extends Controller
                 ], 404);
             }
 
-            // Cập nhật thông tin theo các trường có trong request
             $data = $request->only(['name', 'note']);
             $department->update($data);
 
@@ -308,7 +266,8 @@ class TeamController extends Controller
         }
     }
 
-    public function changeStatus($id) {
+    public function changeStatus($id)
+    {
         $department = Department::find($id);
         if (!$department) {
             return response()->json(['status' => 404, 'message' => 'Phòng ban không tồn tại.'], 404);

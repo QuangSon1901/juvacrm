@@ -5,7 +5,7 @@ $(document).ready(function () {
         let levelName = $('#create-level-modal input[type="text"]').val().trim();
 
         if (!levelName) {
-            alert('Vui lòng nhập tên chức vụ!');
+            showAlert('warning', 'Vui lòng nhập tên chức vụ!');
             return;
         }
 
@@ -61,6 +61,14 @@ function removeRowLevelTable(_this) {
 }
 
 async function saveCreateTeam() {
+    let name = $("#info-team-table input[name='name-team']").val().trim(),
+        note = $("#info-team-table input[name='note-team']").val().trim();
+
+    if (!name) {
+        showAlert('warning', 'Vui lòng nhập tên phòng ban!');
+        return;
+    }
+
     let users = [];
     try {
         $('#members-table tbody tr').each(function () {
@@ -73,25 +81,25 @@ async function saveCreateTeam() {
             }
         });
     } catch (error) {
-        alert("Vui lòng chọn thông tin nhân viên");
+        showAlert('warning', 'Vui lòng chọn thông tin nhân viên!');
         return;
     }
     let method = "post",
         url = "/team/create",
         params = null,
         data = {
-            name: $("#info-team-table input[name='name-team']").val(),
-            note: $("#info-team-table input[name='note-team']").val(),
+            name,
+            note,
             users
         }
     let res = await axiosTemplate(method, url, params, data);
     switch (res.data.status) {
         case 200:
-            alert(res.data.message)
-            window.location.reload();
+            showAlert('success', res.data.message);
+            window.location.href='/team';
             break;
         default:
-            alert(res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
+            showAlert('error', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
             break;
     }
 }

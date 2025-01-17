@@ -71,10 +71,10 @@
                                         {{$details['name']}}
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="name">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -82,29 +82,24 @@
                                         Trạng thái
                                     </td>
                                     <td class="py-3 text-gray-800 font-normal">
-                                        <span class="badge badge-sm badge-outline badge-{{$details['status'] ? 'success' : 'danger'}}">
+                                        <span class="badge badge-sm badge-outline badge-{{$details['is_active'] ? 'success' : 'danger'}}">
                                             {{$details['is_active'] ? 'Đang hoạt động' : 'Đã khoá'}}
                                         </span>
                                     </td>
-                                    <td class="py-3 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
-                                        </a>
-                                    </td>
+                                    <td class="py-3 text-center"></td>
                                 </tr>
                                 <tr>
                                     <td class="py-3 text-gray-600 font-normal">
                                         Ngày sinh
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                    {{$details['birth_date']}}
+                                        {{formatDateTime($details['birth_date'], 'd-m-Y', 'Y-m-d')}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="birth_date">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -112,13 +107,13 @@
                                         Giới tính
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                    {{$details['gender'] == 0 ? 'Nam' : 'Nữ'}}
+                                        {{$details['gender'] == 0 ? 'Nam' : 'Nữ'}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="gender">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -126,13 +121,13 @@
                                         CCCD/CMND
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                    {{$details['cccd']}}
+                                        {{$details['cccd'] ?? '---'}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="cccd">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -140,13 +135,13 @@
                                         Địa chỉ
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                    {{$details['address']}}
+                                        {{$details['address'] ?? '---'}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="address">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -154,13 +149,13 @@
                                         Lương cơ bản
                                     </td>
                                     <td class="py-3 text-gray-700 text-2sm font-normal">
-                                    {{$details['salary']}}
+                                        {{formatCurrency($details['salary'] ?? 0)}}
                                     </td>
                                     <td class="py-3 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="salary">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -168,7 +163,7 @@
                                         Ngày vào làm
                                     </td>
                                     <td class="py-3 text-gray-700 text-2sm font-normal">
-                                    {{$details['created_at']}}
+                                        {{formatDateTime($details['created_at'], 'd-m-Y')}}
                                     </td>
                                 </tr>
                             </tbody>
@@ -189,20 +184,20 @@
                                         Tài khoản
                                     </td>
                                     <td class="min-w-60 w-full">
-                                        <a class="text-gray-800 text-sm font-normal hover:text-primary-active" href="#">
-                                        {{$details['username']}}
-                                        </a>
+                                        <span class="text-gray-800 text-sm font-normal">
+                                            {{$details['username']}}
+                                        </span>
                                     </td>
                                     <td class="text-center">
                                         <div class="flex items-center">
-                                            <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                            <button data-tooltip="Đặt lại mật khẩu" class="reset-password-btn btn btn-xs btn-icon btn-clear btn-primary" data-id="{{$details['id']}}">
                                                 <i class="ki-filled ki-key">
                                                 </i>
-                                            </a>
-                                            <a class="btn btn-sm btn-icon btn-clear btn-danger" href="#">
+                                            </button>
+                                            <button data-tooltip="{{$details['is_active'] ? 'Khoá tài khoản' : 'Mở khoá'}}" class="lock-account-btn btn btn-sm btn-icon btn-clear btn-danger" data-id="{{$details['id']}}">
                                                 <i class="ki-filled ki-lock">
                                                 </i>
-                                            </a>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -226,35 +221,35 @@
                                 <div class="flex items-center flex-wrap gap-3.5">
                                     <img alt="" class="size-6 shrink-0" src="{{asset('assets/images/icons/phone.webp')}}">
                                     <div class="flex flex-col">
-                                        <a class="text-sm font-medium text-gray-900 hover:text-primary-active mb-px" href="#">
+                                        <div class="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
                                             Số điện thoại
-                                        </a>
-                                        <a class="text-2sm text-gray-700 hover:text-primary-active" href="#">
-                                        {{$details['phone']}}
-                                        </a>
+                                        </div>
+                                        <div class="text-2sm text-gray-700 hover:text-primary-active">
+                                            {{$details['phone'] ?? '---'}}
+                                        </div>
                                     </div>
                                 </div>
-                                <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="phone">
                                     <i class="ki-filled ki-notepad-edit">
                                     </i>
-                                </a>
+                                </button>
                             </div>
                             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                                 <div class="flex items-center flex-wrap gap-3.5">
                                     <img alt="" class="size-6 shrink-0" src="{{asset('assets/images/icons/gmail.png')}}">
                                     <div class="flex flex-col">
-                                        <a class="text-sm font-medium text-gray-900 hover:text-primary-active mb-px" href="#">
+                                        <div class="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
                                             Gmail
-                                        </a>
-                                        <a class="text-2sm text-gray-700 hover:text-primary-active" href="#">
-                                        {{$details['email']}}
-                                        </a>
+                                        </div>
+                                        <div class="text-2sm text-gray-700 hover:text-primary-active">
+                                            {{$details['email'] ?? '---'}}
+                                        </div>
                                     </div>
                                 </div>
-                                <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="email">
                                     <i class="ki-filled ki-notepad-edit">
                                     </i>
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -289,4 +284,150 @@
         </div>
     </div>
 </div>
+
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="update-member-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Cập nhật thông tin
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross">
+                </i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form class="grid gap-5 px-0 py-5" data-id="{{$details['id']}}">
+                <div class="flex flex-col gap-2.5">
+                    <input class="input hidden" name="name" type="text" placeholder="Vui lòng nhập họ tên mới">
+                    <input class="input hidden" name="birth_date" type="text" placeholder="Vui lòng nhập ngày sinh mới">
+                    <select name="gender" class="select hidden">
+                        <option value="" disabled selected>
+                            Chọn giới tính
+                        </option>
+                        <option value="0">
+                            Nam
+                        </option>
+                        <option value="1">
+                            Nữ
+                        </option>
+                    </select>
+                    <input class="input hidden" name="cccd" type="text" placeholder="Vui lòng nhập CCCD mới">
+                    <input class="input hidden" name="address" type="text" placeholder="Vui lòng nhập địa chỉ mới">
+                    <input class="input hidden" name="salary" type="text" placeholder="Vui lòng nhập mức lương mới">
+                    <input class="input hidden" name="phone" type="text" placeholder="Vui lòng nhập số điện thoại mới">
+                    <input class="input hidden" name="email" type="text" placeholder="Vui lòng nhập email mới">
+                </div>
+                <div class="flex flex-col">
+                    <button type="submit" class="btn btn-primary justify-center">
+                        Xong
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
+@push('scripts')
+<script>
+    $(function() {
+        $(document).on('click', '.reset-password-btn', function() {
+            Notiflix.Confirm.show(
+                'Đặt lại mật khẩu',
+                'Bạn muốn đặt lại mật khẩu cho tài khoản này?',
+                'Đúng',
+                'Huỷ',
+                () => {
+                    postResetPasswordUser($(this).attr('data-id'));
+                },
+                () => {}, {},
+            );
+        })
+
+        $(document).on('click', '.lock-account-btn', function() {
+            let _this = $(this);
+            Notiflix.Confirm.show(
+                "{{$details['is_active'] ? 'Khoá tài khoản' : 'Mở khoá'}}",
+                "{{$details['is_active'] ? 'Bạn muốn khoá tài khoản này?' : 'Bạn muốn mở khoá tài khoản này?'}}",
+                'Đúng',
+                'Huỷ',
+                () => {
+                    postLockAccountUser($(this).attr('data-id'), _this);
+                },
+                () => {}, {},
+            );
+        })
+
+        $('button[data-modal-toggle][data-name]').on('click', function() {
+            let _this = $(this);
+            let _modal = $('#update-member-modal');
+            _modal.find('input[name], select[name]').val('').addClass('hidden');
+
+            _modal.find(`input[name=${_this.attr('data-name')}], select[name=${_this.attr('data-name')}]`).removeClass('hidden');
+        })
+
+        $('#update-member-modal form').on('submit', function(e) {
+            e.preventDefault();
+            postUpdateMember($(this).attr('data-id'), $(this));
+        })
+    })
+
+    async function postResetPasswordUser(id) {
+        let method = "post",
+            url = "/member/reset-password",
+            params = null,
+            data = {
+                id
+            };
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                Notiflix.Report.success(res.data.message, 'Mật khẩu mới: ' + res.data.data.password, 'Okay');
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
+                break;
+        }
+    }
+
+    async function postLockAccountUser(id, _this) {
+        let method = "post",
+            url = "/member/lock-account",
+            params = null,
+            data = {
+                id
+            };
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message)
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
+                break;
+        }
+    }
+
+    async function postUpdateMember(id, _this) {
+        let field = $('#update-member-modal form').find('input:not(.hidden),select:not(.hidden)');
+        let method = "post",
+            url = "/member/update",
+            params = null,
+            data = {
+                id: "{{$details['id']}}",
+                [field.attr('name')]: field.val()
+            };
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                break;
+        }
+    }
+</script>
+@endpush

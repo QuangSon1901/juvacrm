@@ -20,7 +20,7 @@
                     </span>
                 </a>
             </div>
-            <div class="menu-item" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
+            <div class="menu-item {{ isActiveRoute(['dashboard.customer.support.customer-support', 'dashboard.customer.client.customer-leads', 'dashboard.customer.manage.leads', 'dashboard.customer.manage.customer-type']) }}" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
                 <div class="menu-link rounded-[9px] border border-transparent menu-item-here:border-gray-200 menu-item-here:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2 grow">
                     <span class="menu-icon menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary text-gray-600">
                         <i class="ki-filled ki-address-book text-1.5xl">
@@ -452,17 +452,17 @@
                             <img alt="" class="size-9 rounded-full border-2 border-success" src="{{asset('assets/images/logo/favicon.png')}}">
                             <div class="flex flex-col gap-1.5">
                                 <span class="text-sm text-gray-800 font-semibold leading-none">
-                                    Juva Web
+                                    {{Session::get(ACCOUNT_CURRENT_SESSION)['name']}}
                                 </span>
-                                <a class="text-xs text-gray-600 hover:text-primary font-medium leading-none" href="/">
-                                    juvaweb@gmail.com
-                                </a>
+                                <span class="text-xs text-gray-600 font-medium leading-none">
+                                {{Session::get(ACCOUNT_CURRENT_SESSION)['email']}}
+                                </span>
                             </div>
                             </img>
                         </div>
-                        <span class="badge badge-xs badge-primary badge-outline">
+                        <!-- <span class="badge badge-xs badge-primary badge-outline">
                             Admin
-                        </span>
+                        </span> -->
                     </div>
                     <div class="menu-separator">
                     </div>
@@ -511,7 +511,7 @@
                             </div>
                             <div class="menu-dropdown menu-default light:border-gray-300 w-full max-w-[170px]">
                                 <div class="menu-item active">
-                                    <a class="menu-link h-10" href="?dir=ltr">
+                                    <button class="menu-link h-10">
                                         <span class="menu-icon">
                                             <svg class="size-4" enable-background="new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
                                                 <circle cx="256" cy="256" fill="#d80027" r="256" />
@@ -540,9 +540,9 @@
                                             <i class="ki-solid ki-check-circle text-success text-base">
                                             </i>
                                         </span>
-                                    </a>
+                                    </button>
                                 </div>
-                                <div class="menu-item">
+                                <!-- <div class="menu-item">
                                     <a class="menu-link h-10" href="?dir=rtl">
                                         <span class="menu-icon">
                                             <svg class="size-4" enable-background="new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
@@ -575,7 +575,7 @@
                                             English
                                         </span>
                                     </a>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                         <div class="menu-item">
@@ -609,9 +609,10 @@
                             </div>
                         </div>
                         <div class="menu-item px-4 py-1.5">
-                            <a class="btn btn-sm btn-light justify-center" href="/">
-                                Log out
-                            </a>
+                            <form class="w-full" action="{{ route('auth.logout') }}" method="POST">
+                                @csrf
+                                <button class="btn btn-sm btn-light justify-center w-full" type="submit">Đăng xuất</button>
+                            </form>
                         </div>
                     </div>
                 </div>

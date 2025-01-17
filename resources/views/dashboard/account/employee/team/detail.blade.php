@@ -1,5 +1,8 @@
 @extends('dashboard.layouts.layout')
 @section('dashboard_content')
+@php
+    $departmentID = $details['department']->id;
+@endphp
 <div class="pb-5">
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
@@ -69,7 +72,7 @@
                                         {{ $details['department']->name }}
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary info-department-action" data-name="name" data-modal-toggle="#update-info-department-modal">
+                                        <a class="btn btn-xs btn-icon btn-clear btn-primary info-department-action" data-name="name" data-modal-toggle="#update-info-department-modal">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </a>
@@ -80,10 +83,10 @@
                                         Ghi chú
                                     </td>
                                     <td class="py-2 text-gray-700 font-normal">
-                                        {{ $details['department']->note }}
+                                        {{ $details['department']->note ?? '---' }}
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary info-department-action" data-name="note" data-modal-toggle="#update-info-department-modal">
+                                        <a class="btn btn-xs btn-icon btn-clear btn-primary info-department-action" data-name="note" data-modal-toggle="#update-info-department-modal">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </a>
@@ -115,152 +118,51 @@
                         <h3 class="card-title">
                             Danh sách thành viên
                         </h3>
-                        <div class="flex gap-6">
-                            <!-- <label class="switch switch-sm">
-                                <input class="order-2" name="check" type="checkbox" value="1">
-                                <span class="switch-label order-1">
-                                    Đang hoạt động
-                                </span>
-                            </label>
-                            <div class="relative">
-                                <i class="ki-filled ki-magnifier leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3">
-                                </i>
-                                <input class="input input-sm ps-8" placeholder="Tìm kiếm" type="text">
-                            </div> -->
-                            <a href="/team/add-member/{{$details['department']->id}}" class="btn btn-light btn-sm">
+                        <div class="flex flex-wrap gap-2">
+                            <a href="/team/add-member/{{$details['department']->id}}" class="btn btn-primary btn-sm">
                                 Thêm nhân viên
                             </a>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div data-datatable="true" data-datatable-page-size="5" class="datatable-initialized">
+                        <div class="datatable-initialized">
                             <div class="scrollable-x-auto">
-                                <table class="table table-auto table-border" data-datatable-table="true">
+                                <table class="table table-auto table-border">
                                     <thead>
                                         <tr>
+                                            <th class="w-[60px] text-center">
+                                                STT
+                                            </th>
                                             <th class="min-w-[250px]">
-                                                <span class="sort asc">
+                                                <span class="sort">
                                                     <span class="sort-label text-gray-700 font-normal">
                                                         Thành viên
                                                     </span>
-                                                    <span class="sort-icon">
-                                                    </span>
                                                 </span>
                                             </th>
                                             <th class="min-w-[250px]">
-                                                <span class="sort asc">
+                                                <span class="sort">
                                                     <span class="sort-label text-gray-700 font-normal">
                                                         Chức vụ
                                                     </span>
-                                                    <span class="sort-icon">
-                                                    </span>
                                                 </span>
                                             </th>
-                                            <!-- <th class="min-w-[120px]">
-                                                <span class="sort">
-                                                    <span class="sort-label text-gray-700 font-normal">
-                                                        Trạng thái
-                                                    </span>
-                                                    <span class="sort-icon">
-                                                    </span>
-                                                </span>
-                                            </th> -->
                                             <th class="w-[60px]">
                                             </th>
                                         </tr>
                                     </thead>
-
-                                    <!-- <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" data-datatable-spinner="true" style="display: none;">
-                                        <div class="flex items-center gap-2 px-4 py-2 font-medium leading-none text-2sm border border-gray-200 shadow-default rounded-md text-gray-500 bg-light">
-                                            <svg class="animate-spin -ml-1 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            Loading...
-                                        </div>
-                                    </div> -->
-                                    <tbody>
-                                        @foreach($details['users'] as $user)
-                                        <tr>
-                                            <td>
-                                                <div class="flex items-center gap-2.5">
-                                                    <div class="flex flex-col gap-0.5">
-                                                        <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="#">
-                                                            {{ $user['name'] }}
-                                                        </a>
-                                                        <span class="text-2sm text-gray-700 font-normal">
-                                                            ###
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="flex items-center gap-1.5">
-                                                    <span class="leading-none text-gray-800 font-normal">
-                                                        {{ $user['level']['name'] }}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="menu" data-menu="true">
-                                                    <div class="menu-item" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
-                                                        <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
-                                                            <i class="ki-filled ki-dots-vertical">
-                                                            </i>
-                                                        </button>
-                                                        <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
-                                                            <div class="menu-item">
-                                                                <a class="menu-link" href="#">
-                                                                    <span class="menu-icon">
-                                                                        <i class="ki-filled ki-search-list">
-                                                                        </i>
-                                                                    </span>
-                                                                    <span class="menu-title">
-                                                                        Xem chi tiết
-                                                                    </span>
-                                                                </a>
-                                                            </div>
-                                                            <div class="menu-separator">
-                                                            </div>
-                                                            <div class="menu-item">
-                                                                <button class="menu-link" onclick="saveRemoveMemberTeam({{ $user['id'] }}, {{ $details['department']->id }})">
-                                                                    <span class="menu-icon">
-                                                                        <i class="ki-filled ki-trash">
-                                                                        </i>
-                                                                    </span>
-                                                                    <span class="menu-title">
-                                                                        Gỡ
-                                                                    </span>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
+                                    @include('dashboard.layouts.tableloader', ['currentlist' => "/team/employee-by-department/$departmentID"])
                                 </table>
                             </div>
-                            <!-- <div class="card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-gray-600 text-2sm font-medium">
+                            <div class="card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-gray-600 text-2sm font-medium">
                                 <div class="flex items-center gap-2 order-2 md:order-1">
-                                    Hiển thị
-                                    <select class="select select-sm w-16" data-datatable-size="true" name="perpage">
-                                        <option value="5">5</option>
-                                        <option value="10">10</option>
-                                        <option value="20">20</option>
-                                        <option value="30">30</option>
-                                        <option value="50">50</option>
-                                    </select>
-                                    mỗi trang
+                                    Hiển thị {{TABLE_PERPAGE_NUM}} mỗi trang
                                 </div>
                                 <div class="flex items-center gap-4 order-1 md:order-2">
-                                    <span data-datatable-info="true">1-5 trong 33</span>
-                                    <div class="pagination" data-datatable-pagination="true">
-                                        <div class="pagination"><button class="btn disabled" disabled=""><i class="ki-outline ki-black-left rtl:transform rtl:rotate-180"></i></button><button class="btn active disabled" disabled="">1</button><button class="btn">2</button><button class="btn">3</button><button class="btn">...</button><button class="btn"><i class="ki-outline ki-black-right rtl:transform rtl:rotate-180"></i></button></div>
-                                    </div>
+                                    <p><span class="sorterlow"></span> - <span class="sorterhigh"></span> trong <span class="sorterrecords"></span></p>
+                                    <div class="pagination"></div>
                                 </div>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -385,7 +287,7 @@
             let infoValue = $(this).find('input[name=info-value]').val().trim();
 
             if (!infoValue) {
-                alert('Vui lòng nhập thay đổi!');
+                showAlert('warning', 'Vui lòng nhập thay đổi!');
                 return;
             }
 
@@ -399,11 +301,11 @@
             let res = await axiosTemplate(method, url, params, data);
             switch (res.data.status) {
                 case 200:
-                    alert(res.data.message)
+                    showAlert('success', res.data.message)
                     window.location.reload();
                     break;
                 default:
-                    alert(res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
+                    showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
                     break;
             }
         })

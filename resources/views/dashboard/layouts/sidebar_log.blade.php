@@ -1430,9 +1430,10 @@
                             </div>
                         </div>
                         <div class="menu-item px-4 py-1.5">
-                            <a class="btn btn-sm btn-light justify-center" href="/metronic/tailwind/demo8/authentication/classic/sign-in">
-                                Log out
-                            </a>
+                            <form action="{{ route('auth.logout') }}" method="POST">
+                                @csrf
+                                <button class="btn btn-sm btn-light justify-center" type="submit">Đăng xuất</button>
+                            </form>
                         </div>
                     </div>
                 </div>

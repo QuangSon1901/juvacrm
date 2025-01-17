@@ -36,7 +36,7 @@
                                         {{$details['name']}}
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <a class="btn btn-xs btn-icon btn-clear btn-primary" href="#">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </a>
@@ -50,7 +50,7 @@
                                         {{$details['phone']}}
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <a class="btn btn-xs btn-icon btn-clear btn-primary" href="#">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </a>
@@ -64,7 +64,7 @@
                                         {{$details['email']}}
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <a class="btn btn-xs btn-icon btn-clear btn-primary" href="#">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </a>
@@ -78,7 +78,7 @@
                                         {{$details['address']}}
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <a class="btn btn-xs btn-icon btn-clear btn-primary" href="#">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </a>
@@ -92,7 +92,7 @@
                                         {{$details['note']}}
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <a class="btn btn-xs btn-icon btn-clear btn-primary" href="#">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </a>
@@ -106,7 +106,7 @@
                                         {{$details['source']['name']}}
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <a class="btn btn-xs btn-icon btn-clear btn-primary" href="#">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </a>
@@ -123,7 +123,7 @@
                                         @endforeach
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <a class="btn btn-xs btn-icon btn-clear btn-primary" href="#">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </a>
@@ -158,7 +158,7 @@
                                         {{$details['company']}}
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <a class="btn btn-xs btn-icon btn-clear btn-primary" href="#">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </a>
@@ -172,7 +172,7 @@
                                         Media
                                     </td>
                                     <td class="py-2 text-center">
-                                        <a class="btn btn-sm btn-icon btn-clear btn-primary" href="#">
+                                        <a class="btn btn-xs btn-icon btn-clear btn-primary" href="#">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </a>

@@ -37,7 +37,7 @@
 </div>
 <!-- Pre-loader end -->
 <script>
-    $(".theme-loader").delay(500).fadeOut(500, function() {
+    $(".theme-loader").delay(200).fadeOut(200, function() {
         $(this).remove();
     });
 </script>

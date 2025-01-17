@@ -19,27 +19,37 @@ use App\Http\Controllers\Dashboard\Profile\ProfileController;
 use App\Http\Controllers\Dashboard\Setting\SettingController;
 use App\Http\Controllers\Dashboard\Customer\Support\CustomerSupportController;
 use App\Http\Controllers\Dashboard\Service\ServiceController;
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\RedirectIfAuthenticated;
 use Illuminate\Support\Facades\Route;
 
 /************************************************** Group Auth **************************************************/
 Route::group(
     ['namespace' => 'Auth', 'as' => 'auth.', 'middleware' => []],
     function () {
-        Route::get('/login', [LoginController::class, "index"])->name("login");
+        Route::group(
+            ['middleware' => [RedirectIfAuthenticated::class]],
+            function () {
+                Route::get('/login', [LoginController::class, "index"])->name("login");
+                Route::post('/login', [LoginController::class, "login"])->name("login.post");
+            }
+        );
+
+        Route::post('/logout', [LoginController::class, "logout"])->name("logout");
     }
 );
 
-Route::get('/test', function() {
-    return response()->json(['url' => 'success'], 200);
-});
+// Route::get('/test', function() {
+//     return response()->json(['url' => 'success'], 200);
+// });
 
-Route::post('/upload', [BizFlyController::class, 'uploadFile'])->name('bizfly.upload');
-Route::get('/file-url/{key}', [BizFlyController::class, 'getFileUrl'])->name('bizfly.get_url');
+// Route::post('/upload', [BizFlyController::class, 'uploadFile'])->name('bizfly.upload');
+// Route::get('/file-url/{key}', [BizFlyController::class, 'getFileUrl'])->name('bizfly.get_url');
 
 
 /************************************************** Group Dashboard **************************************************/
 Route::group(
-    ['namespace' => 'Dashboard', 'as' => 'dashboard.', 'middleware' => []],
+    ['namespace' => 'Dashboard', 'as' => 'dashboard.', 'middleware' => [Authenticate::class]],
     function () {
 
 
@@ -104,6 +114,7 @@ Route::group(
                     function () {
                         Route::get('/team', [TeamController::class, "index"])->name("team");
                         Route::get('/team/data', [TeamController::class, "data"])->name("data");
+                        Route::get('/team/employee-by-department/{id}', [TeamController::class, "employeeByDepartment"])->name("employeeByDepartment");
                         Route::get('/team/create', [TeamController::class, "create"])->name("create");
                         Route::post('/team/create', [TeamController::class, "createPost"])->name("createPost");
                         Route::post('/team/change-status/{id}', [TeamController::class, "changeStatus"])->name("changeStatus");
@@ -122,6 +133,7 @@ Route::group(
                     ['namespace' => 'Role', 'as' => 'role.', 'middleware' => []],
                     function () {
                         Route::get('/role/{level_id}/{department_id}', [RoleController::class, "detail"])->name("detail");
+                        Route::get('/role/employee-in-role', [RoleController::class, "memberInRole"])->name("memberInRole");
                     }
                 );
 
@@ -132,6 +144,9 @@ Route::group(
                         Route::get('/member/data', [MemberController::class, "data"])->name("data");
                         Route::get('/member/create-view', [MemberController::class, "createView"])->name("createView");
                         Route::post('/member/create', [MemberController::class, "create"])->name("create");
+                        Route::post('/member/update', [MemberController::class, "update"])->name("update");
+                        Route::post('/member/reset-password', [MemberController::class, "resetPassword"])->name("resetPassword");
+                        Route::post('/member/lock-account', [MemberController::class, "lockAccount"])->name("lockAccount");
                         Route::get('/member/{id}', [MemberController::class, "detail"])->name("detail");
                     }
                 );
@@ -147,8 +162,14 @@ Route::group(
                     ['namespace' => 'Task', 'as' => 'task.', 'middleware' => []],
                     function () {
                         Route::get('/task', [TaskController::class, "index"])->name("task");
-                        Route::get('/task/{slug}', [TaskController::class, "detail"])->name("detail");
+                        Route::get('/task-data', [TaskController::class, "data"])->name("task-data");
+                        Route::get('/task/create', [TaskController::class, "createView"])->name("task-create-view");
+                        Route::post('/task/create', [TaskController::class, "create"])->name("task-create-post");
+                        Route::post('/task/update', [TaskController::class, "update"])->name("task-update");
+                        Route::post('/task/add-comment', [TaskController::class, "addComment"])->name("task-add-comment");
+                        Route::post('/task/update-sub-task', [TaskController::class, "updateSubTask"])->name("task-update-sub-task");
                         Route::get('/config-task', [TaskController::class, "config"])->name("config");
+                        Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
                     }
                 );
 
@@ -171,6 +192,7 @@ Route::group(
             ['namespace' => 'Profile', 'as' => 'profile.', 'middleware' => []],
             function () {
                 Route::get('/profile', [ProfileController::class, "index"])->name("profile");
+                Route::post('/profile/update', [ProfileController::class, "update"])->name("update");
             }
         );
 

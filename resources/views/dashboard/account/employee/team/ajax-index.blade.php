@@ -8,10 +8,10 @@
     <td>
         <div class="flex flex-col gap-1.5">
             <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/team/{{$item['id']}}">
-            <span class="text-primary text-xs">#{{$item['id']}}:</span> {{$item['name']}}
+            {{$item['name']}}
             </a>
             <span class="text-2sm text-gray-700 font-normal">
-            {{$item['description']}}
+            <span class="text-primary">ID: {{$item['id']}}</span> {{$item['description']}}
             </span>
         </div>
     </td>
@@ -23,13 +23,9 @@
     {{$item['member_count']}} thành viên
     @endif
 </td>
-    <td>
-        <span class="badge badge-pill badge-outline badge-{{$item['status'] ? 'success' : 'danger'}} gap-1 items-center">
-            <span class="badge badge-dot size-1.5 badge-{{$item['status'] ? 'success' : 'danger'}}">
-            </span>
+    <td><span class="badge badge-sm badge-outline badge-{{$item['status'] ? 'success' : 'danger'}}">
             {{$item['status'] ? 'Đang hoạt động' : 'Đã ẩn'}}
-        </span>
-    </td>
+        </span></td>
     <td>
         <div class="menu" data-menu="true">
             <div class="menu-item" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
@@ -65,7 +61,7 @@
                     <div class="menu-separator">
                     </div>
                     <div class="menu-item">
-                        <a class="menu-link" onclick="changeStatusDepartment({{$item['id']}})">
+                        <a class="menu-link" onclick="changeStatusDepartment({{$item['id']}}, $(this))">
                             <span class="menu-icon">
                                 <i class="ki-filled ki-shield-cross">
                                 </i>

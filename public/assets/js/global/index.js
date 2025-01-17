@@ -7,7 +7,7 @@ $(function() {
         callAjaxDataTable(_updater);
     })
 
-    $(document).on('change', 'input[type=checkbox][data-filter], select', function() {
+    $(document).on('change', 'input[type=checkbox][data-filter], select[data-filter]', function() {
         let _updater = $(this).closest('.card').find('.updater');
         callAjaxDataTable(_updater);
     })

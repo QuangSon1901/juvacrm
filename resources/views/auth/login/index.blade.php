@@ -1,51 +1,71 @@
 @extends('auth.layouts.layout')
 @section('auth_content')
-<section class="login-block">
-    <!-- Container-fluid starts -->
-    <div class="container">
-        <div class="row">
-            <div class="col-sm-12">
-                <!-- Authentication card start -->
-
-                <form class="md-float-material form-material">
-
-                    <div class="auth-box card">
-                        <div class="card-block">
-                            <div class="row m-b-20">
-                                <div class="col-md-12">
-                                    <div class="text-center">
-                                        <img style="max-width: 200px;" src="{{asset('files\assets\logo\juva-rectangle.png')}}" alt="Juva CRM">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group form-primary">
-                                <input type="text" name="username" class="form-control" required="" placeholder="Tài khoản">
-                                <span class="form-bar"></span>
-                            </div>
-                            <div class="form-group form-primary">
-                                <input type="password" name="password" class="form-control" required="" placeholder="Mật khẩu">
-                                <span class="form-bar"></span>
-                            </div>
-                            <div class="row m-t-30">
-                                <div class="col-md-12">
-                                    <button type="button" class="btn btn-primary btn-md btn-block waves-effect waves-light text-center m-b-20">Sign in</button>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <p class="text-center text-left m-b-0">Love you</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-                <!-- end of form -->
+<style>
+    .page-bg {
+        background-image: url('/assets/images/background/bg-auth.png');
+    }
+</style>
+<div class="flex items-center justify-center grow bg-center bg-no-repeat page-bg">
+    <div class="card max-w-[370px] w-full">
+        <form id="sign-in-form" class="card-body flex flex-col gap-5 p-10">
+            <div class="text-center mb-2.5">
+                <h3 class="text-lg font-medium text-gray-900 leading-none mb-2.5">
+                    Đăng nhập
+                </h3>
             </div>
-            <!-- end of col-sm-12 -->
-        </div>
-        <!-- end of row -->
+            <div class="flex flex-col gap-1">
+                <label class="form-label font-normal text-gray-900">
+                    Tài khoản
+                </label>
+                <input class="input" name="username" placeholder="Tài khoản" type="text" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <div class="flex items-center justify-between gap-1">
+                    <label class="form-label font-normal text-gray-900">
+                        Mật khẩu
+                    </label>
+                </div>
+                <div class="input" data-toggle-password="true">
+                    <input name="password" placeholder="Mật khẩu" type="password" value="" />
+                    <button class="btn btn-icon" data-toggle-password-trigger="true" type="button">
+                        <i class="ki-filled ki-eye text-gray-500 toggle-password-active:hidden">
+                        </i>
+                        <i class="ki-filled ki-eye-slash text-gray-500 hidden toggle-password-active:block">
+                        </i>
+                    </button>
+                </div>
+            </div>
+            <button type="submmit" class="btn btn-primary flex justify-center grow">
+                Đăng nhập
+            </button>
+        </form>
     </div>
-    <!-- end of container-fluid -->
-</section>
+</div>
 @endsection
+@push('scripts')
+    <script>
+        $(function() {
+            $('#sign-in-form').on('submit', function(e) {
+                e.preventDefault();
+                postLogin($(this));
+            })
+        })
+
+        async function postLogin(_this) {
+            let method = "post",
+                url = "/login",
+                params = null,
+                data = _this.serialize();
+            let res = await axiosTemplate(method, url, params, data);
+            switch (res.data.status) {
+                case 200:
+                    showAlert('success', res.data.message);
+                    window.location.href='/';
+                    break;
+                default:
+                    showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                    break;
+            }
+        }
+    </script>
+@endpush

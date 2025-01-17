@@ -312,7 +312,7 @@
                                         <img class="h-9 rounded-full border border-gray-500" src="{{asset('assets/images/logo/favicon.png')}}">
                                     </div>
                                     <div class="flex flex-col gap-0.5">
-                                        <a class="flex items-center gap-1.5 leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/metronic/tailwind/demo8/public-profile/teams">
+                                        <a class="flex items-center gap-1.5 leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/">
                                             Nguyễn Trung Hiếu
                                         </a>
                                         <span class="text-2sm text-gray-700">
@@ -330,7 +330,7 @@
                                         <img class="h-9 rounded-full border border-gray-500" src="{{asset('assets/images/logo/favicon.png')}}">
                                     </div>
                                     <div class="flex flex-col gap-0.5">
-                                        <a class="flex items-center gap-1.5 leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/metronic/tailwind/demo8/public-profile/teams">
+                                        <a class="flex items-center gap-1.5 leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/">
                                             Nguyễn Trung Hiếu
                                         </a>
                                         <span class="text-2sm text-gray-700">
@@ -348,7 +348,7 @@
                                         <img class="h-9 rounded-full border border-gray-500" src="{{asset('assets/images/logo/favicon.png')}}">
                                     </div>
                                     <div class="flex flex-col gap-0.5">
-                                        <a class="flex items-center gap-1.5 leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/metronic/tailwind/demo8/public-profile/teams">
+                                        <a class="flex items-center gap-1.5 leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/">
                                             Nguyễn Trung Hiếu
                                         </a>
                                         <span class="text-2sm text-gray-700">
@@ -377,7 +377,7 @@
                                         <img class="h-9 rounded-full border border-gray-500" src="{{asset('assets/images/logo/favicon.png')}}">
                                     </div>
                                     <div class="flex flex-col gap-0.5">
-                                        <a class="flex items-center gap-1.5 leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/metronic/tailwind/demo8/public-profile/teams">
+                                        <a class="flex items-center gap-1.5 leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/">
                                             Nguyễn Trung Hiếu
                                         </a>
                                         <span class="text-2sm text-gray-700">
