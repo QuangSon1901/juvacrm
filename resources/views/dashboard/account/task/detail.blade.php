@@ -57,6 +57,21 @@
                         </div>
                     </div>
                     <div class="card-body lg:py-7.5 grid gap-5 lg:gap-7.5">
+                        @php
+                        use Carbon\Carbon;
+                        $now = Carbon::now();
+                        @endphp
+                        @if (formatDateTime($details['due_date'], 'Y-m-d H:i:s' != '') && Carbon::parse($details['due_date'])->lt($now))
+                            <div class="badge badge-outline badge-danger px-3">
+                                <div class="relative w-full text-sm flex items-center gap-2">
+                                    <span class="relative flex h-3 w-3">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                                    </span>
+                                    Công việc này đã quá hạn. Vui lòng kiểm tra và xử lý ngay!
+                                </div>
+                            </div>
+                            @endif
                         <div class="flex items-center justify-between grow border border-gray-200 rounded-xl gap-2 p-5">
                             <div class="flex flex-col lg:flex-row items-center gap-4">
                                 @include("dashboard.layouts.icons.user")
@@ -177,7 +192,7 @@
                                             % hoàn thành:
                                         </span>
                                         <div class="flex-1 max-w-32 bg-gray-300 rounded-sm h-4">
-                                            <div class="bg-blue-500 h-4 rounded-sm flex items-center {{$details['progress'] == 0 ? 'justify-start' : 'justify-center'}}" style="width: {{$details['progress'] ?? 0}}%">
+                                            <div class="bg-blue-800 h-4 rounded-sm flex items-center {{$details['progress'] == 0 ? 'justify-start' : 'justify-center'}}" style="width: {{$details['progress'] ?? 0}}%">
                                                 <span class="text-xs checkbox-label !text-white">
                                                     &nbsp;{{$details['progress']}}%&nbsp;
                                                 </span>
@@ -245,9 +260,11 @@
                                     </i>
                                 </button>
                             </div>
-                            <p class="form-info leading-5 text-gray-800 font-normal">
-                                {!! nl2br(e($details['note'] ?? '---')) !!}
-                            </p>
+                            <div class="ql-snow form-info leading-5 text-gray-800 font-normal">
+                                <div class="ql-editor" style="white-space: normal;">
+                                    {!! nl2br(e($details['note'] ?? '---')) !!}
+                                </div>
+                            </div>
                         </div>
                         <div class="menu-separator simple"></div>
                         <div class="flex flex-col gap-2.5">
@@ -269,7 +286,7 @@
                                 ---
                                 @endif
                                 @foreach ($details['childs'] as $subtask)
-                                <div class="flex items-center justify-between gap-1 w-full">
+                                <div class="relative flex items-center justify-between gap-1 w-full after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[4px] after:h-[78%] after:bg-gray-200 pl-4 hover:bg-gray-50 hover:after:bg-blue-800">
                                     <div class="flex flex-col">
                                         <div>
                                             <a href="/task/{{$subtask['id']}}">

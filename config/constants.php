@@ -8,6 +8,7 @@ const ADD_ENUM_TYPE = 'ADD';
 const REMOVE_ENUM_TYPE = 'REMOVE';
 
 const TASK_ENUM_LOG = 'TASK_ENUM_LOG';
+const CONFIG_TASK_ENUM_LOG = 'CONFIG_TASK_ENUM_LOG';
 
 const MESSAGE_VALIDATE = [
     'required' => ':attribute không được để trống',
@@ -20,6 +21,7 @@ const MESSAGE_VALIDATE = [
     'date' => ':attribute phải là một ngày hợp lệ',
     'between' => ':attribute phải nằm trong khoảng :min đến :max',
     'exists' => ':attribute không tồn tại trong hệ thống',
+    'in' => ':attribute phải là một trong các giá trị: :values',
 ];
 
 const FIELD_VALIDATE = [
@@ -44,4 +46,7 @@ const FIELD_VALIDATE = [
     'deduction_amount' => 'Tiền phạt',
     'sub_task' => 'Chỉ mục',
     'type' => 'Loại',
+    'sort' => 'Vị trí sắp xếp',
+    'color' => 'Màu sắc',
+    'is_active' => 'Trạng thái',
 ];

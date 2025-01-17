@@ -138,7 +138,7 @@
                                                 Mô tả công việc
                                             </span>
                                         </div>
-                                        <textarea class="textarea" rows="5" name="description" placeholder="Mô tả công việc"></textarea>
+                                        <div id="description_editor"></div>
                                     </div>
                                     <div class="menu-separator simple"></div>
                                     <div class="flex flex-col gap-2.5">
@@ -281,16 +281,21 @@
 @endpush
 @push('scripts')
 <script>
+    let _descriptionQuill;
     $(function() {
         flatpickrMake($("input[name=start_date]"), 'datetime');
         flatpickrMake($("input[name=due_date]"), 'datetime');
+        _descriptionQuill = quillTemplate("#description_editor", "350px");
     })
 
     async function postCreateTask() {
         let method = "post",
             url = "/task/create",
             params = null,
-            data = $('#create-task-form').serialize();
+            data = {
+                ...serializeToObject($('#create-task-form').serializeArray()),
+                description: _descriptionQuill.root.innerHTML,
+            };
         let res = await axiosTemplate(method, url, params, data);
         switch (res.data.status) {
             case 200:

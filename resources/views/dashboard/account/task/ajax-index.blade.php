@@ -68,7 +68,7 @@
     </td>
     <td class="text-gray-800 font-normal">
         <div class="max-w-32 bg-gray-300 rounded-sm h-4">
-            <div class="bg-blue-500 h-4 rounded-sm flex items-center {{$item['progress'] == 0 ? 'justify-start' : 'justify-center'}}" style="width: {{$item['progress'] ?? 0}}%">
+            <div class="bg-blue-800 h-4 rounded-sm flex items-center {{$item['progress'] == 0 ? 'justify-start' : 'justify-center'}}" style="width: {{$item['progress'] ?? 0}}%">
                 <span class="text-xs checkbox-label !text-white">
                     &nbsp;{{$item['progress']}}%&nbsp;
                 </span>

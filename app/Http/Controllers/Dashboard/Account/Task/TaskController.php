@@ -21,16 +21,16 @@ class TaskController extends Controller
 {
     public function index()
     {
-        $priorities = TaskConfig::select('id', 'name', 'color')->where('type', 0)->where('is_active', 1)->get()->toArray();
-        $statuses = TaskConfig::select('id', 'name', 'color')->where('type', 1)->where('is_active', 1)->get()->toArray();
+        $priorities = TaskConfig::select('id', 'name', 'color')->where('type', 0)->where('is_active', 1)->orderBy('sort')->get()->toArray();
+        $statuses = TaskConfig::select('id', 'name', 'color')->where('type', 1)->where('is_active', 1)->orderBy('sort')->get()->toArray();
 
         return view("dashboard.account.task.index", ['priorities' => $priorities, 'statuses' => $statuses]);
     }
 
     public function createView(Request $request)
     {
-        $priorities = TaskConfig::select('id', 'name', 'color')->where('type', 0)->where('is_active', 1)->get()->toArray();
-        $statuses = TaskConfig::select('id', 'name', 'color')->where('type', 1)->where('is_active', 1)->get()->toArray();
+        $priorities = TaskConfig::select('id', 'name', 'color')->where('type', 0)->where('is_active', 1)->orderBy('sort')->get()->toArray();
+        $statuses = TaskConfig::select('id', 'name', 'color')->where('type', 1)->where('is_active', 1)->orderBy('sort')->get()->toArray();
         $users = User::select('id', 'name')->where('is_active', 1)->get()->toArray();
         $contracts = Contract::select('id', 'name')->where('is_active', 1)->get()->toArray();
         $services = Service::select('id', 'name')->where('is_active', 1)->get()->toArray();
@@ -177,8 +177,8 @@ class TaskController extends Controller
             'updated_at' => $task->updated_at,
         ];
 
-        $priorities = TaskConfig::select('id', 'name', 'color')->where('type', 0)->where('is_active', 1)->get()->toArray();
-        $statuses = TaskConfig::select('id', 'name', 'color')->where('type', 1)->where('is_active', 1)->get()->toArray();
+        $priorities = TaskConfig::select('id', 'name', 'color')->where('type', 0)->where('is_active', 1)->orderBy('sort')->get()->toArray();
+        $statuses = TaskConfig::select('id', 'name', 'color')->where('type', 1)->where('is_active', 1)->orderBy('sort')->get()->toArray();
         $users = User::select('id', 'name')->where('is_active', 1)->get()->toArray();
         $activity_logs = ActivityLogs::where('action', TASK_ENUM_LOG)->where('fk_key', 'task_id')->where('fk_value', $id)->orderBy('created_at', 'desc')->get()->map(function ($log, $index) {
             return [
@@ -243,7 +243,7 @@ class TaskController extends Controller
                 return response()->json([
                     'status' => 404,
                     'message' => 'Công việc không tồn tại.',
-                ], 404);
+                ]);
             }
 
             $data = [
@@ -264,12 +264,12 @@ class TaskController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Đăng bình luận thành công.',
-            ], 200);
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
                 'message' => 'Đã xảy ra lỗi khi đăng bình luận.',
-            ], 500);
+            ]);
         }
     }
 
@@ -372,7 +372,7 @@ class TaskController extends Controller
                 return response()->json([
                     'status' => 404,
                     'message' => 'Công việc không tồn tại.',
-                ], 404);
+                ]);
             }
 
             $data = $request->only(['name', 'description', 'note', 'contract_id', 'progress', 'service_id', 'priority_id', 'status_id', 'issue_id', 'estimate_time', 'spend_time', 'due_date', 'assign_id', 'sub_name', 'start_date', 'deduction_amount', 'bonus_amount', 'service_other']);
@@ -396,12 +396,12 @@ class TaskController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Cập nhật công việc thành công.',
-            ], 200);
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
                 'message' => 'Đã xảy ra lỗi khi cập nhật công việc.',
-            ], 500);
+            ]);
         }
     }
 
@@ -441,17 +441,109 @@ class TaskController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => $type == ADD_ENUM_TYPE ? 'Thêm chỉ mục thành công.' : 'Gỡ chỉ mục thành công.',
-            ], 200);
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
                 'message' => 'Đã xảy ra lỗi khi thêm/gỡ chỉ mục.',
-            ], 500);
+            ]);
         }
     }
 
     public function config()
     {
-        return view("dashboard.account.task.config");
+        $priorities = TaskConfig::where('type', 0)->orderBy('sort')->get()->toArray();
+        $statuses = TaskConfig::where('type', 1)->orderBy('sort')->get()->toArray();
+        $issues = TaskConfig::where('type', 2)->orderBy('sort')->get()->toArray();
+
+        return view("dashboard.account.task.config", ['priorities' => $priorities, 'statuses' => $statuses, 'issues' => $issues]);
+    }
+
+    public function configPost(Request $request) {
+        $validator = ValidatorService::make($request, [
+            'id' => 'required|int',
+            'name' => 'required|string|max:255',
+            'sort' => 'required|int',
+            'type' => 'required|int',
+            'color' => 'required|string|in:success,warning,primary,gray,danger,neutral',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        try {
+            $config = TaskConfig::find($request['id']);
+            $data = $request->only('name', 'sort', 'color', 'type');
+            if ($config) {
+                $config->update($data);
+            } else {
+                $newTask = TaskConfig::create($data);
+            }
+
+            LogService::saveLog([
+                'action' => CONFIG_TASK_ENUM_LOG,
+                'ip' => $request->getClientIp(),
+                'details' => $config ? 'Chỉnh sửa cấu hình #' . $request['id'] : 'Thêm cấu hình #' . $newTask->id,
+                'fk_key' => 'tbl_task_config|id',
+                'fk_value' => $config ? $request['id'] : $newTask->id,
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => $config ? 'Chỉnh sửa cấu hình thành công.' : 'Thêm cấu hình thành công.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Có lỗi xảy ra.',
+            ]);
+        }
+    }
+
+    public function configChangeStatus(Request $request) {
+        $validator = ValidatorService::make($request, [
+            'id' => 'required|int',
+            'is_active' => 'required|int',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        try {
+            $config = TaskConfig::find($request['id']);
+            if (!$config) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Cấu hình không tồn tại.',
+                ]);
+            }
+            $config->update(['is_active' => $request['is_active']]);
+
+            LogService::saveLog([
+                'action' => CONFIG_TASK_ENUM_LOG,
+                'ip' => $request->getClientIp(),
+                'details' => "Vừa cập nhật lại trạng thái của #" .$request['id'],
+                'fk_key' => 'tbl_task_config|id',
+                'fk_value' => $request['id'],
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Cập nhật trạng thái thành công.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Có lỗi xảy ra.',
+            ]);
+        }
     }
 }

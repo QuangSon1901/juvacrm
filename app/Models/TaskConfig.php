@@ -13,6 +13,7 @@ class TaskConfig extends Model
         'name',
         'description',
         'type',
+        'sort',
         'is_active',
     ];
 }

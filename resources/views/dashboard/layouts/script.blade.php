@@ -20,6 +20,7 @@
 <script src="{{asset('assets/js/global/axios.js')}}"></script>
 <script src="{{asset('assets/js/global/flatpickr.js')}}"></script>
 <script src="{{asset('assets/js/global/quill.js')}}"></script>
+<script src="{{asset('assets/js/global/utils.js')}}"></script>
 <script>
     const ipapiAccessKey = "{{env('IP_API_ACCESS_KEY')}}";
     const openWeatherApiKey = "{{env('OPEN_WEATHER_API_KEY')}}";

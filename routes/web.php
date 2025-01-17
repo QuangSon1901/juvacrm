@@ -169,6 +169,8 @@ Route::group(
                         Route::post('/task/add-comment', [TaskController::class, "addComment"])->name("task-add-comment");
                         Route::post('/task/update-sub-task', [TaskController::class, "updateSubTask"])->name("task-update-sub-task");
                         Route::get('/config-task', [TaskController::class, "config"])->name("config");
+                        Route::post('/config-task/post', [TaskController::class, "configPost"])->name("config-post");
+                        Route::post('/config-task/change-status', [TaskController::class, "configChangeStatus"])->name("config-change-status");
                         Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
                     }
                 );
