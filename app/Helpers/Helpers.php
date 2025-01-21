@@ -87,13 +87,13 @@ if (!function_exists('removeFormatCurrency')) {
 }
 
 /**
-     * Format ngày giờ từ định dạng đầu vào sang định dạng đầu ra.
-     *
-     * @param string $datetime Ngày giờ cần format.
-     * @param string $inputFormat Định dạng của ngày giờ đầu vào (default = 'Y-m-d H:i:s').
-     * @param string $outputFormat Định dạng của ngày giờ đầu ra (default = 'd/m/Y H:i:s').
-     * @return string|null
-     */
+ * Format ngày giờ từ định dạng đầu vào sang định dạng đầu ra.
+ *
+ * @param string $datetime Ngày giờ cần format.
+ * @param string $inputFormat Định dạng của ngày giờ đầu vào (default = 'Y-m-d H:i:s').
+ * @param string $outputFormat Định dạng của ngày giờ đầu ra (default = 'd/m/Y H:i:s').
+ * @return string|null
+ */
 if (!function_exists('formatDateTime')) {
     function formatDateTime($datetime, $outputFormat = 'd-m-Y H:i:s', $inputFormat = 'Y-m-d H:i:s')
     {
@@ -103,5 +103,22 @@ if (!function_exists('formatDateTime')) {
         } catch (\Exception $e) {
             return '';
         }
+    }
+}
+
+/**
+ * Chuyển đổi byte thành định dạng dễ đọc (MB, GB, TB, ...)
+ */
+if (!function_exists('formatBytes')) {
+    function formatBytes($bytes, $precision = 2)
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+
+        $bytes /= pow(1024, $pow);
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }

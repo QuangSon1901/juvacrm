@@ -449,7 +449,7 @@
                         <div class="grid gap-2.5 lg:gap-5">
                             <div class="flex items-center gap-3">
                                 <div class="flex items-center grow gap-2.5">
-                                    <img class="w-[30px]" src="{{asset('assets/images/logo/favicon.png')}}">
+                                    <img class="w-[30px]" src="https://juvamedia.hcm.ss.bfcplatform.vn/uploads/iehabcsu2vbhfzeh4x43.jpg">
                                     <div class="flex flex-col">
                                         <span class="text-sm font-medium text-gray-900 cursor-pointer hover:text-primary mb-px">
                                             Project-pitch.pdf

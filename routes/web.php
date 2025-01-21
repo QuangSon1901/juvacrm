@@ -19,6 +19,7 @@ use App\Http\Controllers\Dashboard\Profile\ProfileController;
 use App\Http\Controllers\Dashboard\Setting\SettingController;
 use App\Http\Controllers\Dashboard\Customer\Support\CustomerSupportController;
 use App\Http\Controllers\Dashboard\Service\ServiceController;
+use App\Http\Controllers\GoogleDriveController;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use Illuminate\Support\Facades\Route;
@@ -39,14 +40,21 @@ Route::group(
     }
 );
 
-// Route::get('/test', function() {
-//     return response()->json(['url' => 'success'], 200);
-// });
+Route::get('/test', function() {
+    return response()->json(['url' => 'success'], 200);
+});
 
-// Route::post('/upload', [BizFlyController::class, 'uploadFile'])->name('bizfly.upload');
-// Route::get('/file-url/{key}', [BizFlyController::class, 'getFileUrl'])->name('bizfly.get_url');
+Route::post('/upload', [BizFlyController::class, 'uploadFile'])->name('bizfly.upload');
+Route::get('/file-url/{key}', [BizFlyController::class, 'getFileUrl'])->name('bizfly.get_url');
 
+// Route::get('google/login', [GoogleDriveController::class, 'redirectToGoogle'])->name('google.login');
+// Route::get('google/callback', [GoogleDriveController::class, 'handleGoogleCallback']);
+// Route::get('google/drive/files', [GoogleDriveController::class, 'listFiles'])->name('google.drive.files');
+// Route::post('google/drive/upload', [GoogleDriveController::class, 'uploadFile']);
 
+Route::get('google/drive/files', [GoogleDriveController::class, 'listFiles'])->name('google.drive.files');
+Route::post('google/drive/upload', [GoogleDriveController::class, 'uploadFile']);
+Route::get('google/drive/storage-info', [GoogleDriveController::class, 'getStorageInfo'])->name('google.drive.storage-info');
 /************************************************** Group Dashboard **************************************************/
 Route::group(
     ['namespace' => 'Dashboard', 'as' => 'dashboard.', 'middleware' => [Authenticate::class]],

@@ -8,5 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class Contract extends Model
 {
     use HasFactory;
-    protected $table = 'tbl_contrac';
+    protected $table = 'tbl_contracts';
 }
