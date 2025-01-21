@@ -235,7 +235,7 @@
                         </a>
                     </div>
                     <div class="menu-item">
-                        <a class="menu-link" href="/">
+                        <a class="menu-link" href="{{route('dashboard.assets.file-explorer.file-explorer')}}">
                             <span class="menu-title">
                                 Quản lý media
                             </span>

@@ -9,6 +9,7 @@ use App\Http\Controllers\Dashboard\Account\Team\TeamController;
 use App\Http\Controllers\Dashboard\Account\TimeKeeping\TimeKeepingController;
 use App\Http\Controllers\Dashboard\Account\Tranning\Document\DocumentController;
 use App\Http\Controllers\Dashboard\Accounting\DepositReceipt\DepositReceiptController;
+use App\Http\Controllers\Dashboard\Assets\FileExplorerController;
 use App\Http\Controllers\Dashboard\Contract\ContractController;
 use App\Http\Controllers\Dashboard\Customer\Client\CustomerController;
 use App\Http\Controllers\Dashboard\Customer\Manage\CustomerTypeController;
@@ -225,6 +226,17 @@ Route::group(
             }
         );
 
+        Route::group(
+            ['namespace' => 'Assets', 'as' => 'assets.', 'middleware' => []],
+            function () {
+                Route::group(
+                    ['namespace' => 'FileExplorer', 'as' => 'file-explorer.', 'middleware' => []],
+                    function () {
+                        Route::get('/file-explorer', [FileExplorerController::class, "index"])->name("file-explorer");
+                    }
+                );
+            }
+        );
 
         Route::group(
             ['namespace' => 'Logs', 'as' => 'logs.', 'middleware' => []],
