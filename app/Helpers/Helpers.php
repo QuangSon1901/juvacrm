@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\LogService;
 use Carbon\Carbon;
 
 if (!function_exists('isActiveRoute')) {
@@ -120,5 +121,55 @@ if (!function_exists('formatBytes')) {
         $bytes /= pow(1024, $pow);
 
         return round($bytes, $precision) . ' ' . $units[$pow];
+    }
+}
+
+
+/**
+ * Helper để thực hiện Try-Catch và log.
+ *
+ * @param \Illuminate\Http\Request $request Request hiện tại.
+ * @param callable $callback Hàm thực thi chính.
+ * @param callable|null $logCallback (optional) Hàm log tùy chỉnh.
+ * @return mixed
+ */
+if (!function_exists('tryCatchHelper')) {
+    function tryCatchHelper($request, callable $callback, ?callable $logCallback = null)
+    {
+        try {
+            $response = $callback();
+            if ($request->isMethod('POST')) {
+                if ($logCallback) $logCallback($request, $response->getData());
+                else {
+                    LogService::saveLog([
+                        'action' => TASK_ENUM_LOG,
+                        'ip' => $request->getClientIp(),
+                        'details' => sprintf(
+                            'URL: %s, Method: %s, Payload: %s',
+                            $request->fullUrl(),
+                            $request->method(),
+                            json_encode($request->all())
+                        ),
+                        'fk_key' => null,
+                        'fk_value' => null,
+                    ]);
+                }
+            }
+
+            return $response;
+        } catch (\Exception $e) {
+            LogService::saveLog([
+                'action' => ERROR_ENUM_LOG,
+                'ip' => $request->getClientIp(),
+                'details' => $e->getMessage(),
+                'fk_key' => null,
+                'fk_value' => null,
+            ]);
+
+            return response()->json([
+                'status' => 500,
+                'message' => 'Đã xảy ra lỗi. Vui lòng thử lại.',
+            ]);
+        }
     }
 }

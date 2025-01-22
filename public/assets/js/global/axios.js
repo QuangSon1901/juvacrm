@@ -32,3 +32,13 @@ async function axiosTemplate(method, url, params, data, elements = []) {
         return e.response;
     }
 }
+
+function uploadFileTemplate(file) {
+    let data = new FormData();
+    data.append("file", file);
+    data.append("action", 'IMAGE_DRIVER_UPLOAD');
+    let method = "post",
+        url = "/upload-file",
+        params = null;
+    return axiosTemplate(method, url, params, data);
+}

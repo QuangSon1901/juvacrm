@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Upload;
 use Google_Client;
 use Google_Service_Drive;
 use Google_Service_Drive_DriveFile;
 use Google_Service_Drive_Permission;
+use Illuminate\Support\Facades\Session;
 
 class GoogleDriveService
 {
@@ -40,17 +42,17 @@ class GoogleDriveService
     /**
      * Upload file to Google Drive
      */
-    public function uploadFile($filePath)
+    public function uploadFile($file, $action = null, $fk_key = null, $fk_value = null)
     {
-        $file = new Google_Service_Drive_DriveFile();
-        $file->setName($filePath->getClientOriginalName());
+        $driveServiceFile = new Google_Service_Drive_DriveFile();
+        $driveServiceFile->setName($file->getClientOriginalName());
 
-        $filePath = $filePath->getRealPath();
+        $filePath = $file->getRealPath();
 
         $data = file_get_contents($filePath);
 
         $uploadedFile = $this->driveService->files->create(
-            $file,
+            $driveServiceFile,
             [
                 'data' => $data,
                 'mimeType' => mime_content_type($filePath),
@@ -60,6 +62,22 @@ class GoogleDriveService
         );
 
         $this->setFilePermissions($uploadedFile->id);
+
+        Upload::create([
+            'user_id'    => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
+            'type'       => $file->getClientMimeType(),
+            'details'    => json_encode([
+                'original_name' => $file->getClientOriginalName(),
+                'extension'     => $file->getClientOriginalExtension(),
+            ]),
+            'name'       => $file->getClientOriginalName(),
+            'size'       => $file->getSize(),
+            'extension'  => $file->getClientOriginalExtension(),
+            'driver_id'  => $uploadedFile->id,
+            'action'  => $action,
+            'fk_key' => $fk_key,
+            'fk_value' => $fk_value,
+        ]);
 
         return $uploadedFile;
     }

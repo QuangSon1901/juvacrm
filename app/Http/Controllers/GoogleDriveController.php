@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Services\GoogleDriveService;
+use App\Services\LogService;
+use App\Services\ValidatorService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 
 class GoogleDriveController extends Controller
 {
@@ -23,19 +26,41 @@ class GoogleDriveController extends Controller
         return view('google.files', compact('files'));
     }
 
-    /**
-     * Upload a file to Google Drive.
-     */
     public function uploadFile(Request $request)
     {
-        $request->validate([
-            'file' => 'required|file',
+        $validator = ValidatorService::make($request, [
+            'file' => 'required|file|mimes:jpg,jpeg,png,webp,svg,pdf,txt,doc,docx,xls,xlsx,csv,ppt,pptx,zip,rar'
         ]);
 
-        $filePath = $request->file('file');
-        $uploadedFile = $this->googleDriveService->uploadFile($filePath);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first()
+            ]);
+        }
 
-        return redirect()->route('google.drive.files')->with('success', 'File uploaded successfully!');
+        return tryCatchHelper($request, function () use ($request) {
+            $file = $request->file('file');
+            $uploadedFile = $this->googleDriveService->uploadFile($file, $request['action'] ?? MEDIA_DRIVER_UPLOAD);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Tải lên tệp thành công.',
+                'data' => [
+                    'driver_id' => $uploadedFile->id,
+                    'extension' => $file->getClientOriginalExtension(),
+                    'type' => $file->getClientMimeType(),
+                ]
+            ]);
+        }, function ($request, $response) {
+            LogService::saveLog([
+                'action' => MEDIA_ENUM_LOG,
+                'ip' => $request->getClientIp(),
+                'details' => 'Tải lên tệp',
+                'fk_key' => 'tbl_uploads|driver_id',
+                'fk_value' => $response->data->driver_id,
+            ]);
+        });
     }
 
     public function getStorageInfo(Request $request)
@@ -47,20 +72,5 @@ class GoogleDriveController extends Controller
             'usage' => formatBytes($storageInfo->storageQuota->usage), // Dung lượng đã sử dụng
             'remaining' => formatBytes($storageInfo->storageQuota->limit - $storageInfo->storageQuota->usage), // Dung lượng còn lại
         ];
-    }
-
-    /**
-     * Chuyển đổi byte thành định dạng dễ đọc (MB, GB, TB, ...)
-     */
-    private function formatBytes($bytes, $precision = 2)
-    {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-
-        $bytes /= pow(1024, $pow);
-
-        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }

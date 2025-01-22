@@ -41,25 +41,32 @@ Route::group(
     }
 );
 
-Route::get('/test', function() {
-    return response()->json(['url' => 'success'], 200);
-});
+// Route::get('/test', function() {
+//     return response()->json(['url' => 'success'], 200);
+// });
 
-Route::post('/upload', [BizFlyController::class, 'uploadFile'])->name('bizfly.upload');
-Route::get('/file-url/{key}', [BizFlyController::class, 'getFileUrl'])->name('bizfly.get_url');
+// Route::post('/upload', [BizFlyController::class, 'uploadFile'])->name('bizfly.upload');
+// Route::get('/file-url/{key}', [BizFlyController::class, 'getFileUrl'])->name('bizfly.get_url');
 
 // Route::get('google/login', [GoogleDriveController::class, 'redirectToGoogle'])->name('google.login');
 // Route::get('google/callback', [GoogleDriveController::class, 'handleGoogleCallback']);
 // Route::get('google/drive/files', [GoogleDriveController::class, 'listFiles'])->name('google.drive.files');
 // Route::post('google/drive/upload', [GoogleDriveController::class, 'uploadFile']);
 
-Route::get('google/drive/files', [GoogleDriveController::class, 'listFiles'])->name('google.drive.files');
-Route::post('google/drive/upload', [GoogleDriveController::class, 'uploadFile']);
-Route::get('google/drive/storage-info', [GoogleDriveController::class, 'getStorageInfo'])->name('google.drive.storage-info');
+// Route::get('google/drive/files', [GoogleDriveController::class, 'listFiles'])->name('google.drive.files');
+// Route::post('google/drive/upload', [GoogleDriveController::class, 'uploadFile']);
+// Route::get('google/drive/storage-info', [GoogleDriveController::class, 'getStorageInfo'])->name('google.drive.storage-info');
 /************************************************** Group Dashboard **************************************************/
 Route::group(
     ['namespace' => 'Dashboard', 'as' => 'dashboard.', 'middleware' => [Authenticate::class]],
     function () {
+
+        Route::group(
+            ['namespace' => 'Upload', 'as' => 'upload.', 'middleware' => []],
+            function () {
+                Route::post('/upload-file', [GoogleDriveController::class, "uploadFile"])->name("upload-file");
+            }
+        );
 
 
         Route::group(
@@ -177,6 +184,8 @@ Route::group(
                         Route::post('/task/update', [TaskController::class, "update"])->name("task-update");
                         Route::post('/task/add-comment', [TaskController::class, "addComment"])->name("task-add-comment");
                         Route::post('/task/update-sub-task', [TaskController::class, "updateSubTask"])->name("task-update-sub-task");
+                        Route::post('/task/upload-file-task', [TaskController::class, "uploadFileTask"])->name("task-upload-file-task");
+                        Route::post('/task/remove-attachment-task', [TaskController::class, "removeAttachment"])->name("task-remove-attachment-task");
                         Route::get('/config-task', [TaskController::class, "config"])->name("config");
                         Route::post('/config-task/post', [TaskController::class, "configPost"])->name("config-post");
                         Route::post('/config-task/change-status', [TaskController::class, "configChangeStatus"])->name("config-change-status");

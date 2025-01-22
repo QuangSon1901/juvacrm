@@ -16,7 +16,7 @@ function quillTemplate(elementId, height) {
         [{ indent: "-1" }, { indent: "+1" }], // outdent/indent
         [{ direction: "rtl" }], // text direction
         [{ align: [] }],
-        ["link", "image", "video"],
+        ["link", "image"],
         ["formula"],
         ["clean"], // remove formatting button
     ];
@@ -28,15 +28,15 @@ function quillTemplate(elementId, height) {
         theme: "snow",
     });
 
-    // quill.getModule('toolbar').addHandler('image', function() {
-    //     imageHandlerQuill(quill);
-    // });
+    quill.getModule('toolbar').addHandler('image', function() {
+        imageHandlerQuill(quill);
+    });
 
-    // quill.on('text-change', function(delta, oldDelta, source) {
-    //     if (source === 'user') {
-    //         handleImagePasteQuill(quill);
-    //     }
-    // });
+    quill.on('text-change', function(delta, oldDelta, source) {
+        if (source === 'user') {
+            handleImagePasteQuill(quill);
+        }
+    });
 
     return quill;
 }
@@ -49,12 +49,12 @@ function imageHandlerQuill(quill) {
     input.onchange = async function() {
         if (input !== null && input.files !== null) {
             const file = input.files[0];
-            $("#loading-full-size").addClass("show");
-            const res = await uploadFileTemplate(file, 0);
-            $("#loading-full-size").removeClass("show");
+            Notiflix.Loading.circle();
+            const res = await uploadFileTemplate(file);
+            Notiflix.Loading.remove();
             const range = quill.getSelection();
             if (range) {
-                quill.insertEmbed(range.index, 'image', domainGateway + res.data[0].data.path);
+                quill.insertEmbed(range.index, 'image', 'https://drive.google.com/thumbnail?id=' + res.data.data.driver_id);
             }
         }
     };
@@ -65,11 +65,11 @@ function handleImagePasteQuill(quill) {
     let images = editor.querySelectorAll('img');
     images.forEach( async function(img) {
         if (img.src.startsWith('data:')) {
-            $("#loading-full-size").addClass("show");
+            Notiflix.Loading.circle();
             const file = base64ToFile(img.src, 'image.png');
-            const res = await uploadFileTemplate(file, 0);
-            $("#loading-full-size").removeClass("show");
-            img.src = domainGateway + res.data[0].data.path; // Replace base64 with URL
+            const res = await uploadFileTemplate(file);
+            Notiflix.Loading.remove();
+            img.src = 'https://drive.google.com/thumbnail?id=' + res.data.data.driver_id; // Replace base64 with URL
         }
     });
 }

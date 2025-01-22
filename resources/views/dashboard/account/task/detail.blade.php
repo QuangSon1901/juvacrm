@@ -16,9 +16,9 @@
     </div>
 </div>
 <div class="container-fixed">
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 lg:gap-7.5">
-        <div class="col-span-2">
-            <div class="grid gap-5 lg:gap-7.5">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="col-span-1 lg:col-span-2">
+            <div class="grid gap-5">
                 <div class="card">
                     <div class="card-header flex-wrap gap-2">
                         <h3 class="card-title flex items-center gap-2">
@@ -56,22 +56,22 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-body lg:py-7.5 grid gap-5 lg:gap-7.5">
+                    <div class="card-body lg:py-7.5 grid gap-5">
                         @php
                         use Carbon\Carbon;
                         $now = Carbon::now();
                         @endphp
                         @if (formatDateTime($details['due_date'], 'Y-m-d H:i:s' != '') && Carbon::parse($details['due_date'])->lt($now))
-                            <div class="badge badge-outline badge-danger px-3">
-                                <div class="relative w-full text-sm flex items-center gap-2">
-                                    <span class="relative flex h-3 w-3">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                                    </span>
-                                    Công việc này đã quá hạn. Vui lòng kiểm tra và xử lý ngay!
-                                </div>
+                        <div class="badge badge-outline badge-danger px-3">
+                            <div class="relative w-full text-sm flex items-center gap-2">
+                                <span class="relative flex h-3 w-3">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                                </span>
+                                Công việc này đã quá hạn. Vui lòng kiểm tra và xử lý ngay!
                             </div>
-                            @endif
+                        </div>
+                        @endif
                         <div class="flex items-center justify-between grow border border-gray-200 rounded-xl gap-2 p-5">
                             <div class="flex flex-col lg:flex-row items-center gap-4">
                                 @include("dashboard.layouts.icons.user")
@@ -366,7 +366,7 @@
             </div>
         </div>
         <div class="col-span-1">
-            <div class="grid gap-5 lg:gap-7.5">
+            <div class="grid gap-5">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -444,21 +444,30 @@
                         <h3 class="card-title">
                             Đính kèm
                         </h3>
+                        <button class="btn btn-light btn-xs" data-modal-toggle="#upload-file-task-modal">
+                            <i class="ki-outline ki-exit-up"></i>
+                            Tải lên
+                        </button>
                     </div>
                     <div class="card-body">
                         <div class="grid gap-2.5 lg:gap-5">
+                            @foreach ($attachments as $attachment)
                             <div class="flex items-center gap-3">
-                                <div class="flex items-center grow gap-2.5">
-                                    <img class="w-[30px]" src="https://juvamedia.hcm.ss.bfcplatform.vn/uploads/iehabcsu2vbhfzeh4x43.jpg">
+                                <a href="https://drive.google.com/file/d/{{ $attachment['driver_id'] }}/view" target="_blank" class="flex items-center grow gap-2.5">
+                                    @if (Str::startsWith($attachment['type'], 'image/') && $attachment['extension'] != 'svg')
+                                    <img class="w-[30px]" alt="{{$attachment['extension']}}.svg" src="https://drive.google.com/thumbnail?id={{ $attachment['driver_id'] }}&sz=w56">
+                                    @else
+                                    <img class="w-[30px]" alt="{{$attachment['extension']}}.svg" src="{{asset('assets/images/file-types/' . $attachment['extension'] . '.svg')}}">
+                                    @endif
                                     <div class="flex flex-col">
-                                        <span class="text-sm font-medium text-gray-900 cursor-pointer hover:text-primary mb-px">
-                                            Project-pitch.pdf
+                                        <span style="overflow-wrap: anywhere;" class="text-sm font-medium text-gray-900 cursor-pointer hover:text-primary mb-px">
+                                            {{$attachment['name']}}
                                         </span>
                                         <span class="text-xs text-gray-700">
-                                            4.7 MB 26 Sep 2024 3:20 PM
+                                            {{formatBytes($attachment['size'])}}
                                         </span>
                                     </div>
-                                </div>
+                                </a>
                                 <div class="menu" data-menu="true">
                                     <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
                                         <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
@@ -467,7 +476,7 @@
                                         </button>
                                         <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
                                             <div class="menu-item">
-                                                <a class="menu-link" href="#">
+                                                <a class="menu-link" href="https://drive.google.com/uc?id={{ $attachment['driver_id'] }}&export=download" download>
                                                     <span class="menu-icon">
                                                         <i class="ki-filled ki-file-down">
                                                         </i>
@@ -478,7 +487,7 @@
                                                 </a>
                                             </div>
                                             <div class="menu-item">
-                                                <a class="menu-link" href="#">
+                                                <button class="menu-link" onclick="postRemoveAttachmentTask({{$attachment['id']}})">
                                                     <span class="menu-icon">
                                                         <i class="ki-filled ki-delete-files">
                                                         </i>
@@ -486,12 +495,13 @@
                                                     <span class="menu-title">
                                                         Gỡ
                                                     </span>
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -724,11 +734,45 @@
         </div>
     </div>
 </div>
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="upload-file-task-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Tải lên tệp
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form class="grid gap-5 px-0 py-5" enctype="multipart/form-data">
+                <div class="flex flex-col gap-2.5">
+                    <div class="checkbox-group">
+                        <span class="checkbox-label text-gray-800 !font-bold">
+                            Chọn tệp đính kèm
+                        </span>
+                    </div>
+                    <input name="file" class="file-input" type="file" />
+                    <input hidden class="input hidden" name="id" type="text" value="{{$details['id']}}">
+                </div>
+                <div class="flex flex-col">
+                    <button type="submit" class="btn btn-primary justify-center">
+                        Tải lên
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 @push('scripts')
 <script>
     let _descriptionQuill;
+
     $(function() {
+        let modalUploadFileTask = document.querySelector('#upload-file-task-modal');
+        let instanceUploadFileTask = KTModal.getInstance(modalUploadFileTask);
+
         $('button[data-modal-toggle="#update-task-modal"][data-name]').on('click', function() {
             let _this = $(this);
             let _modal = $('#update-task-modal');
@@ -740,6 +784,10 @@
         $('button[data-modal-toggle="#update-description-task-modal"]').on('click', function() {
             _descriptionQuill.clipboard.dangerouslyPasteHTML("");
         })
+
+        instanceUploadFileTask.on('hidden', () => {
+            $('#upload-file-task-modal input[name=file]').val('');
+        });
 
         $('#update-task-modal form').on('submit', function(e) {
             e.preventDefault();
@@ -754,6 +802,11 @@
         $('#add-sub-task-modal form').on('submit', function(e) {
             e.preventDefault();
             postAddSubTask($(this));
+        })
+
+        $('#upload-file-task-modal form').on('submit', function(e) {
+            e.preventDefault();
+            postUploadFileTask(this);
         })
 
         $('#update-description-task-modal form').on('submit', function(e) {
@@ -810,6 +863,42 @@
             url = "/task/update-sub-task",
             params = null,
             data = _this.serialize() + "&id={{$details['id']}}&type={{ADD_ENUM_TYPE}}";
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                break;
+        }
+    }
+
+    async function postUploadFileTask(_this) {
+        let method = "post",
+            url = "/task/upload-file-task",
+            params = null,
+            data = new FormData(_this);
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                break;
+        }
+    }
+
+    async function postRemoveAttachmentTask(attach_id) {
+        let method = "post",
+            url = "/task/remove-attachment-task",
+            params = null,
+            data = {
+                id: attach_id,
+            };
         let res = await axiosTemplate(method, url, params, data);
         switch (res.data.status) {
             case 200:

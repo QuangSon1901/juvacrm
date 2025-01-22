@@ -9,7 +9,9 @@ use App\Models\Service;
 use App\Models\Task;
 use App\Models\TaskComment;
 use App\Models\TaskConfig;
+use App\Models\Upload;
 use App\Models\User;
+use App\Services\GoogleDriveService;
 use App\Services\LogService;
 use App\Services\PaginationService;
 use App\Services\ValidatorService;
@@ -180,7 +182,7 @@ class TaskController extends Controller
         $priorities = TaskConfig::select('id', 'name', 'color')->where('type', 0)->where('is_active', 1)->orderBy('sort')->get()->toArray();
         $statuses = TaskConfig::select('id', 'name', 'color')->where('type', 1)->where('is_active', 1)->orderBy('sort')->get()->toArray();
         $users = User::select('id', 'name')->where('is_active', 1)->get()->toArray();
-        $activity_logs = ActivityLogs::where('action', TASK_ENUM_LOG)->where('fk_key', 'task_id')->where('fk_value', $id)->orderBy('created_at', 'desc')->get()->map(function ($log, $index) {
+        $activity_logs = ActivityLogs::where('action', TASK_ENUM_LOG)->where('fk_key', 'tbl_tasks|id')->where('fk_value', $id)->orderBy('created_at', 'desc')->get()->map(function ($log, $index) {
             return [
                 'index' => $index,
                 'id' => $log->id,
@@ -196,7 +198,7 @@ class TaskController extends Controller
         });
         $contracts = Contract::select('id', 'name')->where('is_active', 1)->get()->toArray();
         $services = Service::select('id', 'name')->where('is_active', 1)->get()->toArray();
-
+        $attachments = Upload::select('id', 'name', 'type', 'size', 'driver_id', 'extension', 'created_at')->where('action', MEDIA_DRIVER_UPLOAD)->where('fk_key', 'tbl_tasks|id')->where('fk_value', $id)->orderBy('created_at', 'desc')->get()->toArray();
         function getAllParentTaskIds($taskId)
         {
             $parentTask = Task::select('parent_id')->where('id', $taskId)->first();
@@ -209,7 +211,7 @@ class TaskController extends Controller
         $excludedIds = array_merge([$id], $parentIds);
         $tasks = Task::select('id', 'name')->whereNotIn('id', $excludedIds)->whereNull('parent_id')->where('is_active', 1)->get()->toArray();
 
-        return view("dashboard.account.task.detail", ['details' => $result, 'priorities' => $priorities, 'statuses' => $statuses, 'users' => $users, 'activity_logs' => $activity_logs, 'contracts' => $contracts, 'services' => $services, 'tasks' => $tasks]);
+        return view("dashboard.account.task.detail", ['details' => $result, 'priorities' => $priorities, 'statuses' => $statuses, 'users' => $users, 'activity_logs' => $activity_logs, 'contracts' => $contracts, 'services' => $services, 'tasks' => $tasks, 'attachments' => $attachments]);
     } 
 
     public function addComment(Request $request)
@@ -257,7 +259,7 @@ class TaskController extends Controller
                 'action' => TASK_ENUM_LOG,
                 'ip' => $request->getClientIp(),
                 'details' => 'Đăng bình luận',
-                'fk_key' => 'task_id',
+                'fk_key' => 'tbl_tasks|id',
                 'fk_value' => $request['id'],
             ]);
 
@@ -319,7 +321,7 @@ class TaskController extends Controller
                 'action' => TASK_ENUM_LOG,
                 'ip' => $request->getClientIp(),
                 'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') ' . 'đã tạo công việc.',
-                'fk_key' => 'task_id',
+                'fk_key' => 'tbl_tasks|id',
                 'fk_value' => $task->id,
             ]);
 
@@ -389,7 +391,7 @@ class TaskController extends Controller
                 'action' => TASK_ENUM_LOG,
                 'ip' => $request->getClientIp(),
                 'details' => 'Đã cập nhật ' . FIELD_VALIDATE[array_diff(array_keys($data), ['id'])[0]],
-                'fk_key' => 'task_id',
+                'fk_key' => 'tbl_tasks|id',
                 'fk_value' => $request['id'],
             ]);
 
@@ -434,7 +436,7 @@ class TaskController extends Controller
                 'action' => TASK_ENUM_LOG,
                 'ip' => $request->getClientIp(),
                 'details' => $type == ADD_ENUM_TYPE ? 'Thêm chỉ mục #' . $request['sub_task'] : 'Gỡ chỉ mục #' . $request['sub_task'],
-                'fk_key' => 'task_id',
+                'fk_key' => 'tbl_tasks|id',
                 'fk_value' => $request['id'],
             ]);
 
@@ -446,6 +448,63 @@ class TaskController extends Controller
             return response()->json([
                 'status' => 500,
                 'message' => 'Đã xảy ra lỗi khi thêm/gỡ chỉ mục.',
+            ]);
+        }
+    }
+
+    public function removeAttachment(Request $request) {
+        $validator = ValidatorService::make($request, [
+            'id' => 'required|integer|exists:tbl_uploads,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        try {
+            $config = Upload::find($request['id']);
+            $config->update(['fk_key' => null, 'fk_value' => null]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Gỡ tệp thành công.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Đã xảy ra lỗi khi gỡ tệp.',
+            ]);
+        }
+    }
+
+    public function uploadFileTask(Request $request) {
+        $validator = ValidatorService::make($request, [
+            'id' => 'required|integer|exists:tbl_tasks,id',
+            'file' => 'required|file|mimes:jpg,jpeg,png,webp,svg,pdf,txt,doc,docx,xls,xlsx,csv,ppt,pptx,zip,rar'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        try {
+            $googleDriveService = new GoogleDriveService();
+            $googleDriveService->uploadFile($request->file('file'), MEDIA_DRIVER_UPLOAD, 'tbl_tasks|id', $request['id']);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Tải lên tệp thành công.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Đã xảy ra lỗi khi tải lên tệp.',
             ]);
         }
     }
