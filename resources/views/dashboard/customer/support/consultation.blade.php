@@ -70,7 +70,7 @@
                                                         <i class="ki-filled ki-phone">
                                                         </i>
                                                     </span>
-                                                    <span class="menu-title">
+                                                    <span class="menu-title details-phone-customer">
                                                         {{$details['phone']}}
                                                     </span>
                                                 </a>
@@ -265,6 +265,48 @@
         </div>
     </div>
 </div>
+<button id="confirm-phone-btn" data-modal-toggle="#confirm-phone-consultation-modal" class="hidden"></button>
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="confirm-phone-consultation-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <style>
+            #confirm-phone-consultation-modal:not(:has(.other-phone-radio:checked)) .other-phone {
+                display: none;
+            }
+        </style>
+        <div class="modal-body">
+            <form class="grid gap-5 px-0 py-5">
+                <div class="flex flex-col gap-2.5">
+                    <button type="button" class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0 hidden" data-modal-dismiss="true">
+                        <i class="ki-filled ki-cross">
+                        </i>
+                    </button>
+                    <div class="flex flex-center gap-1">
+                        <label class="text-gray-900 text-2sm">
+                            <span class="text-danger">Thông báo:</span> Nội dung bạn gửi có chứa số điện thoại, bạn có muốn lưu số cho khách hàng này?
+                        </label>
+                    </div>
+                    <div class="flex flex-col items-start gap-2.5 confirm-phone-body"></div>
+                    <div class="flex flex-col items-start gap-2.5">
+                        <label class="form-label flex items-center gap-2.5">
+                            <input checked="" class="radio radio-sm no-phone" name="phone" type="radio" value="" />
+                            Không lưu
+                        </label>
+                        <label class="form-label flex items-center gap-2.5">
+                            <input checked="" class="radio radio-sm other-phone-radio" name="phone" type="radio" value="" />
+                            Lưu số khác
+                        </label>
+                    </div>
+                    <input type="text" class="input other-phone" name="other-phone" placeholder="Nhập số bạn muốn lưu hoặc không nhập">
+                </div>
+                <div class="flex flex-col">
+                    <button type="submit" class="btn btn-primary justify-center">
+                        Đăng
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 @push('scripts')
 <script>
@@ -316,23 +358,57 @@
 
         $('#add-log-form').on('submit', function(e) {
             e.preventDefault();
-            postAddLog(this);
+
+            let messageText = $(this).find('textarea[name=message]').val();
+            let phoneNumbers = messageText.match(/\b\d{10}\b/g);
+            if (phoneNumbers) {
+                $('#confirm-phone-btn').trigger('click');
+
+                let phoneContent = '';
+                $(phoneNumbers).each((_, phone) => {
+                    phoneContent += `<label class="form-label flex items-center gap-2.5">
+                            <input class="radio radio-sm has-phone" name="phone" type="radio" value="${phone}" />
+                            ${phone}
+                        </label>`;
+                })
+
+                $('#confirm-phone-consultation-modal .confirm-phone-body').html(phoneContent);
+                $('#confirm-phone-consultation-modal .no-phone').prop('checked', true);
+                $('#confirm-phone-consultation-modal .other-phone').val('');
+            } else {
+                postAddLog(this);
+            }
+        })
+
+        $('#confirm-phone-consultation-modal form').on('submit', function(e) {
+            e.preventDefault();
+            let phoneIs = $('#confirm-phone-consultation-modal input[type=radio]:checked');
+            let phoneNumber = '';
+            if (phoneIs.is('.no-phone'))
+                phoneNumber = '';
+            else if (phoneIs.is('.other-phone-radio'))
+                phoneNumber = $('#confirm-phone-consultation-modal .other-phone').val();
+            else if (phoneIs.is('.has-phone'))
+                phoneNumber = phoneIs.val();
+            postAddLog(document.getElementById('add-log-form'), phoneNumber);
         })
 
         $('.consultation-tab:eq(0)').trigger('click');
     })
 
-    async function postAddLog(_this) {
+    async function postAddLog(_this, phoneNumber = '') {
         let method = "post",
             url = "/consultation/add-log",
             params = null,
-            data = $(_this).serialize() + '&consultation_id=' + consulationActive
+            data = $(_this).serialize() + '&consultation_id=' + consulationActive + '&phone=' + phoneNumber
         let res = await axiosTemplate(method, url, params, data);
         switch (res.data.status) {
             case 200:
                 $(`.consultation-tab[data-id=${consulationActive}]`).trigger('click');
                 $('#attachment-preview').html('');
-                $('#add-log-form textarea').val();
+                $('#add-log-form textarea').val('');
+                $('#confirm-phone-consultation-modal button[data-modal-dismiss]').trigger('click');
+                if (phoneNumber != '') $('.details-phone-customer').text(phoneNumber);
                 break;
             default:
                 showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");

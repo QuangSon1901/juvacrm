@@ -266,6 +266,7 @@ class CustomerSupportController extends Controller
         $validator = ValidatorService::make($request, [
             'message' => 'required|string|max:255',
             'action' => 'nullable|integer',
+            'phone' => 'nullable|string|max:10',
             'consultation_id' => 'required|integer|exists:tbl_consultations,id',
         ]);
 
@@ -291,6 +292,11 @@ class CustomerSupportController extends Controller
             }
 
             $consultation = Consultation::find($request['consultation_id']);
+            $customer = Customer::find($consultation->customer_id);
+
+            if (isset($request['phone']) && $request['phone']!='') {
+                $customer->update(['phone' => $request['phone']]);
+            }
 
             return response()->json([
                 'status' => 200,
