@@ -24,7 +24,7 @@
     </td>
     <td>
         <div class="grid gap-3">
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col">
                 <div class="flex items-center gap-1.5">
                     <i class="ki-filled ki-sms text-base text-gray-500"></i>
                     <span class="text-sm font-normal text-gray-900">
@@ -92,7 +92,7 @@
                     <div class="menu-separator">
                     </div>
                     <div class="menu-item">
-                        <button class="lock-account-btn menu-link" data-id="{{$item['id']}}">
+                        <button class="lock-account-btn menu-link" data-id="{{$item['id']}}" data-active="{{$item['is_active']}}">
                             <span class="menu-icon">
                                 <i class="ki-filled ki-lock !text-red-600">
                                 </i>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Session;
 
 class Customer extends Model
 {
@@ -72,15 +73,53 @@ class Customer extends Model
         return CustomerLead::whereIn('id', explode('|', $this->contact_methods))->where('type', 0)->get()->toArray();
     }
 
+    public function scopeFilterByServices($query, $services)
+    {
+        if (!empty($services))
+            return $query->where('services', 'like', "%$services%");
+        return $query;
+    }
+
+    public function scopeFilterByStatus($query, $status)
+    {
+        if ($status) {
+            return $query->where('status_id', $status);
+        };
+        return $query;
+    }
+
+    public function scopeFilterByClass($query, $class)
+    {
+        if ($class) {
+            return $query->where('class_id', $class);
+        };
+        return $query;
+    }
+
     public function scopeFilterByType($query, $type)
     {
-        if ($type === 'lead') return $query->where('type', 0);
-        return $query->where('type', '!=', 0);
+        return $query->where('type', $type);
+    }
+
+    public function scopeFilterMyCustomer($query, $staff)
+    {
+        if ($staff) {
+            return $query->where('user_id', Session::get(ACCOUNT_CURRENT_SESSION)['id']);
+        };
+        return $query;
+    }
+
+    public function scopeFilterBlackList($query, $is)
+    {
+        return $query->where('is_active', '!=', $is);
     }
 
     public function scopeSearch($query, $search)
     {
-        if (!empty($search)) return $query->where('name', 'like', "%$search%");
+        if (!empty($search)) return $query->where('name', 'like', "%$search%")
+                                        ->orWhere('phone', 'like', "%$search%")
+                                        ->orWhere('email', 'like', "%$search%")
+                                        ->orWhere('company', 'like', "%$search%");
         return $query;
     }
 }

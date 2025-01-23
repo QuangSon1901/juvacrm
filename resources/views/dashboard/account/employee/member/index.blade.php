@@ -120,8 +120,8 @@
         $(document).on('click', '.lock-account-btn', function() {
             let _this = $(this);
             Notiflix.Confirm.show(
-                'Khoá tài khoản',
-                'Bạn muốn khoá tài khoản này?',
+                _this.attr('data-active') == 1 ? 'Khoá tài khoản' : 'Mở tài khoản',
+                _this.attr('data-active') == 1 ? 'Bạn muốn khoá tài khoản này?' : 'Bạn muốn mở khoá tài khoản này?',
                 'Đúng',
                 'Huỷ',
                 () => {

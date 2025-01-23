@@ -46,7 +46,7 @@ class TaskController extends Controller
         $currentPage = $request->input('page', 1);
 
         $query = Task::query()
-            ->myTask((int)$request['filter']['my_task'] ?? 0)
+            ->myTask($request['filter']['my_task'] ?? 0)
             ->levelTask($request['filter']['level_task'] ?? 'max')
             ->priorityTask($request['filter']['priority_task'] ?? '')
             ->statusTask($request['filter']['status_task'] ?? '')

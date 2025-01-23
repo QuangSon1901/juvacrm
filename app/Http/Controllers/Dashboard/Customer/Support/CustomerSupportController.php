@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Consultation;
 use App\Models\ConsultationLog;
 use App\Models\Customer;
+use App\Models\CustomerClass;
+use App\Models\CustomerLead;
 use App\Models\Service;
 use App\Services\PaginationService;
 use Illuminate\Http\Request;
@@ -14,7 +16,15 @@ class CustomerSupportController extends Controller
 {
     public function index()
     {
-        return view("dashboard.customer.support.index");
+        $services = Service::select('id', 'name')->where('is_active', 1)->get()->toArray();
+        $statuses = CustomerLead::select('id', 'name', 'color')->where('type', 2)->where('is_active', 1)->orderBy('sort', 'asc')->get()->toArray();
+        $classes = CustomerClass::select('id', 'name', 'color')->where('is_active', 1)->orderBy('sort', 'asc')->get()->toArray();
+
+        return view("dashboard.customer.support.index", [
+            'services' => $services,
+            'statuses' => $statuses,
+            'classes' => $classes,
+        ]);
     }
 
     public function consultation($id)
@@ -52,17 +62,22 @@ class CustomerSupportController extends Controller
 
     public function data(Request $request) {
         $currentPage = $request->input('page', 1);
-        $search = $request->input('search', '');
-        $type = $request->input('lead') ? 'lead' : 'non-lead';
 
         $customersQuery = Customer::query()
-            ->filterByType($type)
-            ->search($search);
+            ->filterMyCustomer($request['filter']['my_customer'] ?? 0)
+            ->filterBlackList($request['filter']['black_list'] ?? 1)
+            ->filterByServices($request['filter']['services'] ?? '')
+            ->filterByStatus($request['filter']['status_id'] ?? 0)
+            ->filterByClass($request['filter']['class_id'] ?? 0)
+            ->filterByType($request['filter']['lead'] ?? 1)
+            ->search($request['filter']['search'] ?? '');
 
         $paginationResult = PaginationService::paginate($customersQuery, $currentPage, TABLE_PERPAGE_NUM);
+        $offset = $paginationResult['sorter']['offset'];
 
-        $result = $paginationResult['data']->map(function ($customer) {
+        $result = $paginationResult['data']->map(function ($customer, $key) use ($offset) {
             return [
+                'index' => $offset + $key + 1,
                 'id' => $customer->id,
                 'name' => $customer->name,
                 'email' => $customer->email,
@@ -70,11 +85,23 @@ class CustomerSupportController extends Controller
                 'address' => $customer->address,
                 'services' => $customer->getServicesArray(),
                 'company' => $customer->company,
-                'status' => $customer->status,
-                'classification' => $customer->classification,
+                'status' => [
+                    'id' => $customer->status->id ?? 0,
+                    'name' => $customer->status->name ?? '',
+                    'color' => $customer->status->color ?? '',
+                ],
+                'classification' => [
+                    'id' => $customer->classification->id ?? 0,
+                    'name' => $customer->classification->name ?? '',
+                    'color' => $customer->classification->color ?? '',
+                ],
                 'source' => $customer->source,
-                'staff' => $customer->user,
+                'staff' => [
+                    'id' => $customer->user->id ?? 0,
+                    'name' => $customer->user->name ?? '',
+                ],
                 'updated_at' => $customer->updated_at,
+                'is_active' => $customer->is_active,
             ];
         });
 
@@ -82,56 +109,6 @@ class CustomerSupportController extends Controller
             'status' => 200,
             'content' => view('dashboard.customer.support.ajax-index', ['data' => $result])->render(),
             'sorter' => $paginationResult['sorter'],
-        ]);
-    }
-
-    public function dataOld(Request $request)
-    {
-        $currentPage = isset($request['page']) && is_numeric($request['page']) ? (int)$request['page'] - 1 : 0;
-        $offset = $currentPage * TABLE_PERPAGE_NUM;
-
-        $search = $request->input('search', '');
-
-        if ($request['lead']) {
-            $customers = Customer::where('type', 0);
-        } else {
-            $customers = Customer::where('type', '!=', 0);
-        }
-
-        if (!empty($search)) {
-            $customers->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%$search%");
-            });
-        }
-
-        $totalRecord = $customers->count();
-
-        $result = $customers->offset($offset)->limit(TABLE_PERPAGE_NUM)->get()->map(function ($customer) {
-            return [
-                'id' => $customer->id,
-                'name' => $customer->name,
-                'email' => $customer->email,
-                'phone' => $customer->phone,
-                'address' => $customer->address,
-                'services' => $customer->getServicesArray(),
-                'company' => $customer->company,
-                'status' => $customer->status,
-                'classification' => $customer->classification,
-                'source' => $customer->source,
-                'staff' => $customer->user,
-                'updated_at' => $customer->updated_at
-            ];
-        });
-
-        return response()->json([
-            'status' => 200,
-            'content' => view("dashboard.customer.support.ajax-index", ['data' => $result])->render(),
-            'sorter' => [
-                'perpage' => TABLE_PERPAGE_NUM,
-                'totalpages' => (int)ceil($totalRecord / TABLE_PERPAGE_NUM),
-                'sorterpage' => $currentPage + 1,
-                'sorterrecords' => $totalRecord,
-            ]
         ]);
     }
 

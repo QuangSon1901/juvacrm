@@ -75,12 +75,12 @@
                 <div class="w-full">
                     <div class="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                         <label class="form-label flex items-center gap-1 max-w-56">
-                        Nguồn
+                            Nguồn
                         </label>
                         <select name="source_id" class="select">
-                        @foreach ($sources as $source)
-                        <option value="{{$source['id']}}">{{$source['name']}}</option>
-                            
+                            @foreach ($sources as $source)
+                            <option value="{{$source['id']}}">{{$source['name']}}</option>
+
                             @endforeach
                         </select>
                     </div>
@@ -88,12 +88,12 @@
                 <div class="w-full">
                     <div class="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                         <label class="form-label flex items-center gap-1 max-w-56">
-                        Loại khách hàng
+                            Nhóm đối tượng
                         </label>
                         <select name="class_id" class="select">
-                        @foreach ($classes as $class)
-                        <option value="{{$class['id']}}">{{$class['name']}}</option>
-                            
+                            @foreach ($classes as $class)
+                            <option value="{{$class['id']}}">{{$class['name']}}</option>
+
                             @endforeach
                         </select>
                     </div>
@@ -101,12 +101,12 @@
                 <div class="w-full">
                     <div class="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                         <label class="form-label flex items-center gap-1 max-w-56">
-                        Trạng thái khách hàng
+                            Trạng thái khách hàng
                         </label>
                         <select name="status_id" class="select">
-                        @foreach ($status as $sts)
-                        <option value="{{$sts['id']}}">{{$sts['name']}}</option>
-                            
+                            @foreach ($status as $sts)
+                            <option value="{{$sts['id']}}">{{$sts['name']}}</option>
+
                             @endforeach
                         </select>
                     </div>
@@ -114,7 +114,7 @@
                 <div class="w-full">
                     <div class="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                         <label class="form-label flex items-center gap-1 max-w-56">
-                        Hình thức liên hệ
+                            Hình thức liên hệ
                         </label>
                         <div class="flex flex-wrap gap-4">
                             @foreach ($contacts as $contact)
@@ -137,18 +137,18 @@
                 <div class="w-full">
                     <div class="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                         <label class="form-label flex items-center gap-1 max-w-56">
-                        Dịch vụ khách quan tâm
+                            Dịch vụ khách quan tâm
                         </label>
                         <div class="flex flex-wrap gap-4">
-                        <select name="services[]" class="select min-h-96" multiple >
-                            <option value="">Không chọn</option>
-                        @foreach ($services as $service)
-                        <option value="{{$service['id']}}">{{$service['name']}}</option>
-                            
-                            @endforeach
+                            <select name="services[]" class="select min-h-96" multiple>
+                                <option value="">Không chọn</option>
+                                @foreach ($services as $service)
+                                <option value="{{$service['id']}}">{{$service['name']}}</option>
+
+                                @endforeach
                         </div>
-                            </select>
-                        
+                        </select>
+
                     </div>
                 </div>
             </form>
@@ -171,11 +171,11 @@
         let res = await axiosTemplate(method, url, params, data);
         switch (res.data.status) {
             case 200:
-                alert(res.data.message)
+                showAlert('success', res.data.message);
                 window.location.reload();
                 break;
             default:
-                alert(res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
                 break;
         }
     }

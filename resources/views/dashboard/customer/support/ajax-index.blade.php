@@ -1,69 +1,91 @@
 @foreach ($data as $item)
 <tr>
+    <td class="text-center">{{$item['index']}}</td>
     <td class="text-gray-800 font-normal">
-        <a class="leading-none hover:text-primary" href="/customer/{{$item['id']}}">
-        {{$item['id']}}
+        @if ($item['status']['id'] != 0)
+        <span class="badge badge-sm badge-outline badge-{{$item['status']['color']}}">
+            {{$item['status']['name']}}
+        </span>
+        @else
+        ---
+        @endif
+    </td>
+    <td class="text-gray-800 font-normal">
+        <div class="flex flex-wrap gap-2">
+            <span class="badge badge-sm badge-outline badge-neutral">
+                ID: {{$item['id']}}
+            </span>
+            @if ($item['classification']['id'] != 0)
+            <span class="badge badge-sm badge-outline badge-{{$item['classification']['color']}}">
+                {{$item['classification']['name']}}
+            </span>
+            @endif
+        </div>
+        <a class="leading-none hover:text-primary text-gray-900 font-medium" href="/customer/{{$item['id']}}">
+            {{$item['name']}}
         </a>
     </td>
     <td>
-        <div class="flex flex-col gap-1.5">
-            <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/customer/{{$item['id']}}">
-                <span>{{$item['name']}}</span>
-                <span class="badge badge-sm badge-outline badge-success">
-                    {{$item['status']['name']}}
-                </span>
-            </a>
-            <span class="text-2sm text-gray-700 font-normal">
-                ###
-            </span>
-        </div>
-    </td>
-    <td>
         <div class="grid gap-3">
-            <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center justify-between flex-wrap">
                 <div class="flex items-center gap-1.5">
                     <i class="ki-filled ki-sms text-base text-gray-500"></i>
                     <span class="text-sm font-normal text-gray-900">
-                    {{$item['email']}}
+                        {{$item['email']}}
                     </span>
                 </div>
                 <div class="flex items-center gap-1.5">
                     <i class="ki-filled ki-phone text-base text-gray-500"></i>
                     <span class="text-sm font-normal text-gray-900">
-                    {{$item['phone']}}
+                        {{$item['phone']}}
                     </span>
                 </div>
             </div>
         </div>
     </td>
-    <td class="text-sm text-gray-800 font-normal">{{$item['company']}}</td>
     <td>
         <div class="flex flex-wrap gap-2.5 mb-2">
-        @foreach ($item['services'] as $service)
-        <span class="badge badge-sm badge-light badge-outline">
+            @if (count($item['services']) > 1)
+            <span class="badge badge-sm badge-light badge-outline">
+                {{$item['services'][0]['name']}}
+            </span>
+            <span class="badge badge-sm badge-light badge-outline">
+                +{{count($item['services'])-1}}
+            </span>
+            @else
+            @foreach ($item['services'] as $service)
+            <span class="badge badge-sm badge-light badge-outline">
                 {{$service['name']}}
             </span>
-        @endforeach
+            @endforeach
+            @endif
         </div>
     </td>
-    <td>
+    <td class="text-gray-800 font-normal">
+        @if ($item['staff']['id'] == 0)
+        ---
+        @else
         <div class="flex items-center gap-2.5">
-            @if ($item['staff'])
             <div class="flex flex-col gap-0.5">
-                <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/member/123">
+                <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/member/{{$item['staff']['id']}}">
                     {{$item['staff']['name']}}
                 </a>
                 <span class="text-xs text-gray-700 font-normal">
-                    #{{$item['staff']['id']}}
+                    ID: {{$item['staff']['id']}}
                 </span>
             </div>
-            @endif
-            
         </div>
+        @endif
     </td>
-    <th class="text-gray-700 font-normal min-w-[220px]">
-    {{$item['updated_at']}}
-    </th>
+    <td class="text-sm text-gray-800 font-normal">{{$item['company']}}</td>
+    <td class="text-sm text-gray-800 font-normal">
+        @if ($item['updated_at'])
+        <p class="leading-none text-gray-900 font-medium">{{formatDateTime($item['updated_at'], 'd-m-Y')}}</p>
+        <span class="text-gray-700 text-xs">{{formatDateTime($item['updated_at'], 'H:i:s')}}</span>
+        @else
+        ---
+        @endif
+    </td>
     <td class="w-[60px]">
         <div class="menu" data-menu="true">
             <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
@@ -78,7 +100,7 @@
                                 <i class="ki-filled ki-search-list">
                                 </i>
                             </span>
-                            <span class="menu-title">
+                            <span class="menu-title text-left">
                                 Xem chi tiết
                             </span>
                         </a>
@@ -87,7 +109,7 @@
                                 <i class="ki-filled ki-pencil">
                                 </i>
                             </span>
-                            <span class="menu-title">
+                            <span class="menu-title text-left">
                                 Chỉnh sửa
                             </span>
                         </a>
@@ -100,7 +122,7 @@
                                 <i class="ki-filled ki-questionnaire-tablet">
                                 </i>
                             </span>
-                            <span class="menu-title">
+                            <span class="menu-title text-left">
                                 Xem hợp đồng
                             </span>
                         </a>
@@ -109,7 +131,7 @@
                                 <i class="ki-filled ki-questionnaire-tablet">
                                 </i>
                             </span>
-                            <span class="menu-title">
+                            <span class="menu-title text-left">
                                 Lập hợp đồng
                             </span>
                         </a>
@@ -122,7 +144,7 @@
                                 <i class="ki-filled ki-chart">
                                 </i>
                             </span>
-                            <span class="menu-title">
+                            <span class="menu-title text-left">
                                 Quy trình tư vấn
                             </span>
                         </a>
@@ -131,7 +153,7 @@
                                 <i class="ki-filled ki-calendar">
                                 </i>
                             </span>
-                            <span class="menu-title">
+                            <span class="menu-title text-left">
                                 Lịch hẹn
                             </span>
                         </a>
@@ -139,15 +161,15 @@
                     <div class="menu-separator">
                     </div>
                     <div class="menu-item">
-                        <a class="menu-link" href="#">
+                        <button class="menu-link black-list-customer-btn" data-id="{{$item['id']}}" data-active="{{$item['is_active']}}">
                             <span class="menu-icon">
                                 <i class="ki-filled ki-shield-cross !text-red-600">
                                 </i>
                             </span>
-                            <span class="menu-title !text-red-600">
-                                Cho vào danh sách đen
+                            <span class="menu-title !text-red-600 text-left">
+                            {{$item['is_active'] ? 'Cho vào danh sách đen' : 'Gỡ khỏi danh sách đen'}}
                             </span>
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>

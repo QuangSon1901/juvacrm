@@ -84,6 +84,8 @@ Route::group(
                     function () {
                         Route::get('/customer/create-view', [CustomerController::class, "createView"])->name("customer-view");
                         Route::post('/customer/create', [CustomerController::class, "create"])->name("customer-create");
+                        Route::post('/customer/update', [CustomerController::class, "update"])->name("customer-update");
+                        Route::post('/customer/black-list', [CustomerController::class, "blackList"])->name("customer-black-list");
                         Route::get('/customer/{id}', [CustomerController::class, "detail"])->name("customer-detail");
                         Route::get('/customer-leads', [CustomerController::class, "leads"])->name("customer-leads");
                     }

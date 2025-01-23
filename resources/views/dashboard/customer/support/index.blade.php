@@ -22,37 +22,70 @@
                 <h3 class="card-title">
                     Danh sách khách hàng
                 </h3>
-                
+
                 <div class="flex flex-wrap gap-2">
-                    <div class="flex">
-                        <label class="switch switch-sm">
-                            <span class="switch-label">
-                                Khách hàng của tôi
-                            </span>
-                            <input name="check" type="checkbox" value="1">
-                        </label>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex flex-wrap lg:justify-end gap-2">
+                            <select data-filter="services" class="select select-sm w-40">
+                                <option value="" selected>
+                                    Theo dịch vụ
+                                </option>
+                                @foreach ($services as $service)
+                                <option value="{{$service['id']}}">
+                                    {{$service['name']}}
+                                </option>
+                                @endforeach
+                            </select>
+                            <select data-filter="status_id" class="select select-sm w-40">
+                                <option value="" selected>
+                                    Theo trạng thái
+                                </option>
+                                @foreach ($statuses as $status)
+                                <option value="{{$status['id']}}">
+                                    {{$status['name']}}
+                                </option>
+                                @endforeach
+                            </select>
+                            <select data-filter="class_id" class="select select-sm w-40">
+                                <option value="" selected>
+                                    Theo đối tượng
+                                </option>
+                                @foreach ($classes as $class_item)
+                                <option value="{{$class_item['id']}}">
+                                    {{$class_item['name']}}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex flex-wrap lg:justify-end gap-2">
+                            <div class="flex">
+                                <label class="switch switch-sm">
+                                    <span class="switch-label">
+                                        Khách hàng của tôi
+                                    </span>
+                                    <input data-filter="my_customer" type="checkbox" value="1">
+                                </label>
+                            </div>
+                            <div class="flex">
+                                <label class="switch switch-sm">
+                                    <span class="switch-label">
+                                        Danh sách đen
+                                    </span>
+                                    <input data-filter="black_list" type="checkbox" value="1">
+                                </label>
+                            </div>
+                            <div class="relative">
+                                <i class="ki-filled ki-magnifier leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3">
+                                </i>
+                                <input class="input input-sm pl-8" id="search-input" data-filter="search" placeholder="Tìm kiếm" type="text">
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex flex-wrap gap-2.5">
-                        <select class="select select-sm w-40">
-                            <option selected="">
-                                Theo trạng thái
-                            </option>
-                            <option>
-                                Khách hàng mới
-                            </option>
-                        </select>
-                        <select class="select select-sm w-40">
-                            <option selected="">
-                                Đang hoạt động
-                            </option>
-                            <option>
-                                Danh sách đen
-                            </option>
-                        </select>
+                    <div>
+                        <a href="/customer/create-view" class="btn btn-primary btn-sm">
+                            Thêm khách hàng
+                        </a>
                     </div>
-                    <a href="/customer/create-view" class="btn btn-primary btn-sm">
-                        Thêm khách hàng
-                    </a>
                 </div>
             </div>
             <div class="card-body">
@@ -62,16 +95,20 @@
                             <thead>
                                 <tr>
                                     <th class="text-gray-700 font-normal w-[100px]">
-                                        #
+                                        STT
+                                    </th>
+                                    <th class="min-w-[150px]">
+                                        <span class="sort">
+                                            <span class="sort-label">
+                                                Trạng thái
+                                            </span>
+                                        </span>
                                     </th>
                                     <th class="text-gray-700 font-normal min-w-[250px]">
-                                        Họ tên
+                                        Khách hàng
                                     </th>
                                     <th class="text-gray-700 font-normal min-w-[200px]">
                                         Liên hệ
-                                    </th>
-                                    <th class="text-gray-700 font-normal min-w-[220px]">
-                                        Thông tin CTY
                                     </th>
                                     <th class="text-gray-700 font-normal min-w-[220px]">
                                         Khách Quan Tâm
@@ -79,7 +116,10 @@
                                     <th class="text-gray-700 font-normal min-w-[200px]">
                                         Nhân viên CSKH
                                     </th>
-                                    <th class="text-gray-700 font-normal min-w-[100px]">
+                                    <th class="text-gray-700 font-normal min-w-[220px]">
+                                        Thông tin CTY
+                                    </th>
+                                    <th class="text-gray-700 font-normal min-w-[200px]">
                                         Lần tương tác gần nhất
                                     </th>
                                     <th class="w-[60px]">
@@ -104,3 +144,41 @@
     </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+    $(function() {
+        $(document).on('click', '.black-list-customer-btn', function() {
+            let _this = $(this);
+            Notiflix.Confirm.show(
+                _this.attr('data-active') == 1 ? 'Cho vào danh sách đen' : 'Gỡ khỏi danh sách đen',
+                _this.attr('data-active') == 1 ? 'Bạn muốn chuyển khách hàng này vào danh sách đen?' : 'Bạn muốn gỡ khách hàng ày khỏi danh sách đen?',
+                'Đúng',
+                'Huỷ',
+                () => {
+                    postBlackListCustomer($(this).attr('data-id'), _this);
+                },
+                () => {}, {},
+            );
+        })
+    })
+
+    async function postBlackListCustomer(id, _this) {
+        let method = "post",
+            url = "/customer/black-list",
+            params = null,
+            data = {
+                id
+            };
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message)
+                callAjaxDataTable(_this.closest('.card').find('.updater'));
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!")
+                break;
+        }
+    }
+</script>
+@endpush

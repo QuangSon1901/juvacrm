@@ -1,7 +1,7 @@
 <?php
 
 // PAGINATION
-const TABLE_PERPAGE_NUM = 5;
+const TABLE_PERPAGE_NUM = 25;
 const CARD_PERPAGE_NUM = 50;
 
 // SESSION
@@ -14,6 +14,8 @@ const REMOVE_ENUM_TYPE = 'REMOVE';
 // LOGS
 const TASK_ENUM_LOG = 'TASK_ENUM_LOG';
 const CONFIG_TASK_ENUM_LOG = 'CONFIG_TASK_ENUM_LOG';
+
+const CUSTOMER_ENUM_LOG = 'CUSTOMER_ENUM_LOG';
 
 const MEDIA_ENUM_LOG = 'MEDIA_ENUM_LOG';
 
@@ -36,9 +38,10 @@ const MESSAGE_VALIDATE = [
     'between' => ':attribute phải nằm trong khoảng :min đến :max',
     'exists' => ':attribute không tồn tại trong hệ thống',
     'in' => ':attribute phải là một trong các giá trị: :values',
-    'file.file' => 'File không hợp lệ.',
-    'file.mimes' => 'File phải có định dạng: :values.',
-    'file.mimetypes' => 'File phải có định dạng MIME: :values.',
+    'file' => 'File không hợp lệ.',
+    'mimes' => 'File phải có định dạng: :values.',
+    'mimetypes' => 'File phải có định dạng MIME: :values.',
+    'unique' => ':attribute đã tồn tại trong hệ thống.',
 ];
 
 const FIELD_VALIDATE = [
@@ -67,4 +70,13 @@ const FIELD_VALIDATE = [
     'color' => 'Màu sắc',
     'is_active' => 'Trạng thái',
     'file' => 'Tệp',
+    'phone' => 'Số điện thoại',
+    'email' => 'Email',
+    'address' => 'Địa chỉ',
+    'company' => 'Công ty',
+    'source_id' => 'Nguồn',
+    'services' => 'Dịch vụ',
+    'class_id' => 'Đối tượng',
+    'status_id' => 'Trạng thái',
+    'contacts' => 'Hình thức liên hệ',
 ];
