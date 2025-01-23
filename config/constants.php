@@ -79,4 +79,7 @@ const FIELD_VALIDATE = [
     'class_id' => 'Đối tượng',
     'status_id' => 'Trạng thái',
     'contacts' => 'Hình thức liên hệ',
+    'customer_id' => 'Khách hàng',
+    'message' => 'Nội dung',
+    'action' => 'Hành động',
 ];

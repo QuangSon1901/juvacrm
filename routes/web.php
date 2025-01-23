@@ -99,6 +99,9 @@ Route::group(
                         Route::get('/customer-support/{id}', [CustomerSupportController::class, "detail"])->name("customer-support-detail");
                         Route::get('/customer-consultation/{id}', [CustomerSupportController::class, "consultation"])->name("customer-consultation");
                         Route::post('/consultation/create', [CustomerSupportController::class, "consultationCreate"])->name("consultation-create");
+                        Route::post('/consultation/update', [CustomerSupportController::class, "consultationUpdate"])->name("consultation-update");
+                        Route::get('/consultation/log', [CustomerSupportController::class, "consultationLog"])->name("consultation-log");
+                        Route::post('/consultation/remove', [CustomerSupportController::class, "consultationRemove"])->name("consultation-remove");
                         Route::post('/consultation/add-log', [CustomerSupportController::class, "consultationAddLog"])->name("consultation-add-log");
                     }
                 );

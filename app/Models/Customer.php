@@ -52,7 +52,7 @@ class Customer extends Model
 
     public function consultations()
     {
-        return $this->hasMany(Consultation::class)->orderBy('created_at', 'asc');
+        return $this->hasMany(Consultation::class)->where('is_deleted', 0)->orderBy('created_at', 'asc');
     }
 
     public function getServicesArray()

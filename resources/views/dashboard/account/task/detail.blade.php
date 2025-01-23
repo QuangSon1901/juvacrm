@@ -893,43 +893,62 @@
     }
 
     async function postRemoveAttachmentTask(attach_id) {
-        let method = "post",
-            url = "/task/remove-attachment-task",
-            params = null,
-            data = {
-                id: attach_id,
-            };
-        let res = await axiosTemplate(method, url, params, data);
-        switch (res.data.status) {
-            case 200:
-                showAlert('success', res.data.message);
-                window.location.reload();
-                break;
-            default:
-                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
-                break;
-        }
+        Notiflix.Confirm.show(
+            'Xoá tệp đính kèm',
+            'Bạn có chắc chắn muốn xoá tệp đính kèm này?',
+            'Đúng',
+            'Huỷ',
+            async () => {
+                let method = "post",
+                    url = "/task/remove-attachment-task",
+                    params = null,
+                    data = {
+                        id: attach_id,
+                    };
+                let res = await axiosTemplate(method, url, params, data);
+                switch (res.data.status) {
+                    case 200:
+                        showAlert('success', res.data.message);
+                        window.location.reload();
+                        break;
+                    default:
+                        showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                        break;
+                }
+            },
+            () => {}, {},
+        );
     }
 
     async function postRemoveSubTask(sub_task) {
-        let method = "post",
-            url = "/task/update-sub-task",
-            params = null,
-            data = {
-                id: "{{$details['id']}}",
-                sub_task,
-                type: "{{REMOVE_ENUM_TYPE}}"
-            };
-        let res = await axiosTemplate(method, url, params, data);
-        switch (res.data.status) {
-            case 200:
-                showAlert('success', res.data.message);
-                window.location.reload();
-                break;
-            default:
-                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
-                break;
-        }
+        Notiflix.Confirm.show(
+            'Xoá chỉ mục',
+            'Bạn có chắc chắn muốn xoá chỉ mục này?',
+            'Đúng',
+            'Huỷ',
+            async () => {
+                let method = "post",
+                    url = "/task/update-sub-task",
+                    params = null,
+                    data = {
+                        id: "{{$details['id']}}",
+                        sub_task,
+                        type: "{{REMOVE_ENUM_TYPE}}"
+                    };
+                let res = await axiosTemplate(method, url, params, data);
+                switch (res.data.status) {
+                    case 200:
+                        showAlert('success', res.data.message);
+                        window.location.reload();
+                        break;
+                    default:
+                        showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                        break;
+                }
+            },
+            () => {}, {},
+        );
+
     }
 
     async function postUpdateDescriptionTask() {

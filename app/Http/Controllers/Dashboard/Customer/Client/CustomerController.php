@@ -68,7 +68,7 @@ class CustomerController extends Controller
             }
         }
 
-        $activity_logs = ActivityLogs::where('action', CUSTOMER_ENUM_LOG)->where('fk_key', 'tbl_customers|id')->where('fk_value', $id)->orderBy('created_at', 'desc')->get()->map(function ($log, $index) {
+        $activity_logs = ActivityLogs::where('action', CUSTOMER_ENUM_LOG)->where('fk_key', 'tbl_customers|id')->where('fk_value', $id)->orderBy('created_at', 'desc')->limit(TABLE_PERPAGE_NUM)->get()->map(function ($log, $index) {
             return [
                 'index' => $index,
                 'id' => $log->id,

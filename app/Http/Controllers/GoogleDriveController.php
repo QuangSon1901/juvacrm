@@ -47,9 +47,11 @@ class GoogleDriveController extends Controller
                 'status' => 200,
                 'message' => 'Tải lên tệp thành công.',
                 'data' => [
+                    'name'       => $file->getClientOriginalName(),
                     'driver_id' => $uploadedFile->id,
                     'extension' => $file->getClientOriginalExtension(),
                     'type' => $file->getClientMimeType(),
+                    'size' => formatBytes($file->getSize()),
                 ]
             ]);
         }, function ($request, $response) {
