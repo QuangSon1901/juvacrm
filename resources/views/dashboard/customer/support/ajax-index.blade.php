@@ -148,7 +148,7 @@
                                 Quy trình tư vấn
                             </span>
                         </a>
-                        <a class="menu-link" href="/customer/{{$item['id']}}">
+                        <a class="menu-link" href="/appointment/detail/{{$item['id']}}">
                             <span class="menu-icon">
                                 <i class="ki-filled ki-calendar">
                                 </i>

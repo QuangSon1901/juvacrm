@@ -14,6 +14,7 @@ use App\Http\Controllers\Dashboard\Contract\ContractController;
 use App\Http\Controllers\Dashboard\Customer\Client\CustomerController;
 use App\Http\Controllers\Dashboard\Customer\Manage\CustomerTypeController;
 use App\Http\Controllers\Dashboard\Customer\Manage\LeadsController;
+use App\Http\Controllers\Dashboard\Customer\Support\AppointmentController;
 use App\Http\Controllers\Dashboard\Logs\Activity\ActivityController;
 use App\Http\Controllers\Dashboard\Overview\OverviewController;
 use App\Http\Controllers\Dashboard\Profile\ProfileController;
@@ -103,6 +104,9 @@ Route::group(
                         Route::get('/consultation/log', [CustomerSupportController::class, "consultationLog"])->name("consultation-log");
                         Route::post('/consultation/remove', [CustomerSupportController::class, "consultationRemove"])->name("consultation-remove");
                         Route::post('/consultation/add-log', [CustomerSupportController::class, "consultationAddLog"])->name("consultation-add-log");
+
+                        Route::get('/appointment/appointment-data', [AppointmentController::class, "dataAppointment"])->name("appointment-data");
+                        Route::get('/appointment/detail/{id}', [AppointmentController::class, "detail"])->name("appointment-detail");
                     }
                 );
 
