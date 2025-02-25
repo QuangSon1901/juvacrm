@@ -34,6 +34,8 @@ class Task extends Model
         'bonus_amount', 
         'deduction_amount', 
         'is_active', 
+        'qty_request', 
+        'qty_completed', 
     ];
 
     public function scopeSearch($query, $search)
@@ -78,11 +80,11 @@ class Task extends Model
     }
 
     public function priority() {
-        return $this->belongsTo(TaskConfig::class, 'priority_id');
+        return $this->belongsTo(TaskConfig::class, 'priority_id')->where('type', 0);
     }
 
     public function status() {
-        return $this->belongsTo(TaskConfig::class, 'status_id');
+        return $this->belongsTo(TaskConfig::class, 'status_id')->where('type', 1);
     }
 
     public function contract() {
@@ -94,7 +96,7 @@ class Task extends Model
     }
 
     public function issue() {
-        return $this->belongsTo(TaskConfig::class, 'issue_id');
+        return $this->belongsTo(TaskConfig::class, 'issue_id')->where('type', 2);
     }
 
     public function parent() {
@@ -106,7 +108,7 @@ class Task extends Model
     }
 
     public function childs() {
-        return $this->hasMany(Task::class, 'parent_id');
+        return $this->hasMany(Task::class, 'parent_id')->where('is_active', 1);
     }
 
     public function assign() {

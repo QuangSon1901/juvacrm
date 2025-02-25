@@ -7,7 +7,7 @@
 // ];
 
 return [
-    'credentials_json' => env('GOOGLE_APPLICATION_CREDENTIALS'),
+    'credentials_json' => base_path(env('GOOGLE_APPLICATION_CREDENTIALS')),
     'scopes' => [
         'https://www.googleapis.com/auth/drive',
     ],

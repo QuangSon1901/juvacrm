@@ -10,4 +10,12 @@ class CustomerLead extends Model
     use HasFactory;
 
     protected $table = 'tbl_customer_lead';
+    protected $fillable = [
+        'name',
+        'description',
+        'type',
+        'sort',
+        'color',
+        'is_active',
+    ];
 }

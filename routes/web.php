@@ -12,6 +12,7 @@ use App\Http\Controllers\Dashboard\Accounting\DepositReceipt\DepositReceiptContr
 use App\Http\Controllers\Dashboard\Assets\FileExplorerController;
 use App\Http\Controllers\Dashboard\Contract\ContractController;
 use App\Http\Controllers\Dashboard\Customer\Client\CustomerController;
+use App\Http\Controllers\Dashboard\Customer\Client\CustomerLeadController;
 use App\Http\Controllers\Dashboard\Customer\Manage\CustomerTypeController;
 use App\Http\Controllers\Dashboard\Customer\Manage\LeadsController;
 use App\Http\Controllers\Dashboard\Customer\Support\AppointmentController;
@@ -88,7 +89,9 @@ Route::group(
                         Route::post('/customer/update', [CustomerController::class, "update"])->name("customer-update");
                         Route::post('/customer/black-list', [CustomerController::class, "blackList"])->name("customer-black-list");
                         Route::get('/customer/{id}', [CustomerController::class, "detail"])->name("customer-detail");
-                        Route::get('/customer-leads', [CustomerController::class, "leads"])->name("customer-leads");
+
+                        Route::get('/customer-leads', [CustomerLeadController::class, "leads"])->name("customer-leads");
+                        Route::get('/customer-leads-data', [CustomerLeadController::class, "data"])->name("customer-leads-data");
                     }
                 );
 
@@ -114,6 +117,8 @@ Route::group(
                     ['namespace' => 'Manage', 'as' => 'manage.', 'middleware' => []],
                     function () {
                         Route::get('/leads', [LeadsController::class, "index"])->name("leads");
+                        Route::post('/leads/post', [LeadsController::class, "leadsPost"])->name("leads-post");
+                        Route::post('/leads/change-status', [LeadsController::class, "leadsChangeStatus"])->name("leads-change-status");
                         Route::get('/customer-type', [CustomerTypeController::class, "index"])->name("customer-type");
                     }
                 );
@@ -126,7 +131,16 @@ Route::group(
                 Route::get('/contracts', [ContractController::class, "index"])->name("contract");
                 Route::get('/contract/create-view', [ContractController::class, "createView"])->name("create-view");
                 Route::post('/contract/create', [ContractController::class, "create"])->name("create");
-                Route::get('/contract/123', [ContractController::class, "detail"])->name("detail");
+                Route::post('/contract/update', [ContractController::class, "update"])->name("update");
+                Route::get('/contract-data', [ContractController::class, "data"])->name("data");
+                Route::get('/contract/{id}', [ContractController::class, 'detail'])->name('contract.detail');
+                Route::post('/contract/add-service', [ContractController::class, 'addService'])->name('contract.addService');
+                Route::post('/contract/update-service', [ContractController::class, 'updateService'])->name('contract.updateService');
+                Route::post('/contract/cancel-service', [ContractController::class, 'cancelService'])->name('contract.cancelService');
+                Route::post('/contract/add-payment', [ContractController::class, 'addPayment'])->name('contract.addPayment');
+                Route::post('/contract/update-payment', [ContractController::class, 'updatePayment'])->name('contract.updatePayment');
+                Route::post('/contract/cancel-payment', [ContractController::class, 'cancelPayment'])->name('contract.cancelPayment');
+                Route::get('/contract/{id}/export-pdf', [ContractController::class, 'exportPdf'])->name('export-pdf');
             }
         );
 

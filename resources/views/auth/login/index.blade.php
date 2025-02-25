@@ -2,7 +2,7 @@
 @section('auth_content')
 <style>
     .page-bg {
-        background-image: url('/assets/images/background/bg-auth.png');
+        background-image: url('{{asset("/assets/images/background/bg-auth.png")}}');
     }
 </style>
 <div class="flex items-center justify-center grow bg-center bg-no-repeat page-bg">

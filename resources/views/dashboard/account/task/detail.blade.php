@@ -204,7 +204,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="flex flex-col gap-5">
+                                {{-- <div class="flex flex-col gap-5">
                                     <div class="checkbox-group">
                                         <span class="checkbox-label text-gray-800 !font-bold">
                                             Thời gian dự kiến:
@@ -217,7 +217,7 @@
                                             </i>
                                         </button>
                                     </div>
-                                </div>
+                                </div> --}}
                                 <div class="flex flex-col gap-5">
                                     <div class="checkbox-group">
                                         <span class="checkbox-label text-gray-800 !font-bold">
@@ -227,6 +227,34 @@
                                             {{$details['spend_time'] ?? 0}}h
                                         </span>
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="spend_time">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-5">
+                                    <div class="checkbox-group">
+                                        <span class="checkbox-label text-gray-800 !font-bold">
+                                            Số lượng yêu cầu:
+                                        </span>
+                                        <span class="checkbox-label text-gray-800">
+                                            {{$details['qty_request'] ?? 0}}
+                                        </span>
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="qty_request">
+                                            <i class="ki-filled ki-notepad-edit">
+                                            </i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-5">
+                                    <div class="checkbox-group">
+                                        <span class="checkbox-label text-gray-800 !font-bold">
+                                            Số lượng đã hoàn thành:
+                                        </span>
+                                        <span class="checkbox-label text-gray-800">
+                                            {{$details['qty_completed'] ?? 0}}
+                                        </span>
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="qty_completed">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </button>
@@ -295,6 +323,8 @@
                                             </a>
                                         </div>
                                         <div>
+                                            <span class="checkbox-label font-normal text-gray-700">{{$subtask['qty_completed'] ?? 0}}/{{$subtask['qty_request'] ?? 0}}</span>
+                                            <span>-</span>
                                             <span class="checkbox-label font-normal text-{{$subtask['status']['color']}}">{{$subtask['status']['name'] ?? '---'}}</span>
                                             @if ($subtask['priority']['id'] != 0)
                                             <span>-</span>
@@ -382,7 +412,9 @@
                                     </span>
                                     <span class="checkbox-label text-gray-800">
                                         @if ($details['contract']['id'] != 0)
-                                        {{$details['contract']['name']}}
+                                        <a href="/contract/{{$details['contract']['id']}}">
+                                            <span class="checkbox-label font-semibold hover:text-primary-active">{{$details['contract']['name']}}</span>
+                                        </a>
                                         @else
                                         ---
                                         @endif
@@ -650,6 +682,8 @@
                     </select>
                     <input class="input hidden" name="estimate_time" type="text" placeholder="Vui lòng nhập thời gian dự kiến">
                     <input class="input hidden" name="spend_time" type="text" placeholder="Vui lòng nhập thời gian thực tế">
+                    <input class="input hidden" name="qty_request" type="text" placeholder="Vui lòng nhập số lượng yêu cầu">
+                    <input class="input hidden" name="qty_completed" type="text" placeholder="Vui lòng nhập số lượng đã làm">
                     <input class="input hidden" name="deduction_amount" type="text" placeholder="Vui lòng nhập tiền phạt">
                     <input class="input hidden" name="bonus_amount" type="text" placeholder="Vui lòng nhập thời tiền thưởng">
                     <textarea class="textarea text-2sm text-gray-600 font-normal hidden" name="note" rows="5" placeholder="Nhập ghi chú tại đây"></textarea>
@@ -899,24 +933,24 @@
             'Đúng',
             'Huỷ',
             async () => {
-                let method = "post",
-                    url = "/task/remove-attachment-task",
-                    params = null,
-                    data = {
-                        id: attach_id,
-                    };
-                let res = await axiosTemplate(method, url, params, data);
-                switch (res.data.status) {
-                    case 200:
-                        showAlert('success', res.data.message);
-                        window.location.reload();
-                        break;
-                    default:
-                        showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
-                        break;
-                }
-            },
-            () => {}, {},
+                    let method = "post",
+                        url = "/task/remove-attachment-task",
+                        params = null,
+                        data = {
+                            id: attach_id,
+                        };
+                    let res = await axiosTemplate(method, url, params, data);
+                    switch (res.data.status) {
+                        case 200:
+                            showAlert('success', res.data.message);
+                            window.location.reload();
+                            break;
+                        default:
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                            break;
+                    }
+                },
+                () => {}, {},
         );
     }
 
@@ -927,26 +961,26 @@
             'Đúng',
             'Huỷ',
             async () => {
-                let method = "post",
-                    url = "/task/update-sub-task",
-                    params = null,
-                    data = {
-                        id: "{{$details['id']}}",
-                        sub_task,
-                        type: "{{REMOVE_ENUM_TYPE}}"
-                    };
-                let res = await axiosTemplate(method, url, params, data);
-                switch (res.data.status) {
-                    case 200:
-                        showAlert('success', res.data.message);
-                        window.location.reload();
-                        break;
-                    default:
-                        showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
-                        break;
-                }
-            },
-            () => {}, {},
+                    let method = "post",
+                        url = "/task/update-sub-task",
+                        params = null,
+                        data = {
+                            id: "{{$details['id']}}",
+                            sub_task,
+                            type: "{{REMOVE_ENUM_TYPE}}"
+                        };
+                    let res = await axiosTemplate(method, url, params, data);
+                    switch (res.data.status) {
+                        case 200:
+                            showAlert('success', res.data.message);
+                            window.location.reload();
+                            break;
+                        default:
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                            break;
+                    }
+                },
+                () => {}, {},
         );
 
     }

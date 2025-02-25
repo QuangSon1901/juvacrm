@@ -232,12 +232,6 @@ class CustomerController extends Controller
         });
     }
 
-    public function leads()
-    {
-
-        return view("dashboard.customer.client.leads");
-    }
-
     public function blackList(Request $request)
     {
         return tryCatchHelper($request, function () use ($request) {

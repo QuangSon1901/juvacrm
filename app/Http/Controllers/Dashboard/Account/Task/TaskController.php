@@ -51,6 +51,8 @@ class TaskController extends Controller
             ->priorityTask($request['filter']['priority_task'] ?? '')
             ->statusTask($request['filter']['status_task'] ?? '')
             ->search($request['filter']['search'] ?? '');
+        
+        $query->where('is_active', 1);
 
         $paginationResult = PaginationService::paginate($query, $currentPage, TABLE_PERPAGE_NUM);
         $offset = $paginationResult['sorter']['offset'];
@@ -81,6 +83,8 @@ class TaskController extends Controller
                 'progress' => $item->progress,
                 'estimate_time' => $item->estimate_time,
                 'spend_time' => $item->spend_time,
+                'qty_request' => $item->qty_request,
+                'qty_completed' => $item->qty_completed,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
@@ -157,6 +161,8 @@ class TaskController extends Controller
                     ],
                     'start_date' => $child->start_date,
                     'due_date' => $child->due_date,
+                    'qty_request' => $child->qty_request,
+                    'qty_completed' => $child->qty_completed,
                 ];
             }),
             'comments' => $task->comments->map(function ($comment) {
@@ -175,6 +181,8 @@ class TaskController extends Controller
             'progress' => $task->progress,
             'estimate_time' => $task->estimate_time,
             'spend_time' => $task->spend_time,
+            'qty_request' => $task->qty_request,
+            'qty_completed' => $task->qty_completed,
             'created_at' => $task->created_at,
             'updated_at' => $task->updated_at,
         ];
@@ -290,6 +298,8 @@ class TaskController extends Controller
             'note' => 'nullable|string|max:500',
             'bonus_amount' => 'nullable|integer',
             'deduction_amount' => 'nullable|integer',
+            'qty_request' => 'required|integer',
+            'qty_completed' => 'nullable|integer',
             'parent_id' => 'nullable|integer|exists:tbl_tasks,id',
             'contract_id' => 'nullable|integer|exists:tbl_contracts,id',
             'service_id' => 'nullable|integer|exists:tbl_services,id',
@@ -312,6 +322,8 @@ class TaskController extends Controller
             if (!empty($data['due_date'])) {
                 $data['due_date'] = formatDateTime($data['due_date'], 'Y-m-d H:i:s', 'd-m-Y H:i:s');
             }
+
+            if (!$data['qty_completed']) $data['qty_completed'] = 0;
 
             $data['created_id'] = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
             $task = Task::create($data);
@@ -357,6 +369,8 @@ class TaskController extends Controller
             'start_date' => 'nullable|date',
             'bonus_amount' => 'nullable|integer',
             'deduction_amount' => 'nullable|integer',
+            'qty_request' => 'nullable|integer',
+            'qty_completed' => 'nullable|integer',
             'service_other' => 'nullable|string|max:255',
         ]);
 
@@ -377,7 +391,7 @@ class TaskController extends Controller
                 ]);
             }
 
-            $data = $request->only(['name', 'description', 'note', 'contract_id', 'progress', 'service_id', 'priority_id', 'status_id', 'issue_id', 'estimate_time', 'spend_time', 'due_date', 'assign_id', 'sub_name', 'start_date', 'deduction_amount', 'bonus_amount', 'service_other']);
+            $data = $request->only(['name', 'description', 'note', 'contract_id', 'progress', 'service_id', 'priority_id', 'status_id', 'issue_id', 'estimate_time', 'spend_time', 'qty_request', 'qty_completed', 'due_date', 'assign_id', 'sub_name', 'start_date', 'deduction_amount', 'bonus_amount', 'service_other']);
             if (!empty($data['start_date'])) {
                 $data['start_date'] = formatDateTime($data['start_date'], 'Y-m-d H:i:s', 'd-m-Y H:i:s');
             }

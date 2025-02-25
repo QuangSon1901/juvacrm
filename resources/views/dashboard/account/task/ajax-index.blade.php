@@ -29,6 +29,9 @@
                 {{$item['priority']['name']}}
             </span>
             @endif
+            <span class="badge badge-sm badge-outline badge-neutral">
+                SL: {{$item['qty_request']}}
+            </span>
         </div>
         <a class="leading-none hover:text-primary text-gray-900 font-medium" href="/task/{{$item['id']}}">
             {{$item['name']}}

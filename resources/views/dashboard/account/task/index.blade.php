@@ -23,46 +23,59 @@
                     Danh sách công việc
                 </h3>
                 <div class="flex flex-wrap gap-2 lg:gap-5">
-                    <div class="flex">
-                        <label class="switch switch-sm">
-                            <span class="switch-label">
-                                Công việc của tôi
-                            </span>
-                            <input name="check" data-filter="my_task" type="checkbox" value="1">
-                        </label>
-                    </div>
                     <div class="flex flex-wrap gap-2.5">
-                        <select data-filter="level_task" class="select select-sm w-40">
-                            <option value="max" selected>
-                                Cấp cao nhất
-                            </option>
-                            <option value="min">
-                                Cấp nhỏ nhất
-                            </option>
-                        </select>
-                        <select data-filter="priority_task" class="select select-sm w-40">
-                            <option value="" selected>
-                                Tất cả mức độ
-                            </option>
-                            @foreach ($priorities as $priority)
-                            <option value="{{$priority['id']}}">
-                            {{$priority['name']}}
-                            </option>
-                            @endforeach
-                        </select>
-                        <select data-filter="status_task" class="select select-sm w-40">
-                            <option value="" selected>
-                                Tất cả trạng thái
-                            </option>
-                            @foreach ($statuses as $status)
-                            <option value="{{$status['id']}}">
-                            {{$status['name']}}
-                            </option>
-                            @endforeach
-                        </select>
-                        <a href="/task/create" class="btn btn-primary btn-sm">
-                            Thêm công việc
-                        </a>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex flex-wrap lg:justify-end gap-2">
+                                <select data-filter="level_task" class="select select-sm w-40">
+                                    <option value="max" selected>
+                                        Cấp cao nhất
+                                    </option>
+                                    <option value="min">
+                                        Cấp nhỏ nhất
+                                    </option>
+                                </select>
+                                <select data-filter="priority_task" class="select select-sm w-40">
+                                    <option value="" selected>
+                                        Tất cả mức độ
+                                    </option>
+                                    @foreach ($priorities as $priority)
+                                    <option value="{{$priority['id']}}">
+                                        {{$priority['name']}}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                <select data-filter="status_task" class="select select-sm w-40">
+                                    <option value="" selected>
+                                        Tất cả trạng thái
+                                    </option>
+                                    @foreach ($statuses as $status)
+                                    <option value="{{$status['id']}}">
+                                        {{$status['name']}}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="flex flex-wrap lg:justify-end gap-2">
+                                <div class="flex">
+                                    <label class="switch switch-sm">
+                                        <span class="switch-label">
+                                            Công việc của tôi
+                                        </span>
+                                        <input name="check" data-filter="my_task" type="checkbox" value="1">
+                                    </label>
+                                </div>
+                                <div class="relative">
+                                    <i class="ki-filled ki-magnifier leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3">
+                                    </i>
+                                    <input class="input input-sm pl-8" id="search-input" data-filter="search" placeholder="Tìm kiếm" type="text">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="/task/create" class="btn btn-primary btn-sm">
+                                Thêm công việc
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

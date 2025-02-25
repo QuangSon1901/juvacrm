@@ -10,6 +10,7 @@
     "require": {
         "php": "^7.3|^8.0",
         "aws/aws-sdk-php": "^3.336",
+        "barryvdh/laravel-dompdf": "^2.2",
         "fruitcake/laravel-cors": "^2.0",
         "google/apiclient": "^2.16",
         "guzzlehttp/guzzle": "^7.0.1",

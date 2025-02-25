@@ -16,135 +16,182 @@
     </div>
 </div>
 <div class="container-fixed">
-    <div class="grid gap-5">
-        <div class="card card-grid min-w-full">
-            <div class="card-header flex-wrap gap-2">
-                <h3 class="card-title">
-                    Dữ liệu về Lead
-                </h3>
-                <div class="flex flex-wrap gap-2 lg:gap-5">
-                    <div class="flex flex-wrap gap-2.5">
-                        <select class="select select-sm w-40">
-                            <option selected="">
-                                Nguồn Lead
-                            </option>
-                            <option>
-                                Hình thức liên hệ
-                            </option>
-                            <option>
-                                Trạng thái Lead
-                            </option>
-                        </select>
-                        <select class="select select-sm w-40">
-                            <option selected="">
-                                Đang hoạt động
-                            </option>
-                            <option>
-                                Đã ẩn
-                            </option>
-                        </select>
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 lg:gap-7.5">
+        <div class="col-span-1">
+            <div class="grid grid-cols-1 gap-5">
+                <div class="card">
+                    <div class="card-header gap-2">
+                        <h3 class="card-title">
+                            Danh sách phương thức liên hệ
+                        </h3>
+                        <div class="menu" data-menu="true">
+                            <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                                <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                    <i class="ki-filled ki-dots-vertical">
+                                    </i>
+                                </button>
+                                <div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true">
+                                    <div class="menu-item">
+                                        <span class="menu-link" data-modal-toggle="#update-lead-customer-modal" data-id="0" data-type="0">
+                                            <span class="menu-icon">
+                                                <i class="ki-filled ki-plus">
+                                                </i>
+                                            </span>
+                                            <span class="menu-title">
+                                                Thêm mới
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="flex flex-col gap-2 lg:gap-5">
+                            @foreach ($contact_methods as $method)
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center grow gap-2.5">
+                                    @include("dashboard.layouts.icons.gear")
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px">
+                                            {{$method['name']}}
+                                        </span>
+                                        <div class="text-xs font-semibold text-gray-600">
+                                            <span class="badge badge-sm badge-outline badge-{{$method['color']}}">Thứ tự: {{$method['sort']}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-5">
+                                    <label class="switch switch-sm">
+                                        <input class="config-status" data-id="{{$method['id']}}" {{$method['is_active'] ? 'checked' : ''}} type="checkbox" value="1">
+                                    </label>
+                                    <div class="btn btn-sm btn-icon btn-clear btn-primary" data-modal-toggle="#update-lead-customer-modal" data-id="{{$method['id']}}" data-type="0">
+                                        <i class="ki-filled ki-notepad-edit">
+                                        </i>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="card-body">
-                <div data-datatable="true" data-datatable-page-size="10" class="datatable-initialized">
-                    <div class="scrollable-x-auto">
-                        <table class="table table-border" data-datatable-table="true" id="clients_table">
-                            <thead>
-                                <tr>
-                                    <th class="text-gray-700 font-normal w-[100px]">
-                                        #
-                                    </th>
-                                    <th class="text-gray-700 font-normal min-w-[250px]">
-                                        Tên
-                                    </th>
-                                    <th class="text-gray-700 font-normal min-w-[250px]">
-                                        Mô tả
-                                    </th>
-                                    <th class="text-gray-700 font-normal min-w-[220px]">
-                                        Loại
-                                    </th>
-                                    <th class="text-gray-700 font-normal min-w-[200px]">
-                                        Trạng thái
-                                    </th>
-                                    <th class="w-[60px]">
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" data-datatable-spinner="true" style="display: none;">
-                                <div class="flex items-center gap-2 px-4 py-2 font-medium leading-none text-2sm border border-gray-200 shadow-default rounded-md text-gray-500 bg-light">
-                                    <svg class="animate-spin -ml-1 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Loading...
+        </div>
+        <div class="col-span-1">
+            <div class="grid grid-cols-1 gap-5">
+                <div class="card">
+                    <div class="card-header gap-2">
+                        <h3 class="card-title">
+                            Danh sách trạng thái
+                        </h3>
+                        <div class="menu" data-menu="true">
+                            <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                                <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                    <i class="ki-filled ki-dots-vertical">
+                                    </i>
+                                </button>
+                                <div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true">
+                                    <div class="menu-item">
+                                        <span class="menu-link" data-modal-toggle="#update-lead-customer-modal" data-id="0" data-type="2">
+                                            <span class="menu-icon">
+                                                <i class="ki-filled ki-plus">
+                                                </i>
+                                            </span>
+                                            <span class="menu-title">
+                                                Thêm mới
+                                            </span>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                            <tbody>
-                                <tr>
-                                    <td class="text-gray-800 font-normal">
-                                        <a class="leading-none hover:text-primary" href="/customer/123">
-                                            1901
-                                        </a>
-                                    </td>
-                                    <td class="text-sm text-gray-800 font-normal">Facebook</td>
-                                    <td class="text-sm text-gray-800 font-normal">---</td>
-                                    <td class="text-sm text-gray-800 font-normal">Nguồn Lead</td>
-                                    <td class="text-sm text-gray-800 font-normal">Đang hoạt động</td>
-                                    <td class="w-[60px]">
-                                        <div class="menu" data-menu="true">
-                                            <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
-                                                <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
-                                                    <i class="ki-filled ki-dots-vertical">
-                                                    </i>
-                                                </button>
-                                                <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
-                                                    <div class="menu-item">
-                                                        <a class="menu-link" href="/customer/123">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-pencil">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title">
-                                                                Chỉnh sửa
-                                                            </span>
-                                                        </a>
-                                                        <a class="menu-link" href="/customer/123">
-                                                            <span class="menu-icon">
-                                                                <i class="ki-filled ki-shield-cross !text-red-600">
-                                                                </i>
-                                                            </span>
-                                                            <span class="menu-title !text-red-600">
-                                                                Ẩn
-                                                            </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-gray-600 text-2sm font-medium">
-                        <div class="flex items-center gap-2 order-2 md:order-1">
-                            Hiển thị
-                            <select class="select select-sm w-16" data-datatable-size="true" name="perpage">
-                                <option value="5">5</option>
-                                <option value="10">10</option>
-                                <option value="20">20</option>
-                                <option value="30">30</option>
-                                <option value="50">50</option>
-                            </select>
-                            mỗi trang
                         </div>
-                        <div class="flex items-center gap-4 order-1 md:order-2">
-                            <span data-datatable-info="true">1-10 trong 33</span>
-                            <div class="pagination" data-datatable-pagination="true">
-                                <div class="pagination"><button class="btn disabled" disabled=""><i class="ki-outline ki-black-left rtl:transform rtl:rotate-180"></i></button><button class="btn active disabled" disabled="">1</button><button class="btn">2</button><button class="btn">3</button><button class="btn">...</button><button class="btn"><i class="ki-outline ki-black-right rtl:transform rtl:rotate-180"></i></button></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="flex flex-col gap-2 lg:gap-5">
+                            @foreach ($statuses as $status)
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center grow gap-2.5">
+                                    @include("dashboard.layouts.icons.gear")
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px">
+                                            {{$status['name']}}
+                                        </span>
+                                        <div class="text-xs font-semibold text-gray-600">
+                                            <span class="badge badge-sm badge-outline badge-{{$status['color']}}">Thứ tự: {{$status['sort']}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-5">
+                                    <label class="switch switch-sm">
+                                        <input class="config-status" data-id="{{$status['id']}}" {{$status['is_active'] ? 'checked' : ''}} type="checkbox" value="1">
+                                    </label>
+                                    <div class="btn btn-sm btn-icon btn-clear btn-primary" data-modal-toggle="#update-lead-customer-modal" data-id="{{$status['id']}}" data-type="2">
+                                        <i class="ki-filled ki-notepad-edit">
+                                        </i>
+                                    </div>
+                                </div>
                             </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-span-1">
+            <div class="grid grid-cols-1 gap-5">
+                <div class="card">
+                    <div class="card-header gap-2">
+                        <h3 class="card-title">
+                            Danh sách nguồn khách hàng
+                        </h3>
+                        <div class="menu" data-menu="true">
+                            <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                                <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                    <i class="ki-filled ki-dots-vertical">
+                                    </i>
+                                </button>
+                                <div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true">
+                                    <div class="menu-item">
+                                        <span class="menu-link" data-modal-toggle="#update-lead-customer-modal" data-id="0" data-type="1">
+                                            <span class="menu-icon">
+                                                <i class="ki-filled ki-plus">
+                                                </i>
+                                            </span>
+                                            <span class="menu-title">
+                                                Thêm mới
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="flex flex-col gap-2 lg:gap-5">
+                            @foreach ($sources as $source)
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center grow gap-2.5">
+                                    @include("dashboard.layouts.icons.gear")
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px">
+                                            {{$source['name']}}
+                                        </span>
+                                        <div class="text-xs font-semibold text-gray-600">
+                                            <span class="badge badge-sm badge-outline badge-{{$source['color']}}">Thứ tự: {{$source['sort']}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-5">
+                                    <label class="switch switch-sm">
+                                        <input class="config-status" data-id="{{$source['id']}}" {{$source['is_active'] ? 'checked' : ''}} type="checkbox" value="1">
+                                    </label>
+                                    <div class="btn btn-sm btn-icon btn-clear btn-primary" data-modal-toggle="#update-lead-customer-modal" data-id="{{$source['id']}}" data-type="1">
+                                        <i class="ki-filled ki-notepad-edit">
+                                        </i>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -152,4 +199,114 @@
         </div>
     </div>
 </div>
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="update-lead-customer-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Dữ liệu mới
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross">
+                </i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form class="grid gap-5 px-0 py-5">
+                <input name="id" class="input hidden" type="text" hidden>
+                <input name="type" class="input hidden" type="text" hidden>
+                <div class="flex flex-col gap-2.5">
+                    <div class="checkbox-group">
+                        <span class="checkbox-label text-gray-800 !font-bold">
+                            Tên dữ liệu
+                        </span>
+                    </div>
+                    <input name="name" class="input" type="text" placeholder="Vui lòng nhập tên dữ liệu">
+                </div>
+                <div class="flex flex-col gap-2.5">
+                    <div class="checkbox-group">
+                        <span class="checkbox-label text-gray-800 !font-bold">
+                            Vị trí sắp xếp
+                        </span>
+                    </div>
+                    <input name="sort" class="input" type="text" placeholder="Vui lòng vị trí danh sách">
+                </div>
+                <div class="flex flex-col gap-2.5">
+                    <div class="checkbox-group">
+                        <span class="checkbox-label text-gray-800 !font-bold">
+                            Màu sắc
+                        </span>
+                    </div>
+                    <select name="color" class="select p-2.5">
+                        <option value="success" selected>Xanh lục (success)</option>
+                        <option value="warning" selected>Vàng cam (warning)</option>
+                        <option value="primary" selected>Xanh dương (primary)</option>
+                        <option value="gray" selected>Xám nhạt (gray)</option>
+                        <option value="danger" selected>Đỏ rực (danger)</option>
+                        <option value="neutral" selected>Đen nhám (neutral)</option>
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <button type="submit" class="btn btn-primary justify-center">
+                        Xong
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
+@push('scripts')
+<script>
+    $(function() {
+        $('[data-modal-toggle="#update-lead-customer-modal"][data-id]').on('click', function() {
+            $('#update-lead-customer-modal form input[name=id]').val($(this).attr('data-id'));
+            $('#update-lead-customer-modal form input[name=type]').val($(this).attr('data-type'));
+        })
+
+        $('#update-lead-customer-modal form').on('submit', function(e) {
+            e.preventDefault();
+            postUpdateLead($(this));
+        })
+
+        $('input.config-status').on('change', function() {
+            postChangeStatusLead($(this));
+        })
+    })
+
+    async function postUpdateLead(_this) {
+        let method = "post",
+            url = "/leads/post",
+            params = null,
+            data = _this.serialize();
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                break;
+        }
+    }
+
+    async function postChangeStatusLead(_this) {
+        let method = "post",
+            url = "/leads/change-status",
+            params = null,
+            data = {
+                id: _this.attr('data-id'),
+                is_active: _this.is(':checked') ? 1 : 0
+            };
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                break;
+        }
+    }
+</script>
+@endpush

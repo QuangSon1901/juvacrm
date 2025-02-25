@@ -14,6 +14,7 @@ class TaskConfig extends Model
         'description',
         'type',
         'sort',
+        'color',
         'is_active',
     ];
 }

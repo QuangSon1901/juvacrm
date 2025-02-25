@@ -115,18 +115,26 @@
                                                 <div class="flex flex-col gap-2.5">
                                                     <div class="checkbox-group">
                                                         <span class="checkbox-label text-gray-800 !font-bold">
-                                                            Thời gian dự kiến
-                                                        </span>
-                                                    </div>
-                                                    <input class="input" name="estimate_time" type="text" placeholder="Tổng số giờ ước tính">
-                                                </div>
-                                                <div class="flex flex-col gap-2.5">
-                                                    <div class="checkbox-group">
-                                                        <span class="checkbox-label text-gray-800 !font-bold">
                                                             Thời gian thực tế
                                                         </span>
                                                     </div>
                                                     <input class="input" name="spend_time" type="text" placeholder="Tổng số giờ thực hiện">
+                                                </div>
+                                                <div class="flex flex-col gap-2.5">
+                                                    <div class="checkbox-group">
+                                                        <span class="checkbox-label text-gray-800 !font-bold">
+                                                            Số lượng yêu cầu
+                                                        </span>
+                                                    </div>
+                                                    <input class="input" name="qty_request" type="text" placeholder="Tổng số lượng yêu cầu">
+                                                </div>
+                                                <div class="flex flex-col gap-2.5">
+                                                    <div class="checkbox-group">
+                                                        <span class="checkbox-label text-gray-800 !font-bold">
+                                                            Số lượng đã hoàn thành
+                                                        </span>
+                                                    </div>
+                                                    <input class="input" name="qty_completed" type="text" placeholder="Tổng số lượng đã hoàn thành">
                                                 </div>
                                             </div>
                                         </div>
