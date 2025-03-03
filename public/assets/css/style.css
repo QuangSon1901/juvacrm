@@ -226,3 +226,54 @@
         transform: translateY(-20px);
     }
 }
+
+/* Container chính của Select2 */
+.select2-container {
+    display: block;
+    width: inherit !important;
+}
+
+/* Phần select chính (dropdown) */
+.select2-container--default .select2-selection--single {
+    background-color: var(--tw-light-active);
+    border: 1px solid var(--tw-gray-300);
+    border-radius: .375rem;
+    height: 2.5rem; /* Chiều cao giống select gốc */
+    outline: none;
+    box-shadow: none;
+    font-weight: 500;
+    font-size: .8125rem;
+    line-height: 1;
+    color: var(--tw-gray-700);
+}
+
+/* Điều chỉnh padding bên trong */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-inline-start: .75rem;
+    padding-inline-end: .75rem;
+    line-height: 2.5rem; /* Căn giữa nội dung theo chiều cao */
+    color: var(--tw-gray-700);
+}
+
+/* Tùy chỉnh mũi tên dropdown */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 14px 11px;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%2378829D' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
+    width: 1.675rem; /* Đảm bảo mũi tên hiển thị đúng khoảng cách từ mép phải */
+    height: 100%;
+    top: 0;
+    right: 0;
+}
+
+/* Xóa mũi tên mặc định của Select2 */
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    display: none; /* Ẩn mũi tên mặc định để dùng background-image */
+}
+
+/* Hover và focus */
+.select2-container--default .select2-selection--single:hover,
+.select2-container--default .select2-selection--single:focus {
+    border-color: var(--tw-gray-400); /* Tùy chọn: thay đổi màu viền khi hover/focus */
+}

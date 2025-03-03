@@ -9,5 +9,14 @@ class PaymentMethod extends Model
 {
     use HasFactory;
     protected $table = 'tbl_payment_methods';
+    protected $fillable = [
+        'name',
+        'description',
+        'is_active'
+    ];
 
+    public function payments()
+    {
+        return $this->hasMany(ContractPayment::class, 'method_id');
+    }
 }

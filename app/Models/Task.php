@@ -103,6 +103,11 @@ class Task extends Model
         return $this->belongsTo(Task::class, 'parent_id');
     }
 
+    public function subTasks()
+    {
+        return $this->hasMany(Task::class, 'parent_id');
+    }
+
     public function comments() {
         return $this->hasMany(TaskComment::class);
     }

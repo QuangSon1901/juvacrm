@@ -20,7 +20,7 @@ class Contract extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function customer()
+    public function provider()
     {
         return $this->belongsTo(Customer::class, 'provider_id');
     }

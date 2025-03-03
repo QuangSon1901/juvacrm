@@ -55,6 +55,14 @@ class Customer extends Model
         return $this->hasMany(Consultation::class)->where('is_deleted', 0)->orderBy('created_at', 'asc');
     }
 
+    /**
+     * Lấy các hợp đồng mà khách hàng là nhà cung cấp
+     */
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class, 'provider_id');
+    }
+
     public function getServicesArray()
     {
         if (empty($this->services)) {

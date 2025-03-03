@@ -26,7 +26,8 @@ use Illuminate\Support\Facades\Validator;
 
 class ContractController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         return view("dashboard.contract.index");
     }
 
@@ -36,10 +37,10 @@ class ContractController extends Controller
 
         // Xây dựng query cơ bản
         $query = Contract::query()
-            ->with(['user', 'customer']) // Load relationships
+            ->with(['user', 'provider']) // Load relationships
             ->when($request->input('filter.search'), function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('contract_number', 'like', "%{$search}%");
+                    ->orWhere('contract_number', 'like', "%{$search}%");
             })
             ->when($request->input('filter.my_contract'), function ($query) use ($request) {
                 $query->where('user_id', auth()->id()); // Lọc hợp đồng của tôi
@@ -64,8 +65,8 @@ class ContractController extends Controller
                     'name' => $item->user->name ?? 'N/A',
                 ],
                 'customer' => [
-                    'id' => $item->customer->id ?? 0,
-                    'name' => $item->customer->name ?? 'N/A',
+                    'id' => $item->provider->id ?? 0,
+                    'name' => $item->provider->name ?? 'N/A',
                 ],
                 'sign_date' => $item->sign_date,
                 'effective_date' => $item->effective_date,
@@ -84,7 +85,8 @@ class ContractController extends Controller
         ]);
     }
 
-    public function createView(Request $request) {
+    public function createView(Request $request)
+    {
         $users = User::select('id', 'name')->where('is_active', 1)->get()->toArray();
         $customers = Customer::select('id', 'name', 'phone', 'email', 'address')->where('is_active', 1)->get()->toArray();
         $categories = ServiceCategory::where('is_active', 1)->get()->toArray();
@@ -133,12 +135,12 @@ class ContractController extends Controller
                 'sign_date' => 'nullable|date',
                 'effective_date' => 'nullable|date',
                 'expiry_date' => 'nullable|date|after:effective_date',
-                'estimate_day' => 'nullable|integer',
                 'estimate_date' => 'nullable|date',
                 'total_value' => 'nullable|numeric',
                 'note' => 'nullable|string|max:500',
                 'terms_and_conditions' => 'nullable|string|max:5000',
                 'status' => 'required|in:0,1',
+                'services_data' => 'required|json',
             ]);
 
             if ($contractValidator->fails()) {
@@ -149,13 +151,28 @@ class ContractController extends Controller
             }
 
             $contractData = $request->only([
-                'name', 'user_id', 'provider_id', 'category_id',
-                'company_name', 'tax_code', 'company_address', 'customer_representative',
-                'customer_tax_code', 'address', 'phone', 'sign_date', 'effective_date',
-                'expiry_date', 'estimate_day', 'estimate_date', 'total_value', 'note',
-                'terms_and_conditions', 'status'
+                'name',
+                'user_id',
+                'provider_id',
+                'category_id',
+                'company_name',
+                'tax_code',
+                'company_address',
+                'customer_representative',
+                'customer_tax_code',
+                'address',
+                'phone',
+                'sign_date',
+                'effective_date',
+                'expiry_date',
+                'estimate_date',
+                'total_value',
+                'note',
+                'terms_and_conditions',
+                'status'
             ]);
 
+            // Tạo mã hợp đồng tự động
             $lastContract = Contract::orderBy('id', 'desc')->first();
             $nextNumber = $lastContract ? (int)substr($lastContract->contract_number, -3) + 1 : 1;
             $contractData['contract_number'] = 'HD-2025-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
@@ -186,118 +203,89 @@ class ContractController extends Controller
                 'fk_value' => $contract->id,
             ]);
 
-            // Chỉ tạo task nếu status = 1 (Đang triển khai)
-            if ($contract->status == 1) {
-                // 2. Tạo task chính cho hợp đồng
-                $mainTaskData = [
-                    'name' => "Hợp đồng #$contract->contract_number - $contract->name",
-                    'status_id' => 1, // Giả định trạng thái mặc định
-                    'priority_id' => 1, // Giả định độ ưu tiên mặc định
-                    'assign_id' => $contract->user_id, // Gán cho nhân viên phụ trách
-                    'start_date' => $contract->effective_date,
-                    'due_date' => $contract->estimate_date ?? $contract->expiry_date,
-                    'estimate_time' => $contract->estimate_day * 24, // Quy đổi ngày thành giờ
-                    'description' => "Công việc tổng thể cho hợp đồng #$contract->contract_number",
-                    'qty_request' => 1, // Task chính không cần số lượng cụ thể
-                    'contract_id' => $contract->id,
-                    'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
-                ];
-
-                $mainTask = Task::create($mainTaskData);
-
-                LogService::saveLog([
-                    'action' => 'TASK_ENUM_LOG',
-                    'ip' => $request->getClientIp(),
-                    'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã tạo task chính cho hợp đồng #' . $contract->contract_number . ' - ' . $contract->name,
-                    'fk_key' => 'tbl_tasks|id',
-                    'fk_value' => $mainTask->id,
-                ]);
-            }
-
-            // 3. Lưu thông tin dịch vụ và tạo task con dựa trên parent_id
-            $services = $request->input('service_ids', []);
-            $quantities = $request->input('service_quantity', []);
-            $prices = $request->input('service_price', []);
-            $notes = $request->input('service_note', []);
-
-            if (empty($services)) {
+            // 2. Lưu thông tin dịch vụ
+            $servicesData = json_decode($request->input('services_data'), true);
+            if (empty($servicesData)) {
                 throw new \Exception('Vui lòng thêm ít nhất một dịch vụ cho hợp đồng.');
             }
 
-            foreach ($services as $index => $serviceId) {
-                // Validate dữ liệu dịch vụ
-                $serviceValidator = Validator::make([
-                    'service_id' => $serviceId,
-                    'quantity' => $quantities[$index] ?? null,
-                    'price' => $prices[$index] ?? null,
-                    'note' => $notes[$index] ?? null,
-                ], [
-                    'service_id' => 'required|integer|exists:tbl_services,id',
-                    'quantity' => 'required|integer|min:1',
-                    'price' => 'required|numeric|min:0',
-                    'note' => 'nullable|string|max:255',
-                ]);
+            // Duyệt qua từng dịch vụ trong services_data
+            foreach ($servicesData as $serviceItem) {
+                $serviceType = $serviceItem['type'];
+                $serviceId = isset($serviceItem['id']) ? $serviceItem['id'] : null;
+                $quantity = $serviceItem['quantity'];
+                $price = $serviceItem['price'];
+                $note = $serviceItem['note'] ?? null;
+                $customName = $serviceItem['custom_name'] ?? null;
+                $subServices = $serviceItem['sub_services'] ?? [];
 
-                if ($serviceValidator->fails()) {
-                    throw new \Exception('Dữ liệu dịch vụ không hợp lệ: ' . $serviceValidator->errors()->first());
+                // Xác định loại dịch vụ
+                $itemType = 'service'; // Mặc định là dịch vụ thông thường
+                if ($serviceType == 'other') {
+                    $itemType = ($price < 0) ? 'discount' : 'custom';
                 }
 
-                // Lưu thông tin dịch vụ vào bảng contract_services
-                ContractService::create([
+                // Lấy tên dịch vụ
+                $serviceName = $customName;
+                if ($serviceType == 'service' && $serviceId) {
+                    $serviceObj = Service::find($serviceId);
+                    $serviceName = $serviceObj ? $serviceObj->name : "Dịch vụ #$serviceId";
+                }
+
+                // Tạo dịch vụ trong bảng contract_services gộp
+                $contractService = ContractService::create([
                     'contract_id' => $contract->id,
-                    'service_id' => $serviceId,
-                    'quantity' => $quantities[$index],
-                    'price' => $prices[$index],
-                    'note' => $notes[$index] ?? null,
+                    'service_id' => ($serviceType == 'service') ? $serviceId : null,
+                    'name' => $serviceName,
+                    'type' => $itemType,
+                    'quantity' => $quantity,
+                    'price' => $price,
+                    'note' => $note,
+                    'parent_id' => null, // Đây là dịch vụ cấp cha
                 ]);
 
-                // Chỉ tạo task nếu status = 1 (Đang triển khai)
-                if ($contract->status == 1) {
-                    $service = Service::find($serviceId);
-                    $serviceName = $service ? $service->name : "Dịch vụ #$serviceId";
+                // Xử lý dịch vụ con
+                if (!empty($subServices)) {
+                    foreach ($subServices as $subService) {
+                        $subServiceName = $subService['name'] ?? null;
+                        $subServiceQuantity = $subService['quantity'] ?? 1;
+                        $subServiceNote = $subService['note'] ?? null;
+                        $subServicePrice = $subService['price'] ?? 0;
 
-                    // Tạo task con cho từng dịch vụ
-                    $subTaskData = [
-                        'name' => "$serviceName",
-                        'status_id' => 1, // Giả định trạng thái mặc định
-                        'priority_id' => 1, // Giả định độ ưu tiên mặc định
-                        'assign_id' => $contract->user_id, // Gán cho nhân viên phụ trách
-                        'start_date' => $contract->effective_date,
-                        'due_date' => $contract->estimate_date ?? $contract->expiry_date,
-                        'estimate_time' => $contract->estimate_day * 24, // Quy đổi ngày thành giờ
-                        'description' => "Công việc thực hiện $serviceName cho hợp đồng #$contract->contract_number",
-                        'qty_request' => $quantities[$index],
-                        'contract_id' => $contract->id,
-                        'service_id' => $serviceId,
-                        'parent_id' => $mainTask->id, // Liên kết với task chính
-                        'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
-                    ];
+                        if (empty($subServiceName)) {
+                            continue;
+                        }
 
-                    $subTask = Task::create($subTaskData);
-
-                    LogService::saveLog([
-                        'action' => 'TASK_ENUM_LOG',
-                        'ip' => $request->getClientIp(),
-                        'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã tạo task con cho dịch vụ #' . $serviceId,
-                        'fk_key' => 'tbl_tasks|id',
-                        'fk_value' => $subTask->id,
-                    ]);
+                        // Lưu thông tin dịch vụ con vào cùng bảng contract_services
+                        ContractService::create([
+                            'contract_id' => $contract->id,
+                            'service_id' => null,
+                            'name' => $subServiceName,
+                            'type' => 'sub_service',
+                            'quantity' => $subServiceQuantity,
+                            'price' => $subServicePrice,
+                            'note' => $subServiceNote,
+                            'parent_id' => $contractService->id, // Liên kết với dịch vụ cha
+                        ]);
+                    }
                 }
             }
 
-            // 4. Lưu thông tin biên nhận (thanh toán)
+            // 3. Xử lý thông tin biên nhận (thanh toán)
             $paymentNames = $request->input('payment_name', []);
+            $paymentPercentages = $request->input('payment_percentage', []);
             $prices = $request->input('payment_price', []);
             $currencies = $request->input('payment_currencies', []);
             $methods = $request->input('payment_methods', []);
             $dates = $request->input('payment_due_dates', []);
-            $stages = $request->input('payment_stage', []); // Thêm payment_stage
-            $statuses = $request->input('payment_status', []); // Thêm payment_status từ checkbox
+            $stages = $request->input('payment_stage', []);
+            $statuses = $request->input('payment_status', []);
 
             if (!empty($paymentNames)) {
                 foreach ($paymentNames as $index => $paymentName) {
                     $paymentValidator = Validator::make([
                         'name' => $paymentName,
+                        'percentage' => $paymentPercentages[$index] ?? null,
                         'price' => $prices[$index] ?? null,
                         'currency_id' => $currencies[$index] ?? null,
                         'method_id' => $methods[$index] ?? null,
@@ -306,11 +294,12 @@ class ContractController extends Controller
                         'status' => $statuses[$index] ?? 0,
                     ], [
                         'name' => 'required|string|max:255',
+                        'percentage' => 'nullable|numeric|min:0|max:100',
                         'price' => 'required|numeric|min:0',
                         'currency_id' => 'required|integer|exists:tbl_currencies,id',
                         'method_id' => 'required|integer|exists:tbl_payment_methods,id',
-                        'due_date' => 'required|date_format:d-m-Y H:i:s',
-                        'stage' => 'required|in:0,1,2,3', // Validate payment_stage
+                        'due_date' => 'nullable|date_format:d-m-Y H:i:s',
+                        'stage' => 'required|in:0,1,2,3',
                         'status' => 'nullable|in:0,1',
                     ]);
 
@@ -321,6 +310,7 @@ class ContractController extends Controller
                     $pushData = [
                         'contract_id' => $contract->id,
                         'name' => $paymentName,
+                        'percentage' => $paymentPercentages[$index] ?? null,
                         'price' => $prices[$index],
                         'currency_id' => $currencies[$index],
                         'method_id' => $methods[$index],
@@ -335,7 +325,8 @@ class ContractController extends Controller
 
                     $payment = ContractPayment::create($pushData);
 
-                    if ($payment->status == 1) {
+                    // Tạo transaction khi trạng thái thanh toán là đã thanh toán (status = 1)
+                    if (isset($statuses[$index]) && $statuses[$index] == 1) {
                         $transactionType = $stages[$index] == 3 ? 1 : 0; // Deduction là chi (1), các loại khác là thu (0)
                         $categoryName = $stages[$index] == 0 ? 'Deposit' : ($stages[$index] == 1 ? 'Bonus' : ($stages[$index] == 2 ? 'Final Payment' : 'Deduction'));
 
@@ -351,13 +342,18 @@ class ContractController extends Controller
                             'target_client_id' => $contract->provider_id, // Đối tượng là khách hàng của hợp đồng
                             'payment_id' => $payment->id,
                             'amount' => $payment->price,
-                            'paid_date' => $payment->due_date,
+                            'paid_date' => $payment->due_date ?? date('Y-m-d H:i:s'),
                             'status' => 1, // Hoàn tất vì đã thanh toán
                             'note' => "Tự động tạo từ biên nhận #{$payment->id} của hợp đồng #{$contract->contract_number}",
                             'reason' => $payment->name,
                         ]);
                     }
                 }
+            }
+
+            // 4. Tạo task nếu status = 1 (Đang triển khai)
+            if ($contract->status == 1) {
+                $this->createContractTasks($contract);
             }
 
             // Commit transaction nếu mọi thứ thành công
@@ -378,7 +374,115 @@ class ContractController extends Controller
         }
     }
 
-    public function detail($id)
+    /**
+     * Tạo các task cho hợp đồng
+     *
+     * @param Contract $contract Đối tượng hợp đồng
+     * @return void
+     */
+    private function createContractTasks(Contract $contract)
+    {
+        // Tạo task chính cho hợp đồng
+        $mainTaskData = [
+            'name' => "Hợp đồng #$contract->contract_number - $contract->name",
+            'status_id' => 1, // Trạng thái mặc định
+            'priority_id' => 1, // Độ ưu tiên mặc định
+            'assign_id' => $contract->user_id, // Gán cho nhân viên phụ trách
+            'start_date' => $contract->effective_date,
+            'due_date' => $contract->estimate_date ?? $contract->expiry_date,
+            'estimate_time' => (!empty($contract->estimate_date) && !empty($contract->effective_date))
+                ? (strtotime($contract->estimate_date) - strtotime($contract->effective_date)) / 3600
+                : 24, // Quy đổi thành giờ
+            'description' => "Công việc tổng thể cho hợp đồng #$contract->contract_number",
+            'qty_request' => 1,
+            'contract_id' => $contract->id,
+            'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
+        ];
+
+        $mainTask = Task::create($mainTaskData);
+
+        LogService::saveLog([
+            'action' => 'TASK_ENUM_LOG',
+            'ip' => request()->getClientIp(),
+            'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã tạo task chính cho hợp đồng #' . $contract->contract_number . ' - ' . $contract->name,
+            'fk_key' => 'tbl_tasks|id',
+            'fk_value' => $mainTask->id,
+        ]);
+
+        // Lấy tất cả dịch vụ cấp cao nhất (parent_id = null và không phải giảm giá)
+        $contractServices = ContractService::where('contract_id', $contract->id)
+            ->where('parent_id', null)
+            ->where('type', '!=', 'discount')
+            ->get();
+
+        // Duyệt qua từng dịch vụ chính
+        foreach ($contractServices as $service) {
+            // Tạo task con cho dịch vụ chính
+            $serviceTaskData = [
+                'name' => $service->name,
+                'status_id' => 1,
+                'priority_id' => 1,
+                'assign_id' => $contract->user_id,
+                'start_date' => $contract->effective_date,
+                'due_date' => $contract->estimate_date ?? $contract->expiry_date,
+                'estimate_time' => (!empty($contract->estimate_date) && !empty($contract->effective_date))
+                    ? (strtotime($contract->estimate_date) - strtotime($contract->effective_date)) / 3600
+                    : 24,
+                'description' => "Công việc thực hiện {$service->name} cho hợp đồng #$contract->contract_number",
+                'qty_request' => $service->quantity,
+                'contract_id' => $contract->id,
+                'service_id' => $service->service_id,
+                'parent_id' => $mainTask->id,
+                'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
+            ];
+
+            $serviceTask = Task::create($serviceTaskData);
+
+            LogService::saveLog([
+                'action' => 'TASK_ENUM_LOG',
+                'ip' => request()->getClientIp(),
+                'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã tạo task con cho dịch vụ ' . $service->name,
+                'fk_key' => 'tbl_tasks|id',
+                'fk_value' => $serviceTask->id,
+            ]);
+
+            // Tìm các dịch vụ con thuộc dịch vụ chính này
+            $subServices = ContractService::where('parent_id', $service->id)->get();
+
+            // Tạo task cho các dịch vụ con
+            foreach ($subServices as $subService) {
+                $subTaskData = [
+                    'name' => $subService->name,
+                    'status_id' => 1,
+                    'priority_id' => 1,
+                    'assign_id' => $contract->user_id,
+                    'start_date' => $contract->effective_date,
+                    'due_date' => $contract->estimate_date ?? $contract->expiry_date,
+                    'estimate_time' => (!empty($contract->estimate_date) && !empty($contract->effective_date))
+                        ? (strtotime($contract->estimate_date) - strtotime($contract->effective_date)) / 3600 / 2
+                        : 12, // Chia đôi thời gian so với task cha
+                    'description' => "Công việc con {$subService->name} cho dịch vụ {$service->name}",
+                    'qty_request' => $subService->quantity,
+                    'contract_id' => $contract->id,
+                    'parent_id' => $serviceTask->id,
+                    'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
+                ];
+
+                $subTask = Task::create($subTaskData);
+
+                LogService::saveLog([
+                    'action' => 'TASK_ENUM_LOG',
+                    'ip' => request()->getClientIp(),
+                    'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã tạo task con cho dịch vụ phụ ' . $subService->name,
+                    'fk_key' => 'tbl_tasks|id',
+                    'fk_value' => $subTask->id,
+                ]);
+            }
+        }
+    }
+
+
+    public function detailOld($id)
     {
         $contract = Contract::with(['user', 'customer', 'services.service', 'payments', 'tasks'])
             ->findOrFail($id);
@@ -460,6 +564,233 @@ class ContractController extends Controller
         $currencies = Currency::where('is_active', 1)->get()->toArray();
 
         return view('dashboard.contract.detail', compact('details', 'users', 'customers', 'categories', 'services', 'payment_methods', 'currencies'));
+    }
+
+    public function detail($id)
+    {
+        // Lấy hợp đồng với tất cả quan hệ cần thiết
+        $contract = Contract::with([
+            'user',
+            'provider', // Đổi customer thành provider cho đúng với cấu trúc trong create
+            'services' => function ($query) {
+                // Sắp xếp để lấy dịch vụ cha trước
+                $query->orderBy('parent_id', 'asc');
+            },
+            'services.subServices', // Lấy các dịch vụ con
+            'payments',
+            'payments.currency',
+            'payments.method',
+            'tasks' => function ($query) {
+                // Sắp xếp theo cấu trúc cây
+                $query->orderBy('parent_id', 'asc');
+            },
+            'tasks.status',
+            'tasks.assign',
+            'tasks.subTasks' // Lấy các task con
+        ])->findOrFail($id);
+
+        // Tổ chức dịch vụ thành cấu trúc cha-con
+        $mainServices = $contract->services
+            ->where('parent_id', null)
+            ->map(function ($service) {
+                $subServices = $service->subServices->map(function ($subService) {
+                    return [
+                        'id' => $subService->id,
+                        'name' => $subService->name,
+                        'type' => $subService->type,
+                        'quantity' => $subService->quantity,
+                        'price' => $subService->price,
+                        'note' => $subService->note,
+                    ];
+                })->toArray();
+
+                return [
+                    'id' => $service->id,
+                    'service_id' => $service->service_id,
+                    'name' => $service->name,
+                    'type' => $service->type,
+                    'quantity' => $service->quantity,
+                    'price' => $service->price,
+                    'note' => $service->note,
+                    'sub_services' => $subServices
+                ];
+            })->toArray();
+
+        // Biến đổi dữ liệu hợp đồng
+        $details = [
+            'id' => $contract->id,
+            'contract_number' => $contract->contract_number,
+            'name' => $contract->name,
+            'user' => [
+                'id' => $contract->user->id ?? 0,
+                'name' => $contract->user->name ?? 'N/A',
+            ],
+            'provider' => [
+                'id' => $contract->provider->id ?? 0,
+                'name' => $contract->provider->name ?? 'N/A',
+                'phone' => $contract->provider->phone ?? 'N/A',
+                'email' => $contract->provider->email ?? 'N/A',
+                'address' => $contract->provider->address ?? 'N/A'
+            ],
+            'company_name' => $contract->company_name,
+            'tax_code' => $contract->tax_code,
+            'company_address' => $contract->company_address,
+            'customer_representative' => $contract->customer_representative,
+            'customer_tax_code' => $contract->customer_tax_code,
+            'address' => $contract->address,
+            'phone' => $contract->phone,
+            'sign_date' => $contract->sign_date,
+            'effective_date' => $contract->effective_date,
+            'expiry_date' => $contract->expiry_date,
+            'estimate_date' => $contract->estimate_date,
+            'total_value' => $contract->total_value,
+            'status' => $contract->status,
+            'status_text' => $contract->status == 1 ? 'Đang triển khai' : 'Chờ duyệt',
+            'note' => $contract->note,
+            'terms_and_conditions' => $contract->terms_and_conditions,
+            'created_at' => $contract->created_at,
+            'updated_at' => $contract->updated_at,
+            'services' => $mainServices,
+            'payments' => $contract->payments->map(function ($payment) {
+                return [
+                    'id' => $payment->id,
+                    'name' => $payment->name,
+                    'percentage' => $payment->percentage,
+                    'price' => $payment->price,
+                    'currency' => [
+                        'id' => $payment->currency_id,
+                        'name' => $payment->currency->name ?? 'N/A',
+                        'code' => $payment->currency->currency_code ?? 'N/A'
+                    ],
+                    'method' => [
+                        'id' => $payment->method_id,
+                        'name' => $payment->method->name ?? 'N/A'
+                    ],
+                    'due_date' => $payment->due_date,
+                    'due_date_formatted' => $payment->due_date ? formatDateTime($payment->due_date, 'd-m-Y H:i:s') : '',
+                    'payment_stage' => $payment->payment_stage,
+                    'payment_stage_text' => $this->getPaymentStageText($payment->payment_stage),
+                    'status' => $payment->status,
+                    'status_text' => $payment->status == 1 ? 'Đã thanh toán' : 'Chưa thanh toán'
+                ];
+            })->toArray(),
+        ];
+
+        // Tổ chức task thành cấu trúc cha-con
+        $mainTasks = $contract->tasks
+            ->where('parent_id', null)
+            ->map(function ($task) {
+                // Lọc task con trực tiếp của task hiện tại
+                $subTasks = $task->subTasks->map(function ($subTask) {
+                    // Lấy các task con của sub task (cấp 3)
+                    $childTasks = $subTask->subTasks->map(function ($childTask) {
+                        return [
+                            'id' => $childTask->id,
+                            'name' => $childTask->name,
+                            'status' => [
+                                'id' => $childTask->status->id ?? 0,
+                                'name' => $childTask->status->name ?? 'N/A',
+                                'color' => $childTask->status->color ?? 'gray',
+                            ],
+                            'assign' => [
+                                'id' => $childTask->assign->id ?? 0,
+                                'name' => $childTask->assign->name ?? 'N/A',
+                            ],
+                            'start_date' => $childTask->start_date,
+                            'due_date' => $childTask->due_date,
+                            'estimate_time' => $childTask->estimate_time,
+                            'qty_request' => $childTask->qty_request,
+                            'qty_completed' => $childTask->qty_completed,
+                            'description' => $childTask->description,
+                            'created_at' => $childTask->created_at
+                        ];
+                    })->toArray();
+
+                    return [
+                        'id' => $subTask->id,
+                        'name' => $subTask->name,
+                        'status' => [
+                            'id' => $subTask->status->id ?? 0,
+                            'name' => $subTask->status->name ?? 'N/A',
+                            'color' => $subTask->status->color ?? 'gray',
+                        ],
+                        'assign' => [
+                            'id' => $subTask->assign->id ?? 0,
+                            'name' => $subTask->assign->name ?? 'N/A',
+                        ],
+                        'start_date' => $subTask->start_date,
+                        'due_date' => $subTask->due_date,
+                        'estimate_time' => $subTask->estimate_time,
+                        'qty_request' => $subTask->qty_request,
+                        'qty_completed' => $subTask->qty_completed,
+                        'description' => $subTask->description,
+                        'service_id' => $subTask->service_id,
+                        'created_at' => $subTask->created_at,
+                        'sub_tasks' => $childTasks
+                    ];
+                })->toArray();
+
+                return [
+                    'id' => $task->id,
+                    'name' => $task->name,
+                    'status' => [
+                        'id' => $task->status->id ?? 0,
+                        'name' => $task->status->name ?? 'N/A',
+                        'color' => $task->status->color ?? 'gray',
+                    ],
+                    'assign' => [
+                        'id' => $task->assign->id ?? 0,
+                        'name' => $task->assign->name ?? 'N/A',
+                    ],
+                    'start_date' => $task->start_date,
+                    'due_date' => $task->due_date,
+                    'estimate_time' => $task->estimate_time,
+                    'qty_request' => $task->qty_request,
+                    'qty_completed' => $task->qty_completed,
+                    'description' => $task->description,
+                    'created_at' => $task->created_at,
+                    'sub_tasks' => $subTasks
+                ];
+            })->toArray();
+
+        $details['tasks'] = $mainTasks;
+
+        // Lấy các dữ liệu cần thiết cho view
+        $users = User::select('id', 'name')->where('is_active', 1)->get()->toArray();
+        $providers = Customer::select('id', 'name', 'phone', 'email', 'address')->where('is_active', 1)->get()->toArray();
+        $customers = Customer::select('id', 'name', 'phone', 'email', 'address')->where('is_active', 1)->get()->toArray();
+        $categories = ServiceCategory::where('is_active', 1)->get()->toArray();
+        $services = Service::where('is_active', 1)->get()->toArray();
+        $payment_methods = PaymentMethod::where('is_active', 1)->get()->toArray();
+        $currencies = Currency::where('is_active', 1)->get()->toArray();
+        // $task_statuses = TaskStatus::where('is_active', 1)->get()->toArray();
+
+        return view('dashboard.contract.detail', compact(
+            'details',
+            'users',
+            'providers',
+            'customers',
+            'categories',
+            'services',
+            'payment_methods',
+            'currencies'
+        ));
+    }
+    
+    private function getPaymentStageText($stage)
+    {
+        switch ($stage) {
+            case 0:
+                return 'Đặt cọc';
+            case 1:
+                return 'Tiền thưởng';
+            case 2:
+                return 'Thanh toán cuối cùng';
+            case 3:
+                return 'Trừ tiền';
+            default:
+                return 'Không xác định';
+        }
     }
 
     public function update(Request $request)
@@ -722,8 +1053,8 @@ class ContractController extends Controller
             if ($contract->status != 0) {
                 // Cập nhật task liên quan
                 $task = Task::where('contract_id', $contract->id)
-                            ->where('service_id', $service->service_id)
-                            ->first();
+                    ->where('service_id', $service->service_id)
+                    ->first();
                 if ($task) {
                     $serviceModel = Service::find($service->service_id);
                     $task->update([
@@ -782,8 +1113,8 @@ class ContractController extends Controller
 
             // Hủy task liên quan
             $task = Task::where('contract_id', $contract->id)
-                        ->where('service_id', $service->service_id)
-                        ->first();
+                ->where('service_id', $service->service_id)
+                ->first();
             if ($task) {
                 $task->update(['is_active' => 0]);
             }
@@ -924,7 +1255,9 @@ class ContractController extends Controller
             }
 
             $data = $request->only(['name', 'price', 'currency_id', 'method_id', 'due_date', 'status']);
-            $data = array_filter($data, function($value) { return !is_null($value); });
+            $data = array_filter($data, function ($value) {
+                return !is_null($value);
+            });
             if (isset($data['due_date'])) {
                 $data['due_date'] = formatDateTime($data['due_date'], 'Y-m-d H:i:s', 'd-m-Y H:i:s');
             }
@@ -1024,7 +1357,7 @@ class ContractController extends Controller
     public function exportPdf($id)
     {
         try {
-            $contract = Contract::with(['user', 'customer', 'services.service'])
+            $contract = Contract::with(['user', 'provider', 'services.service'])
                 ->findOrFail($id);
 
             $data = [

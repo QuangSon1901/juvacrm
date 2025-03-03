@@ -70,7 +70,13 @@
                                 <div class="checkbox-group">
                                     <span class="checkbox-label text-gray-800 !font-bold">Trạng thái:</span>
                                     <span class="badge badge-sm badge-outline badge-neutral">
-                                        {{$details['status_text']}}
+                                        @if ($details['status'] == 0)
+                                        Chờ duyệt
+                                        @elseif ($details['status'] == 1)
+                                        Đang triển khai
+                                        @elseif ($details['status'] == 2)
+                                        Đã hoàn tất
+                                        @endif
                                     </span>
                                     <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-contract-modal" data-name="status">
                                         <i class="ki-filled ki-notepad-edit"></i>
@@ -85,7 +91,7 @@
                                 </div>
                                 <div class="checkbox-group">
                                     <span class="checkbox-label text-gray-800 !font-bold">Khách hàng:</span>
-                                    <a class="checkbox-label text-gray-800 hover:text-primary" href="/customer/{{$details['provider']['id']}}">{{$details['provider']['name']}}</a>
+                                    <a class="checkbox-label text-gray-800 hover:text-primary" href="/customer/{{$details['customer']['id']}}">{{$details['customer']['name']}}</a>
                                     <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-contract-modal" data-name="provider_id">
                                         <i class="ki-filled ki-notepad-edit"></i>
                                     </button>
@@ -168,39 +174,19 @@
                                             <div class="flex flex-col">
                                                 <div>
                                                     <span class="checkbox-label font-semibold hover:text-primary-active">{{$service['name']}}</span>
+                                                    @if (!$service['is_active'])
+                                                    <span class="badge badge-sm badge-outline badge-danger">Đã hủy bỏ</span>
+                                                    @endif
                                                 </div>
                                                 <div>
                                                     <span class="checkbox-label font-normal text-gray-700">Số lượng: {{$service['quantity']}}</span>
                                                     <span>-</span>
                                                     <span class="checkbox-label font-normal text-gray-700">Giá: {{number_format($service['price'], 0, ',', '.')}} VND</span>
-                                                    @if (isset($service['note']) && $service['note'])
+                                                    @if ($service['note'])
                                                     <span>-</span>
                                                     <span class="checkbox-label font-normal text-gray-700">{{$service['note']}}</span>
                                                     @endif
                                                 </div>
-
-                                                <!-- Hiển thị dịch vụ con nếu có -->
-                                                @if (isset($service['sub_services']) && count($service['sub_services']) > 0)
-                                                <div class="mt-2 border-gray-200">
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="text-gray-700"><i class="ki-filled ki-double-right-arrow"></i></span>
-                                                        <span class="checkbox-label font-semibold">Dịch vụ con:</span>
-                                                    </div>
-                                                    @foreach ($service['sub_services'] as $subService)
-                                                    <div class="pl-6">
-                                                        <span class="checkbox-label font-normal text-gray-700">{{$subService['name']}}</span>
-                                                        <span>-</span>
-                                                        <span class="checkbox-label font-normal text-gray-700">Số lượng: {{$subService['quantity']}}</span>
-                                                        <span>-</span>
-                                                        <span class="checkbox-label font-normal text-gray-700">Giá: {{number_format($subService['price'], 0, ',', '.')}} VND</span>
-                                                        @if (isset($subService['note']) && $subService['note'])
-                                                        <span>-</span>
-                                                        <span class="checkbox-label font-normal text-gray-700">{{$subService['note']}}</span>
-                                                        @endif
-                                                    </div>
-                                                    @endforeach
-                                                </div>
-                                                @endif
                                             </div>
                                             <div class="menu" data-menu="true">
                                                 <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
@@ -216,6 +202,7 @@
                                                                 <span class="menu-title">Chỉnh sửa</span>
                                                             </button>
                                                         </div>
+                                                        @if ($service['is_active'])
                                                         <div class="menu-item">
                                                             <button class="menu-link" onclick="cancelService({{$service['id']}})">
                                                                 <span class="menu-icon">
@@ -224,6 +211,7 @@
                                                                 <span class="menu-title">Hủy bỏ</span>
                                                             </button>
                                                         </div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
@@ -255,14 +243,22 @@
                                                 <div>
                                                     <span class="checkbox-label font-semibold hover:text-primary-active">{{$payment['name']}}</span>
                                                     <span class="badge badge-sm badge-outline badge-{{ $payment['status'] ? 'success' : 'warning' }}">
-                                                        {{ $payment['status_text'] }}
+                                                        {{ $payment['status'] ? 'Đã thanh toán' : 'Chưa thanh toán' }}
                                                     </span>
                                                 </div>
                                                 <div class="flex flex-col">
-                                                    <span class="checkbox-label font-normal text-gray-700">Số tiền: {{number_format($payment['price'], 0, ',', '.')}} {{$payment['currency']['code']}}</span>
-                                                    <span class="checkbox-label font-normal text-gray-700">Phương thức: {{$payment['method']['name']}}</span>
-                                                    <span class="checkbox-label font-normal text-gray-700">Ngày: {{$payment['due_date_formatted']}}</span>
-                                                    <span class="checkbox-label font-normal text-gray-700">Loại phiếu: {{$payment['payment_stage_text']}}</span>
+                                                    <span class="checkbox-label font-normal text-gray-700">Số tiền: {{number_format($payment['price'], 0, ',', '.')}} {{$payment['currency']}}</span>
+                                                    <span class="checkbox-label font-normal text-gray-700">Phương thức: {{$payment['method']}}</span>
+                                                    <span class="checkbox-label font-normal text-gray-700">Ngày: {{$payment['due_date']}}</span>
+                                                    <span class="checkbox-label font-normal text-gray-700">Loại phiếu:
+                                                        @switch($payment['payment_stage'])
+                                                        @case(0) Biên nhận cọc @break
+                                                        @case(1) Tiền thưởng thêm @break
+                                                        @case(2) Biên nhận cuối @break
+                                                        @case(3) Tiền khấu trừ @break
+                                                        @default Unknown @break
+                                                        @endswitch
+                                                    </span>
                                                     @if ($payment['percentage'])
                                                     <span class="checkbox-label font-normal text-gray-700">Tỷ lệ: {{$payment['percentage']}}%</span>
                                                     @endif
@@ -315,18 +311,17 @@
                                 @else
                                 @foreach ($details['tasks'] as $task)
                                 <div class="relative flex items-center justify-between gap-1 w-full after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[4px] after:h-[78%] after:bg-gray-200 pl-4 hover:bg-gray-50 hover:after:bg-blue-800">
-                                    <div class="flex flex-col w-full">
+                                    <div class="flex flex-col">
                                         <div>
                                             <a href="/task/{{$task['id']}}">
                                                 <span class="checkbox-label font-normal text-primary">#{{$task['id']}}:</span>
                                                 <span class="checkbox-label font-semibold hover:text-primary-active">{{$task['name']}}</span>
                                             </a>
-                                            <span class="badge badge-sm badge-outline" style="color: {{$task['status']['color']}}; border-color: {{$task['status']['color']}};">
-                                                {{$task['status']['name']}}
-                                            </span>
                                         </div>
                                         <div>
                                             <span class="checkbox-label font-normal text-gray-700">{{$task['qty_completed']}}/{{$task['qty_request']}}</span>
+                                            <span>-</span>
+                                            <span class="checkbox-label font-normal text-{{$task['status']['color']}}">{{$task['status']['name']}}</span>
                                             <span>-</span>
                                             <span class="checkbox-label font-medium"><a class="hover:text-primary-active" href="/member/{{$task['assign']['id']}}">{{$task['assign']['name']}}</a></span>
                                             @if ($task['start_date'])
@@ -336,45 +331,7 @@
                                             @if ($task['due_date'])
                                             <span class="checkbox-label font-normal">đến <span class="font-medium">{{formatDateTime($task['due_date'], 'd-m-Y')}}</span></span>
                                             @endif
-                                            @if ($task['description'])
-                                            <div class="mt-1 text-sm text-gray-600">{{$task['description']}}</div>
-                                            @endif
                                         </div>
-
-                                        <!-- Hiển thị subtask nếu có -->
-                                        @if (count($task['sub_tasks']) > 0)
-                                        <div class="mt-2 pl-4 border-l-2 border-gray-200">
-                                            <div class="font-medium text-gray-700">Công việc con:</div>
-                                            @foreach ($task['sub_tasks'] as $subTask)
-                                            <div class="mt-1 text-sm">
-                                                <a href="/task/{{$subTask['id']}}" class="font-medium hover:text-primary">
-                                                    #{{$subTask['id']}}: {{$subTask['name']}}
-                                                </a>
-                                                <span class="badge badge-xs" style="color: {{$subTask['status']['color']}}; border-color: {{$subTask['status']['color']}};">
-                                                    {{$subTask['status']['name']}}
-                                                </span>
-                                                - <span class="text-gray-600">{{$subTask['qty_completed']}}/{{$subTask['qty_request']}}</span>
-                                                - <a href="/member/{{$subTask['assign']['id']}}" class="hover:text-primary">{{$subTask['assign']['name']}}</a>
-
-                                                <!-- Hiển thị sub-sub task nếu có -->
-                                                @if (isset($subTask['sub_tasks']) && count($subTask['sub_tasks']) > 0)
-                                                <div class="mt-1 pl-3 border-l border-gray-200">
-                                                    @foreach ($subTask['sub_tasks'] as $childTask)
-                                                    <div class="text-xs mb-1">
-                                                        <a href="/task/{{$childTask['id']}}" class="font-medium hover:text-primary">
-                                                            #{{$childTask['id']}}: {{$childTask['name']}}
-                                                        </a>
-                                                        <span class="badge badge-xs" style="color: {{$childTask['status']['color']}}; border-color: {{$childTask['status']['color']}};">
-                                                            {{$childTask['status']['name']}}
-                                                        </span>
-                                                    </div>
-                                                    @endforeach
-                                                </div>
-                                                @endif
-                                            </div>
-                                            @endforeach
-                                        </div>
-                                        @endif
                                     </div>
                                 </div>
                                 @endforeach
@@ -799,7 +756,7 @@
     function loadPaymentData(paymentId) {
         const payment = @json($details['payments']).find(p => p.id === paymentId);
         console.log(payment);
-
+        
         if (payment) {
             $('#edit-payment-id').val(payment.id);
             $('#edit-payment-form [name=name]').val(payment.name);
@@ -855,24 +812,22 @@
             'Đúng',
             'Hủy',
             async () => {
-                    let method = "post",
-                        url = "/contract/cancel-payment",
-                        params = null,
-                        data = {
-                            id: paymentId
-                        };
-                    let res = await axiosTemplate(method, url, params, data);
-                    switch (res.data.status) {
-                        case 200:
-                            showAlert('success', res.data.message);
-                            window.location.reload();
-                            break;
-                        default:
-                            showAlert('warning', res?.data?.message || "Đã có lỗi xảy ra!");
-                            break;
-                    }
-                },
-                () => {}, {}
+                let method = "post",
+                    url = "/contract/cancel-payment",
+                    params = null,
+                    data = { id: paymentId };
+                let res = await axiosTemplate(method, url, params, data);
+                switch (res.data.status) {
+                    case 200:
+                        showAlert('success', res.data.message);
+                        window.location.reload();
+                        break;
+                    default:
+                        showAlert('warning', res?.data?.message || "Đã có lỗi xảy ra!");
+                        break;
+                }
+            },
+            () => {}, {}
         );
     }
 </script>

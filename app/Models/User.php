@@ -65,4 +65,20 @@ class User extends Authenticatable implements AuthenticatableContract
         };
         return $query;
     }
+
+    /**
+     * Lấy các hợp đồng do người dùng tạo
+     */
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class);
+    }
+
+    /**
+     * Lấy các công việc được giao cho người dùng
+     */
+    public function tasks()
+    {
+        return $this->hasMany(Task::class, 'assign_id');
+    }
 }

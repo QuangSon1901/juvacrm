@@ -19,6 +19,8 @@
     <!-- Quill Editor -->
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
 
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     <link href="{{asset('css/app.css')}}" rel="stylesheet">
     <link href="{{asset('assets/css/before.css')}}" rel="stylesheet">
     <link href="{{asset('assets/css/clone.css')}}" rel="stylesheet">
@@ -26,6 +28,8 @@
 
     <link href="{{asset('assets/notiflix/dist/notiflix-3.2.8.min.css')}}" rel="stylesheet">
 
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
 </head>
