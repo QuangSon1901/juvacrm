@@ -27,7 +27,7 @@ class Contract extends Model
 
     public function services()
     {
-        return $this->hasMany(ContractService::class, 'contract_id');
+        return $this->hasMany(ContractService::class, 'contract_id')->where('is_active', 1);
     }
 
     public function payments()
@@ -37,7 +37,7 @@ class Contract extends Model
 
     public function tasks()
     {
-        return $this->hasMany(Task::class, 'contract_id');
+        return $this->hasMany(Task::class, 'contract_id')->where('is_active', 1);
     }
 
     public function creator()

@@ -105,7 +105,7 @@ class Task extends Model
 
     public function subTasks()
     {
-        return $this->hasMany(Task::class, 'parent_id');
+        return $this->hasMany(Task::class, 'parent_id')->where('is_active', 1);
     }
 
     public function comments() {
