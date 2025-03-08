@@ -115,6 +115,7 @@ class ContractController extends Controller
 
     public function create(Request $request)
     {
+        dd($request);
         // Bắt đầu transaction để đảm bảo tính toàn vẹn dữ liệu
         DB::beginTransaction();
 

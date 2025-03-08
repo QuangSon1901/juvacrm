@@ -24,49 +24,75 @@
 </div>
 
 <div class="container-fixed">
-    <form id="contract-form" class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <!-- Party A Information (Left Column) -->
-        <div class="col-span-1">
-            <div class="grid gap-6">
-                @include('dashboard.contract.partials.party-a')
-                @include('dashboard.contract.partials.party-b')
+    <form id="contract-form" class="grid gap-5">
+        <div class="flex items-center flex-wrap md:flex-nowrap lg:items-end justify-between border-b border-b-gray-200 dark:border-b-coal-100 gap-3">
+            <div class="grid">
+                <div class="scrollable-x-auto">
+                    <div class="tabs gap-6" data-tabs="true">
+                        <div class="tab cursor-pointer active" data-tab-toggle="#tab-info">
+                            <span class="text-nowrap text-sm">
+                                Thông tin chung
+                            </span>
+                        </div>
+                        <div class="tab cursor-pointer" data-tab-toggle="#tab-services">
+                            <span class="text-nowrap text-sm">
+                                Dịch vụ
+                            </span>
+                        </div>
+                        <div class="tab cursor-pointer" data-tab-toggle="#tab-payments">
+                            <span class="text-nowrap text-sm">
+                                Thanh toán
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div></div>
+        </div>
+
+        <div class="transition-opacity duration-700" id="tab-info">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div class="col-span-1">
+                    <div class="grid gap-6">
+                        @include('dashboard.contract.partials.party-a')
+                        @include('dashboard.contract.partials.party-b')
+                    </div>
+                </div>
+                <div class="col-span-1 xl:!col-span-2">
+                    @include('dashboard.contract.partials.contract-description')
+                </div>
             </div>
         </div>
-
-        <!-- Contract Description (Right Columns) -->
-        <div class="col-span-1 xl:!col-span-2">
-            @include('dashboard.contract.partials.contract-description')
+        <div class="hidden transition-opacity duration-700" id="tab-services">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div class="col-span-1 xl:!col-span-3">
+                    @include('dashboard.contract.partials.services')
+                </div>
+            </div>
         </div>
-
-        <!-- Services Section (Full Width) -->
-        <div class="col-span-1 xl:!col-span-3">
-            @include('dashboard.contract.partials.services')
-        </div>
-
-        <!-- Payments Section (Full Width) -->
-        <div class="col-span-1 xl:!col-span-3">
-            @include('dashboard.contract.partials.payments')
+        <div class="hidden transition-opacity duration-700" id="tab-payments">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div class="col-span-1 xl:!col-span-3">
+                    @include('dashboard.contract.partials.payments')
+                </div>
+            </div>
         </div>
     </form>
 </div>
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/contracts/contract-service.js') }}"></script>
-    <script src="{{ asset('js/contracts/contract-payment.js') }}"></script>
-    <script src="{{ asset('js/contracts/contract-main.js') }}"></script>
-    
-    <script>
-        // Initialize with the available data
-        const details = @json($details);
-        
-        // Document ready
-        $(document).ready(function() {
-            // Focus on contract name field when page loads
-            $('input[name="name"]').focus();
-            
-            // Initialize date pickers
-            flatpickrMake($('input[name="sign_date"], input[name="effective_date"], input[name="expiry_date"], input[name="estimate_date"]'), 'date');
-        });
-    </script>
+<script src="{{ asset('js/contracts/contract-service.js') }}"></script>
+<script src="{{ asset('js/contracts/contract-payment.js') }}"></script>
+<script src="{{ asset('js/contracts/contract-main.js') }}"></script>
+
+<script>
+    // Initialize with the available data
+    const details = @json($details);
+
+    // Document ready
+    $(document).ready(function() {
+        flatpickrMake($('input[name="sign_date"], input[name="effective_date"], input[name="expiry_date"], input[name="estimate_date"]'), 'date');
+    });
+</script>
 @endpush
