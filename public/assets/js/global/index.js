@@ -93,3 +93,24 @@ function renderPagination(data) {
 
     return $paginationContainer;
 }
+
+function formatNumberLikePhp(amount, decimals = 0, decimalSeparator = '.', thousandsSeparator = ',') {
+    // Xử lý giá trị đầu vào
+    if (isNaN(amount)) {
+        return '0';
+    }
+
+    // Làm tròn số theo số chữ số thập phân yêu cầu
+    amount = parseFloat(amount).toFixed(decimals);
+
+    // Tách phần nguyên và phần thập phân
+    let parts = amount.toString().split('.');
+    let integerPart = parts[0];
+    let decimalPart = parts.length > 1 ? parts[1] : '';
+
+    // Định dạng phần nguyên với dấu phân cách hàng nghìn
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, thousandsSeparator);
+
+    // Kết hợp phần nguyên và phần thập phân (nếu có)
+    return decimalPart ? integerPart + decimalSeparator + decimalPart : integerPart;
+}

@@ -10,6 +10,7 @@ use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\PaymentMethod;
 use App\Models\Service;
+use App\Models\Product;
 use App\Models\ServiceCategory;
 use App\Models\Task;
 use App\Models\Transaction;
@@ -91,6 +92,7 @@ class ContractController extends Controller
         $customers = Customer::select('id', 'name', 'phone', 'email', 'address')->where('is_active', 1)->get()->toArray();
         $categories = ServiceCategory::where('is_active', 1)->get()->toArray();
         $services = Service::where('is_active', 1)->get()->toArray();
+        $products = Product::where('is_active', 1)->get()->toArray();
         $payments = PaymentMethod::where('is_active', 1)->get()->toArray();
         $currencies = Currency::where('is_active', 1)->get()->toArray();
 
@@ -99,6 +101,7 @@ class ContractController extends Controller
             'customers' => $customers,
             'categories' => $categories,
             'services' => $services,
+            'products' => $products,
             'payments' => $payments,
             'currencies' => $currencies,
         ];
@@ -115,6 +118,7 @@ class ContractController extends Controller
 
     public function create(Request $request)
     {
+        dd($request);
         // Bắt đầu transaction để đảm bảo tính toàn vẹn dữ liệu
         DB::beginTransaction();
 
@@ -385,6 +389,7 @@ class ContractController extends Controller
         // Tạo task chính cho hợp đồng
         $mainTaskData = [
             'name' => "Hợp đồng #$contract->contract_number - $contract->name",
+            'type' => 'CONTRACT',
             'status_id' => 1, // Trạng thái mặc định
             'priority_id' => 1, // Độ ưu tiên mặc định
             'assign_id' => $contract->user_id, // Gán cho nhân viên phụ trách
@@ -412,6 +417,7 @@ class ContractController extends Controller
         // Lấy tất cả dịch vụ cấp cao nhất (parent_id = null và không phải giảm giá)
         $contractServices = ContractService::where('contract_id', $contract->id)
             ->where('parent_id', null)
+            ->where('is_active', 1)
             ->where('type', '!=', 'discount')
             ->get();
 
@@ -420,6 +426,7 @@ class ContractController extends Controller
             // Tạo task con cho dịch vụ chính
             $serviceTaskData = [
                 'name' => $service->name,
+                'type' => 'SERVICE',
                 'status_id' => 1,
                 'priority_id' => 1,
                 'assign_id' => $contract->user_id,
@@ -447,12 +454,13 @@ class ContractController extends Controller
             ]);
 
             // Tìm các dịch vụ con thuộc dịch vụ chính này
-            $subServices = ContractService::where('parent_id', $service->id)->get();
+            $subServices = ContractService::where('parent_id', $service->id)->where('is_active', 1)->get();
 
             // Tạo task cho các dịch vụ con
             foreach ($subServices as $subService) {
                 $subTaskData = [
                     'name' => $subService->name,
+                    'type' => 'SUB',
                     'status_id' => 1,
                     'priority_id' => 1,
                     'assign_id' => $contract->user_id,
@@ -715,7 +723,7 @@ class ContractController extends Controller
         $currencies = Currency::where('is_active', 1)->get()->toArray();
         // $task_statuses = TaskStatus::where('is_active', 1)->get()->toArray();
 
-        return view('dashboard.contract.detail', compact(
+        return view('dashboard.contract.detail_origin', compact(
             'details',
             'users',
             'providers',

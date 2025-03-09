@@ -165,7 +165,7 @@ function calculateSubServiceTotal(input) {
     const total = quantity * servicePrice;
     
     // Định dạng số tiền Việt Nam
-    totalInput.value = new Intl.NumberFormat('vi-VN').format(total);
+    totalInput.value = total;
     
     calculateTotalValue();
 }
@@ -174,11 +174,14 @@ function calculateSubServiceTotal(input) {
 function calculateTotalValue() {
     // Tính tổng giá trị từ tất cả dịch vụ con
     let total = 0;
+    let amount = 0;
+    let discount = 0;
     
     // Cộng thành tiền từ tất cả dịch vụ con
     document.querySelectorAll('.sub-service-total').forEach(input => {
         const value = parseFloat(input.value.replace(/[.,]/g, '')) || 0;
         total += value;
+        amount += value;
     });
     
     // Cộng/trừ giá trị từ các mục khác (giảm giá, phí...)
@@ -187,14 +190,17 @@ function calculateTotalValue() {
         if (priceInput) {
             const value = parseFloat(priceInput.value.replace(/[.,]/g, '')) || 0;
             total += value; // Có thể cần điều chỉnh dấu +/- tùy loại mục
+            if (value < 0)
+                discount += value;
+            else
+                amount += value;
         }
     });
-    
-    // Hiển thị tổng giá trị nếu có element hiển thị tổng
-    const totalValueElement = document.getElementById('contract-total-value');
-    if (totalValueElement) {
-        totalValueElement.textContent = new Intl.NumberFormat('vi-VN').format(total) + ' ₫';
-    }
+
+    $('.services-total-value').text(formatNumberLikePhp(amount));
+    $('.discount-value').text(formatNumberLikePhp(discount));
+    $('.contract-total-value').text(formatNumberLikePhp(total)).val(formatNumberLikePhp(total));
+    $('input[name="total_value"]').val(total);
 }
 
 // Khởi tạo với một sản phẩm mặc định

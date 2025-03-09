@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ContractService extends Model
 {
     protected $table = 'tbl_contract_services';
-    protected $fillable = ['contract_id', 'service_id', 'name', 'type', 'quantity', 'price', 'note', 'is_active', 'parent_id'];
+    protected $fillable = ['contract_id', 'service_id', 'product_id', 'name', 'type', 'quantity', 'price', 'note', 'is_active', 'parent_id'];
 
     /**
      * Lấy hợp đồng chứa dịch vụ này
@@ -23,6 +23,14 @@ class ContractService extends Model
     public function service()
     {
         return $this->belongsTo(Service::class);
+    }
+
+    /**
+     * Lấy sản phẩm liên quan
+     */
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
     }
 
     /**

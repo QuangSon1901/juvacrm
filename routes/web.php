@@ -131,9 +131,11 @@ Route::group(
                 Route::get('/contracts', [ContractController::class, "index"])->name("contract");
                 Route::get('/contract/create-view', [ContractController::class, "createView"])->name("create-view");
                 Route::post('/contract/create', [ContractController::class, "create"])->name("create");
-                Route::post('/contract/update', [ContractController::class, "update"])->name("update");
+                Route::post('/contract/update', [ContractController::class, "updateContractServices"])->name("update");
                 Route::get('/contract-data', [ContractController::class, "data"])->name("data");
                 Route::get('/contract/{id}', [ContractController::class, 'detail'])->name('contract.detail');
+                Route::post('/contract/create-task', [ContractController::class, 'createContractTasks'])->name('contract.create-task');
+                Route::post('/contract/cancel', [ContractController::class, 'cancelContract'])->name('contract.cancel');
                 Route::post('/contract/add-service', [ContractController::class, 'addService'])->name('contract.addService');
                 Route::post('/contract/update-service', [ContractController::class, 'updateService'])->name('contract.updateService');
                 Route::post('/contract/cancel-service', [ContractController::class, 'cancelService'])->name('contract.cancelService');

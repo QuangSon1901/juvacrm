@@ -1,5 +1,8 @@
 <?php
 
+// CONFIG COMPANY
+const NAME_COMPANY = "Juva Media";
+
 // PAGINATION
 const TABLE_PERPAGE_NUM = 25;
 const CARD_PERPAGE_NUM = 50;

@@ -1,58 +1,130 @@
-// public/js/contracts/contract-main.js
 async function saveCreateContract() {
     calculateTotalValue();
     
-    // Create structured data for services and sub-services
-    let servicesData = [];
+    // Tạo cấu trúc dữ liệu cho sản phẩm, dịch vụ và dịch vụ con
+    let contractItemsData = [];
     
-    $('#services-table tbody tr.service-row').each(function() {
-        const row = $(this);
-        const type = row.data('type');
-        const serviceId = row.data('service-id');
+    // Lặp qua tất cả các item (sản phẩm và mục khác)
+    document.querySelectorAll('.item-container').forEach(itemContainer => {
+        const itemId = itemContainer.dataset.itemId;
+        const itemType = itemContainer.dataset.itemType;
         
-        let serviceData = {
-            type: type,
-            id: type === 'service' ? row.find('select[name="service_ids[]"]').val() : 'custom',
-            custom_name: type === 'other' ? row.find('input[name="service_custom_name[]"]').val() : null,
-            quantity: row.find('input[name="service_quantity[]"]').val(),
-            price: row.find('input[name="service_price[]"]').val(),
-            note: row.find('input[name="service_note[]"]').val(),
-            sub_services: []
+        let itemData = {
+            type: itemType,
+            id: null,
+            name: null,
+            quantity: null,
+            price: null,
+            note: null,
+            image: null,
+            services: []
         };
         
-        // Find child sub-services
-        $('#services-table tbody tr.sub-service-row').each(function() {
-            const subRow = $(this);
-            if (subRow.data('parent-id') === serviceId) {
-                serviceData.sub_services.push({
-                    name: subRow.find('input[name="sub_service_name[]"]').val(),
-                    quantity: subRow.find('input[name="sub_service_quantity[]"]').val(),
-                    note: subRow.find('input[name="sub_service_note[]"]').val()
-                });
+        // Xử lý dựa vào loại item
+        if (itemType === 'product') {
+            // Sản phẩm
+            itemData.id = itemContainer.querySelector('select[name="item_product_id[]"]')?.value;
+            itemData.quantity = itemContainer.querySelector('input[name="item_quantity[]"]')?.value;
+            
+            // Lấy file ảnh nếu có
+            const imageInput = itemContainer.querySelector('input[name="item_image[]"]');
+            if (imageInput && imageInput.files.length > 0) {
+                itemData.image = imageInput.files[0];
             }
+        } else {
+            // Mục khác (giảm giá, phí,...)
+            itemData.name = itemContainer.querySelector('input[name="item_name[]"]')?.value;
+            itemData.price = itemContainer.querySelector('input[name="item_price[]"]')?.value;
+            itemData.note = itemContainer.querySelector('input[name="item_note[]"]')?.value;
+        }
+        
+        // Thu thập dữ liệu dịch vụ cho mỗi item
+        const serviceItems = itemContainer.querySelectorAll('.service-item');
+        serviceItems.forEach(serviceItem => {
+            const serviceId = serviceItem.dataset.serviceId;
+            const isCustomService = serviceItem.querySelector('input[name="service_ids[]"][value="custom"]') !== null;
+            
+            let serviceData = {
+                id: isCustomService ? 'custom' : serviceItem.querySelector('select[name="service_ids[]"]')?.value,
+                custom_name: isCustomService ? serviceItem.querySelector('input[name="service_custom_name[]"]')?.value : null,
+                price: serviceItem.querySelector('input[name="service_price[]"]')?.value,
+                note: serviceItem.querySelector('input[name="service_note[]"]')?.value,
+                sub_services: []
+            };
+            
+            // Thu thập dữ liệu dịch vụ con
+            const subServiceItems = serviceItem.querySelectorAll('.sub-service-item');
+            subServiceItems.forEach(subServiceItem => {
+                const subServiceData = {
+                    name: subServiceItem.querySelector('input[name="sub_service_name[]"]')?.value,
+                    quantity: subServiceItem.querySelector('input[name="sub_service_quantity[]"]')?.value,
+                    total: subServiceItem.querySelector('input[name="sub_service_total[]"]')?.value,
+                    content: subServiceItem.querySelector('input[name="sub_service_content[]"]')?.value,
+                    image: null
+                };
+                
+                // Lấy file ảnh dịch vụ con nếu có
+                const imageInput = subServiceItem.querySelector('input[name="sub_service_image[]"]');
+                if (imageInput && imageInput.files.length > 0) {
+                    subServiceData.image = imageInput.files[0];
+                }
+                
+                serviceData.sub_services.push(subServiceData);
+            });
+            
+            itemData.services.push(serviceData);
         });
         
-        servicesData.push(serviceData);
+        contractItemsData.push(itemData);
     });
     
-    // Add services data to form data
-    let formData = $('#contract-form').serialize();
-    formData += '&services_data=' + encodeURIComponent(JSON.stringify(servicesData));
-
+    // Tạo FormData để gửi dữ liệu form kèm file
+    const formData = new FormData(document.getElementById('contract-form'));
+    
+    // Xóa các file input để tránh trùng lặp
+    formData.delete('item_image[]');
+    formData.delete('sub_service_image[]');
+    
+    // Thêm dữ liệu cấu trúc JSON
+    formData.append('contract_items_data', JSON.stringify(contractItemsData));
+    
+    // Thêm lại các file với key phù hợp
+    contractItemsData.forEach((item, itemIndex) => {
+        if (item.image instanceof File) {
+            formData.append(`items[${itemIndex}][image]`, item.image);
+        }
+        
+        item.services.forEach((service, serviceIndex) => {
+            service.sub_services.forEach((subService, subServiceIndex) => {
+                if (subService.image instanceof File) {
+                    formData.append(`items[${itemIndex}][services][${serviceIndex}][sub_services][${subServiceIndex}][image]`, subService.image);
+                }
+            });
+        });
+    });
+    
     let method = "post",
         url = "/contract/create",
         params = null,
         data = formData;
     
     try {
-        let res = await axiosTemplate(method, url, params, data);
+        // Sử dụng Axios với Content-Type là multipart/form-data để gửi cả file và dữ liệu
+        const axiosConfig = {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        };
+        
+        let res = await axios[method](url, data, axiosConfig);
+        
         switch (res.data.status) {
             case 200:
                 showAlert('success', res.data.message);
-                // Success effect before page reload
+                // Hiệu ứng thành công trước khi tải lại trang
                 setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
+                    window.location.href = '/contract/' + res.data.data.id;
+                }, 500);
                 break;
             default:
                 showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
@@ -62,14 +134,4 @@ async function saveCreateContract() {
         showAlert('error', "Đã có lỗi xảy ra khi gửi yêu cầu!");
         console.error(error);
     }
-}
-
-function calculateTotalValue() {
-    let total = 0;
-    $('#services-table tbody tr.service-row').each(function() {
-        const quantity = parseFloat($(this).find('input[name="service_quantity[]"]').val()) || 0;
-        const price = parseFloat($(this).find('input[name="service_price[]"]').val()) || 0;
-        total += quantity * price;
-    });
-    $('input[name="total_value"]').val(total);
 }

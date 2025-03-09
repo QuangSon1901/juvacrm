@@ -7,18 +7,9 @@
         </h3>
     </div>
     <div class="card-body p-5">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <div class="w-full">
-                <label class="form-label mb-1.5 text-gray-700 font-medium">Trạng thái</label>
-                <select name="status" class="select border-gray-200 focus:border-blue-500 rounded-lg w-full">
-                    <option value="0" selected>Đang chờ</option>
-                    <option value="1">Đang triển khai</option>
-                </select>
-            </div>
-            <div class="w-full">
-                <label class="form-label mb-1.5 text-gray-700 font-medium">Số hợp đồng</label>
-                <input name="contract_number" class="input bg-gray-50 border-gray-200 focus:border-blue-500 rounded-lg" type="text" placeholder="Tự động tạo" readonly>
-            </div>
+        <div class="w-full">
+            <label class="form-label mb-1.5 text-gray-700 font-medium">Số hợp đồng</label>
+            <input name="contract_number" class="input bg-gray-50 border-gray-200 focus:border-blue-500 rounded-lg" type="text" placeholder="Tự động tạo" readonly>
         </div>
 
         <div class="mt-5">
@@ -70,7 +61,8 @@
         <div class="mt-5">
             <label class="form-label mb-1.5 text-gray-700 font-medium">Tổng giá trị</label>
             <div class="relative">
-                <input name="total_value" class="input bg-gray-50 border-gray-200 focus:border-blue-500 rounded-lg w-full !pl-10" type="text" placeholder="Sẽ tự tính dựa vào dịch vụ" readonly>
+                <input name="total_value_format" class="contract-total-value input bg-gray-50 border-gray-200 focus:border-blue-500 rounded-lg w-full !pl-10" type="text" placeholder="Sẽ tự tính dựa vào dịch vụ" readonly>
+                <input type="hidden" name="total_value" value="0">
                 <i class="ki-filled ki-dollar absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
             </div>
         </div>

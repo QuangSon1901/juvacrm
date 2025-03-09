@@ -37,6 +37,8 @@ class Task extends Model
         'qty_request', 
         'qty_completed', 
         'type', 
+        'is_updated', 
+        'contract_service_id', 
     ];
 
     public function scopeSearch($query, $search)
