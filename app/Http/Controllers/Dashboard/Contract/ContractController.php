@@ -1636,6 +1636,8 @@ class ContractController extends Controller
      */
     public function updateContractServices(Request $request)
     {
+        dd($request->all());
+
         // Bắt đầu transaction để đảm bảo tính toàn vẹn dữ liệu
         DB::beginTransaction();
 
