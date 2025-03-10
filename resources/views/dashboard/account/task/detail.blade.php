@@ -5,13 +5,25 @@
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
                 Thông tin công việc
+                @if ($details['type'])
+                <span class="badge badge-sm badge-outline badge-primary">{{$details['type']}}</span>
+                @endif
             </h1>
         </div>
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
-            <button class="btn btn-icon btn-icon-lg size-8 rounded-md hover:bg-gray-200 dropdown-open:bg-gray-200 hover:text-primary text-gray-600" data-modal-toggle="#search_modal">
-                <i class="ki-filled ki-magnifier !text-base">
-                </i>
+            @if (in_array($details['type'], ['SERVICE', 'SUB']) && in_array($details['status']['id'], [1, 2]))
+            <button class="btn btn-sm btn-primary" onclick="claimTask({{$details['id']}})">
+                <i class="ki-outline ki-check-square me-1"></i>
+                Nhận việc
             </button>
+            @endif
+
+            @if (in_array($details['type'], ['SERVICE', 'SUB']) && in_array($details['status']['id'], [3]) && (!isset($details['sub_tasks']) || count($details['sub_tasks']) == 0))
+            <button class="btn btn-sm btn-success" data-modal-toggle="#report-completion-modal">
+                <i class="ki-outline ki-flag me-1"></i>
+                Báo cáo hoàn thành
+            </button>
+            @endif
         </div>
     </div>
 </div>
@@ -37,15 +49,13 @@
                         <div class="menu" data-menu="true">
                             <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
                                 <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
-                                    <i class="ki-filled ki-dots-vertical">
-                                    </i>
+                                    <i class="ki-filled ki-dots-vertical"></i>
                                 </button>
                                 <div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true">
                                     <div class="menu-item">
                                         <a class="menu-link" href="#comment-task-form">
                                             <span class="menu-icon">
-                                                <i class="ki-filled ki-messages">
-                                                </i>
+                                                <i class="ki-filled ki-messages"></i>
                                             </span>
                                             <span class="menu-title">
                                                 Bình luận
@@ -81,13 +91,20 @@
                                             {{$details['name']}}
                                         </span>
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="name">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
+                                            <i class="ki-filled ki-notepad-edit"></i>
                                         </button>
                                     </div>
                                     @if ($details['parent']['id'] != 0)
                                     <div class="form-info text-gray-800 font-normal">
-                                        <a href="/task/{{$details['parent']['id']}}" class="hover:text-primary-active">Nhóm: #{{$details['parent']['id']}} - {{$details['parent']['name']}}</a>
+                                        <a href="/task/{{$details['parent']['id']}}" class="hover:text-primary-active">
+                                            @if ($details['type'] == 'SERVICE')
+                                            Thuộc hợp đồng: #{{$details['parent']['id']}} - {{$details['parent']['name']}}
+                                            @elseif($details['type'] == 'SUB')
+                                            Thuộc dịch vụ: #{{$details['parent']['id']}} - {{$details['parent']['name']}}
+                                            @else
+                                            Nhóm: #{{$details['parent']['id']}} - {{$details['parent']['name']}}
+                                            @endif
+                                        </a>
                                     </div>
                                     @endif
                                     <div class="form-info text-gray-800 font-normal">
@@ -109,8 +126,7 @@
                                         </span>
                                         @endif
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="status_id">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
+                                            <i class="ki-filled ki-notepad-edit"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -125,15 +141,15 @@
                                         </span>
                                         @endif
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="priority_id">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
+                                            <i class="ki-filled ki-notepad-edit"></i>
                                         </button>
                                     </div>
                                 </div>
+                                @if ($details['type'] == 'CONTRACT')
                                 <div class="flex flex-col gap-5">
                                     <div class="checkbox-group">
                                         <span class="checkbox-label text-gray-800 !font-bold">
-                                            Người thực hiện:
+                                            Người quản lý:
                                         </span>
                                         @if ($details['assign']['id'] == 0)
                                         ---
@@ -143,35 +159,17 @@
                                         </a>
                                         @endif
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="assign_id">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
+                                            <i class="ki-filled ki-notepad-edit"></i>
                                         </button>
                                     </div>
                                 </div>
+                                @endif
                             </div>
                             <div class="flex flex-col gap-5">
                                 <div class="flex flex-col gap-5">
                                     <div class="checkbox-group">
                                         <span class="checkbox-label text-gray-800 !font-bold">
-                                            Ngày bắt đầu:
-                                        </span>
-                                        @if ($details['start_date'])
-                                        <span class="checkbox-label text-gray-800">
-                                            {{formatDateTime($details['start_date'], 'd-m-Y H:i')}}
-                                        </span>
-                                        @else
-                                        ---
-                                        @endif
-                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="start_date">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col gap-5">
-                                    <div class="checkbox-group">
-                                        <span class="checkbox-label text-gray-800 !font-bold">
-                                            Ngày kết thúc:
+                                            Deadline:
                                         </span>
                                         @if ($details['due_date'])
                                         <span class="checkbox-label text-gray-800">
@@ -181,8 +179,7 @@
                                         ---
                                         @endif
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="due_date">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
+                                            <i class="ki-filled ki-notepad-edit"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -198,38 +195,6 @@
                                                 </span>
                                             </div>
                                         </div>
-                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="progress">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
-                                        </button>
-                                    </div>
-                                </div>
-                                {{-- <div class="flex flex-col gap-5">
-                                    <div class="checkbox-group">
-                                        <span class="checkbox-label text-gray-800 !font-bold">
-                                            Thời gian dự kiến:
-                                        </span>
-                                        <span class="checkbox-label text-gray-800">
-                                            {{$details['estimate_time'] ?? 0}}h
-                                        </span>
-                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="estimate_time">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
-                                        </button>
-                                    </div>
-                                </div> --}}
-                                <div class="flex flex-col gap-5">
-                                    <div class="checkbox-group">
-                                        <span class="checkbox-label text-gray-800 !font-bold">
-                                            Thời gian thực tế:
-                                        </span>
-                                        <span class="checkbox-label text-gray-800">
-                                            {{$details['spend_time'] ?? 0}}h
-                                        </span>
-                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="spend_time">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
-                                        </button>
                                     </div>
                                 </div>
                                 <div class="flex flex-col gap-5">
@@ -241,8 +206,7 @@
                                             {{$details['qty_request'] ?? 0}}
                                         </span>
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="qty_request">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
+                                            <i class="ki-filled ki-notepad-edit"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -254,10 +218,6 @@
                                         <span class="checkbox-label text-gray-800">
                                             {{$details['qty_completed'] ?? 0}}
                                         </span>
-                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="qty_completed">
-                                            <i class="ki-filled ki-notepad-edit">
-                                            </i>
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -268,8 +228,7 @@
                                     Mô tả
                                 </span>
                                 <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-description-task-modal">
-                                    <i class="ki-filled ki-notepad-edit">
-                                    </i>
+                                    <i class="ki-filled ki-notepad-edit"></i>
                                 </button>
                             </div>
                             <div class="ql-snow form-info leading-5 text-gray-800 font-normal">
@@ -284,8 +243,7 @@
                                     Ghi chú
                                 </span>
                                 <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="note">
-                                    <i class="ki-filled ki-notepad-edit">
-                                    </i>
+                                    <i class="ki-filled ki-notepad-edit"></i>
                                 </button>
                             </div>
                             <div class="ql-snow form-info leading-5 text-gray-800 font-normal">
@@ -294,6 +252,171 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Hiển thị danh sách công việc dịch vụ (nếu là công việc hợp đồng) -->
+                        @if ($details['type'] == 'CONTRACT' && isset($details['service_tasks']))
+                        <div class="menu-separator simple"></div>
+                        <div class="flex flex-col gap-2.5">
+                            <div class="flex items-center justify-between">
+                                <div class="checkbox-group">
+                                    <span class="checkbox-label text-gray-800 !font-bold">
+                                        Danh sách công việc dịch vụ
+                                    </span>
+                                    <span class="badge badge-xs badge-primary badge-outline">{{count($details['service_tasks'])}}</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                @if (count($details['service_tasks']) == 0)
+                                <div class="text-center text-gray-500">Chưa có công việc dịch vụ nào</div>
+                                @endif
+
+                                @foreach ($details['service_tasks'] as $serviceTask)
+                                <div class="relative flex items-center justify-between gap-1 w-full after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[4px] after:h-[78%] after:bg-gray-200 pl-4 hover:bg-gray-50 hover:after:bg-blue-800">
+                                    <div class="flex flex-col">
+                                        <div>
+                                            <a href="/task/{{$serviceTask['id']}}">
+                                                <span class="checkbox-label font-normal text-primary">#{{$serviceTask['id']}}:</span>
+                                                <span class="checkbox-label font-semibold hover:text-primary-active">{{$serviceTask['name']}}</span>
+                                            </a>
+                                        </div>
+                                        <div>
+                                            <span class="checkbox-label font-normal text-gray-700">{{$serviceTask['qty_completed'] ?? 0}}/{{$serviceTask['qty_request'] ?? 0}}</span>
+                                            <span>-</span>
+                                            <span class="checkbox-label font-normal text-{{$serviceTask['status']['color']}}">{{$serviceTask['status']['name'] ?? '---'}}</span>
+                                            @if ($serviceTask['priority']['id'] != 0)
+                                            <span>-</span>
+                                            <span class="checkbox-label font-normal text-{{$serviceTask['priority']['color']}}">{{$serviceTask['priority']['name']}}</span>
+                                            @endif
+                                            @if ($serviceTask['due_date'])
+                                            <span>-</span>
+                                            <span class="checkbox-label font-normal">Deadline: <span class="font-medium">{{formatDateTime($serviceTask['due_date'], 'd-m-Y')}}</span></span>
+                                            @endif
+                                        </div>
+
+                                        <!-- Hiển thị công việc con của dịch vụ này -->
+                                        @if (count($serviceTask['sub_tasks']) > 0)
+                                        <div class="mt-2 pl-4">
+                                            <div class="text-xs font-medium text-gray-700 mb-1">Công việc con:</div>
+                                            @foreach ($serviceTask['sub_tasks'] as $subTask)
+                                            <div class="relative flex items-center justify-between gap-1 w-full mt-1 after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[3px] after:h-[78%] after:bg-gray-200 pl-3 hover:bg-gray-50 hover:after:bg-blue-800">
+                                                <div class="flex flex-col">
+                                                    <div>
+                                                        <a href="/task/{{$subTask['id']}}">
+                                                            <span class="text-xs font-normal text-primary">#{{$subTask['id']}}:</span>
+                                                            <span class="text-xs font-semibold hover:text-primary-active">{{$subTask['name']}}</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="text-xs">
+                                                        <span class="font-normal text-gray-700">{{$subTask['qty_completed'] ?? 0}}/{{$subTask['qty_request'] ?? 0}}</span>
+                                                        <span>-</span>
+                                                        <span class="font-normal text-{{$subTask['status']['color']}}">{{$subTask['status']['name'] ?? '---'}}</span>
+                                                        @if ($subTask['due_date'])
+                                                        <span>-</span>
+                                                        <span class="font-normal">Deadline: <span class="font-medium">{{formatDateTime($subTask['due_date'], 'd-m-Y')}}</span></span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                <div class="flex space-x-1">
+                                                    @if (in_array($subTask['status']['id'], [1, 2]))
+                                                    <button class="btn btn-xs btn-primary" onclick="claimTask({{$subTask['id']}})">
+                                                        Nhận việc
+                                                    </button>
+                                                    @elseif (in_array($subTask['status']['id'], [3]))
+                                                    <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$subTask['id']}}, '{{$subTask['name']}}', {{$subTask['qty_request']}}, {{$subTask['qty_completed']}})">
+                                                        Báo cáo
+                                                    </button>
+                                                    @endif
+                                                    <a href="/task/{{$subTask['id']}}" class="btn btn-xs btn-light">
+                                                        <i class="ki-outline ki-arrow-right"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                        @endif
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        @if (in_array($serviceTask['status']['id'], [1, 2]))
+                                        <button class="btn btn-xs btn-primary" onclick="claimTask({{$serviceTask['id']}})">
+                                            Nhận việc
+                                        </button>
+                                        @elseif (in_array($serviceTask['status']['id'], [3]) && count($serviceTask['sub_tasks']) == 0)
+                                        <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$serviceTask['id']}}, '{{$serviceTask['name']}}', {{$serviceTask['qty_request']}}, {{$serviceTask['qty_completed']}})">
+                                            Báo cáo
+                                        </button>
+                                        @endif
+                                        <a href="/task/{{$serviceTask['id']}}" class="btn btn-xs btn-light">
+                                            <i class="ki-outline ki-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Hiển thị danh sách công việc con (nếu là công việc dịch vụ) -->
+                        @if ($details['type'] == 'SERVICE' && isset($details['sub_tasks']))
+                        <div class="menu-separator simple"></div>
+                        <div class="flex flex-col gap-2.5">
+                            <div class="flex items-center justify-between">
+                                <div class="checkbox-group">
+                                    <span class="checkbox-label text-gray-800 !font-bold">
+                                        Danh sách công việc con
+                                    </span>
+                                    <span class="badge badge-xs badge-primary badge-outline">{{count($details['sub_tasks'])}}</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                @if (count($details['sub_tasks']) == 0)
+                                <div class="text-center text-gray-500">Chưa có công việc con nào</div>
+                                @endif
+
+                                @foreach ($details['sub_tasks'] as $subTask)
+                                <div class="relative flex items-center justify-between gap-1 w-full after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[4px] after:h-[78%] after:bg-gray-200 pl-4 hover:bg-gray-50 hover:after:bg-blue-800">
+                                    <div class="flex flex-col">
+                                        <div>
+                                            <a href="/task/{{$subTask['id']}}">
+                                                <span class="checkbox-label font-normal text-primary">#{{$subTask['id']}}:</span>
+                                                <span class="checkbox-label font-semibold hover:text-primary-active">{{$subTask['name']}}</span>
+                                            </a>
+                                        </div>
+                                        <div>
+                                            <span class="checkbox-label font-normal text-gray-700">{{$subTask['qty_completed'] ?? 0}}/{{$subTask['qty_request'] ?? 0}}</span>
+                                            <span>-</span>
+                                            <span class="checkbox-label font-normal text-{{$subTask['status']['color']}}">{{$subTask['status']['name'] ?? '---'}}</span>
+                                            @if ($subTask['priority']['id'] != 0)
+                                            <span>-</span>
+                                            <span class="checkbox-label font-normal text-{{$subTask['priority']['color']}}">{{$subTask['priority']['name']}}</span>
+                                            @endif
+                                            @if ($subTask['due_date'])
+                                            <span>-</span>
+                                            <span class="checkbox-label font-normal">Deadline: <span class="font-medium">{{formatDateTime($subTask['due_date'], 'd-m-Y')}}</span></span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        @if (in_array($subTask['status']['id'], [1, 2]))
+                                        <button class="btn btn-xs btn-primary" onclick="claimTask({{$subTask['id']}})">
+                                            Nhận việc
+                                        </button>
+                                        @elseif (in_array($subTask['status']['id'], [3]))
+                                        <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$subTask['id']}}, '{{$subTask['name']}}', {{$subTask['qty_request']}}, {{$subTask['qty_completed']}})">
+                                            Báo cáo
+                                        </button>
+                                        @endif
+                                        <a href="/task/{{$subTask['id']}}" class="btn btn-xs btn-light">
+                                            <i class="ki-outline ki-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+                        {{--
+                        <!-- Hiển thị danh sách chỉ mục (cho mục cũ) -->
+                        @if (count($details['childs']) > 0)
                         <div class="menu-separator simple"></div>
                         <div class="flex flex-col gap-2.5">
                             <div class="flex items-center justify-between">
@@ -304,15 +427,11 @@
                                     <span class="badge badge-xs badge-primary badge-outline">{{count($details['childs'])}}</span>
                                 </div>
                                 <button class="btn btn-light btn-xs" data-modal-toggle="#add-sub-task-modal">
-                                    <i class="ki-filled ki-plus">
-                                    </i>
+                                    <i class="ki-filled ki-plus"></i>
                                     Thêm chỉ mục
                                 </button>
                             </div>
                             <div class="flex items-center flex-wrap justify-between gap-2.5">
-                                @if (count($details['childs']) == 0)
-                                ---
-                                @endif
                                 @foreach ($details['childs'] as $subtask)
                                 <div class="relative flex items-center justify-between gap-1 w-full after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[4px] after:h-[78%] after:bg-gray-200 pl-4 hover:bg-gray-50 hover:after:bg-blue-800">
                                     <div class="flex flex-col">
@@ -330,31 +449,22 @@
                                             <span>-</span>
                                             <span class="checkbox-label font-normal text-{{$subtask['priority']['color']}}">{{$subtask['priority']['name']}}</span>
                                             @endif
-                                            @if ($subtask['assign']['id'] != 0)
-                                            <span>-</span>
-                                            <span class="checkbox-label font-medium"><a class="hover:text-primary-active" href="/member/{{$subtask['assign']['id']}}">{{$subtask['assign']['name']}}</a></span>
-                                            @endif
-                                            @if ($subtask['start_date'])
-                                            <span>-</span>
-                                            <span class="checkbox-label font-normal">Từ <span class="font-medium">{{formatDateTime($subtask['start_date'], 'd-m-Y')}}</span></span>
-                                            @endif
                                             @if ($subtask['due_date'])
-                                            <span class="checkbox-label font-normal">đến <span class="font-medium">{{formatDateTime($subtask['due_date'], 'd-m-Y')}}</span></span>
+                                            <span>-</span>
+                                            <span class="checkbox-label font-normal">Deadline: <span class="font-medium">{{formatDateTime($subtask['due_date'], 'd-m-Y')}}</span></span>
                                             @endif
                                         </div>
                                     </div>
                                     <div class="menu" data-menu="true">
                                         <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
                                             <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
-                                                <i class="ki-filled ki-dots-vertical">
-                                                </i>
+                                                <i class="ki-filled ki-dots-vertical"></i>
                                             </button>
                                             <div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true">
                                                 <div class="menu-item">
                                                     <a class="menu-link" href="/task/{{$subtask['id']}}">
                                                         <span class="menu-icon">
-                                                            <i class="ki-filled ki-search-list">
-                                                            </i>
+                                                            <i class="ki-filled ki-search-list"></i>
                                                         </span>
                                                         <span class="menu-title">
                                                             Xem
@@ -365,8 +475,7 @@
                                                 <div class="menu-item">
                                                     <a class="menu-link" href="/task/{{$subtask['id']}}">
                                                         <span class="menu-icon">
-                                                            <i class="ki-filled ki-pencil">
-                                                            </i>
+                                                            <i class="ki-filled ki-pencil"></i>
                                                         </span>
                                                         <span class="menu-title">
                                                             Chỉnh sửa
@@ -376,8 +485,7 @@
                                                 <div class="menu-item">
                                                     <button class="menu-link" onclick="postRemoveSubTask({{$subtask['id']}})">
                                                         <span class="menu-icon">
-                                                            <i class="ki-filled ki-trash">
-                                                            </i>
+                                                            <i class="ki-filled ki-trash"></i>
                                                         </span>
                                                         <span class="menu-title">
                                                             Gỡ
@@ -391,6 +499,8 @@
                                 @endforeach
                             </div>
                         </div>
+                        @endif
+                        --}}
                     </div>
                 </div>
             </div>
@@ -420,8 +530,7 @@
                                         @endif
                                     </span>
                                     <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="contract_id">
-                                        <i class="ki-filled ki-notepad-edit">
-                                        </i>
+                                        <i class="ki-filled ki-notepad-edit"></i>
                                     </button>
                                 </div>
                                 <div class="checkbox-group">
@@ -432,15 +541,14 @@
                                         @if ($details['service']['id'] != 0)
                                         <li class="text-xs checkbox-label text-gray-800">{{$details['service']['name']}}</li>
                                         @else
-                                        <li class="text-xs checkbox-label text-gray-800">---</li class="text-xs">
+                                        <li class="text-xs checkbox-label text-gray-800">---</li>
                                         @endif
                                         @if ($details['service_other'])
                                         <li class="text-xs checkbox-label text-gray-800">{{$details['service_other']}}</li>
                                         @endif
                                     </ul>
                                     <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="service_id">
-                                        <i class="ki-filled ki-notepad-edit">
-                                        </i>
+                                        <i class="ki-filled ki-notepad-edit"></i>
                                     </button>
                                 </div>
                                 <div class="checkbox-group">
@@ -451,8 +559,7 @@
                                         {{formatCurrency($details['bonus_amount'] ?? 0)}}đ
                                     </span>
                                     <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="bonus_amount">
-                                        <i class="ki-filled ki-notepad-edit">
-                                        </i>
+                                        <i class="ki-filled ki-notepad-edit"></i>
                                     </button>
                                 </div>
                                 <div class="checkbox-group">
@@ -463,14 +570,54 @@
                                         {{formatCurrency($details['deduction_amount'] ?? 0)}}đ
                                     </span>
                                     <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="deduction_amount">
-                                        <i class="ki-filled ki-notepad-edit">
-                                        </i>
+                                        <i class="ki-filled ki-notepad-edit"></i>
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Danh sách người đóng góp công việc -->
+                @if (in_array($details['type'], ['SUB', 'SERVICE']) && isset($contributions) && count($contributions) > 0)
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            Người tham gia
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid gap-3">
+                            @foreach ($contributions as $contribution)
+                            <div class="flex items-center justify-between border-b border-gray-200 pb-3 last:border-0 last:pb-0">
+                                <div class="flex items-center gap-2">
+                                    <div class="bg-gray-200 rounded-full h-8 w-8 flex items-center justify-center">
+                                        <i class="ki-outline ki-user text-gray-600"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">{{$contribution['user']['name']}}</div>
+                                        <div class="text-xs text-gray-600">
+                                            {{formatDateTime($contribution['date_completed'], 'd-m-Y H:i')}}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="text-sm font-semibold text-primary-600">
+                                        {{$contribution['quantity']}} đơn vị
+                                    </div>
+                                    @if (session()->get(ACCOUNT_CURRENT_SESSION)['id'] == $contribution['user']['id'] || session()->get(ACCOUNT_CURRENT_SESSION)['is_admin'])
+                                    <button class="btn btn-xs btn-icon btn-light" onclick="deleteContribution({{$contribution['id']}})">
+                                        <i class="ki-outline ki-trash text-danger"></i>
+                                    </button>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -483,6 +630,9 @@
                     </div>
                     <div class="card-body">
                         <div class="grid gap-2.5 lg:gap-5">
+                            @if (count($attachments) == 0)
+                            <div class="text-center text-gray-500">Chưa có tệp đính kèm</div>
+                            @endif
                             @foreach ($attachments as $attachment)
                             <div class="flex items-center gap-3">
                                 <a href="https://drive.google.com/file/d/{{ $attachment['driver_id'] }}/view" target="_blank" class="flex items-center grow gap-2.5">
@@ -503,15 +653,13 @@
                                 <div class="menu" data-menu="true">
                                     <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
                                         <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
-                                            <i class="ki-filled ki-dots-vertical">
-                                            </i>
+                                            <i class="ki-filled ki-dots-vertical"></i>
                                         </button>
                                         <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
                                             <div class="menu-item">
                                                 <a class="menu-link" href="https://drive.google.com/uc?id={{ $attachment['driver_id'] }}&export=download" download>
                                                     <span class="menu-icon">
-                                                        <i class="ki-filled ki-file-down">
-                                                        </i>
+                                                        <i class="ki-filled ki-file-down"></i>
                                                     </span>
                                                     <span class="menu-title">
                                                         Tải xuống
@@ -521,8 +669,7 @@
                                             <div class="menu-item">
                                                 <button class="menu-link" onclick="postRemoveAttachmentTask({{$attachment['id']}})">
                                                     <span class="menu-icon">
-                                                        <i class="ki-filled ki-delete-files">
-                                                        </i>
+                                                        <i class="ki-filled ki-delete-files"></i>
                                                     </span>
                                                     <span class="menu-title">
                                                         Gỡ
@@ -537,6 +684,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -546,6 +694,9 @@
                     <div class="card-body">
                         <form id="comment-task-form" class="flex flex-col gap-2.5">
                             <div class="form-info leading-5 text-gray-800 font-normal">
+                                @if (count($details['comments']) == 0)
+                                <div class="text-center text-gray-500 mb-3">Chưa có bình luận</div>
+                                @else
                                 <ul class="ml-4 list-disc space-y-2">
                                     @foreach ($details['comments'] as $comment)
                                     <li class="text-xs">
@@ -554,6 +705,7 @@
                                     </li>
                                     @endforeach
                                 </ul>
+                                @endif
                             </div>
                             <div class="form-info leading-5 text-gray-800 font-normal">
                                 <textarea class="textarea text-2sm text-gray-600 font-normal" name="message" rows="2" placeholder="Nhập bình luận tại đây"></textarea>
@@ -566,6 +718,7 @@
                         </form>
                     </div>
                 </div>
+
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -574,6 +727,9 @@
                     </div>
                     <div class="card-body">
                         <div class="flex flex-col scrollable-y-auto max-h-[500px]">
+                            @if (count($activity_logs) == 0)
+                            <div class="text-center text-gray-500">Chưa có lịch sử hoạt động</div>
+                            @endif
                             @foreach ($activity_logs as $log)
                             <div class="flex items-start relative">
                                 @if ($log['index'] != count($activity_logs) - 1)
@@ -581,8 +737,7 @@
                                 </div>
                                 @endif
                                 <div class="flex items-center justify-center shrink-0 rounded-full bg-gray-100 border border-gray-300 size-9 text-gray-600">
-                                    <i class="ki-filled ki-user text-base">
-                                    </i>
+                                    <i class="ki-filled ki-user text-base"></i>
                                 </div>
                                 <div class="ps-2.5 mb-7 text-md grow">
                                     <div class="flex flex-col">
@@ -607,6 +762,7 @@
     </div>
 </div>
 
+<!-- Modal cập nhật thông tin -->
 <div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="update-task-modal" style="z-index: 90;">
     <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
         <div class="modal-header pr-2.5">
@@ -614,8 +770,7 @@
                 Cập nhật thông tin
             </h3>
             <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
-                <i class="ki-filled ki-cross">
-                </i>
+                <i class="ki-filled ki-cross"></i>
             </button>
         </div>
         <div class="modal-body">
@@ -651,19 +806,8 @@
                         </option>
                         @endforeach
                     </select>
-                    <input class="input hidden" name="name" type="text" placeholder="Vui lòng tên công việc mới">
-                    <input class="input hidden" name="start_date" type="text" placeholder="Vui lòng nhập ngày bắt đầu">
-                    <input class="input hidden" name="due_date" type="text" placeholder="Vui lòng nhập ngày kết thúc">
-                    <select name="progress" class="select hidden">
-                        <option value="" selected>
-                            Chọn tiến trình
-                        </option>
-                        @foreach ([0, 20, 50, 60, 80, 90, 100] as $percent)
-                        <option value="{{$percent}}">
-                            {{$percent}}%
-                        </option>
-                        @endforeach
-                    </select>
+                    <input class="input hidden" name="name" type="text" placeholder="Vui lòng nhập tên công việc mới">
+                    <input class="input hidden" name="due_date" type="text" placeholder="Vui lòng nhập deadline">
                     <select name="contract_id" class="select hidden">
                         <option value="" selected>Chọn hợp đồng</option>
                         @foreach ($contracts as $contract)
@@ -674,18 +818,15 @@
                     </select>
                     <select name="service_id" class="select p-2.5 hidden">
                         <option value="" selected>Chọn dịch vụ</option>
-                        @foreach ($services as $services)
-                        <option value="{{$services['id']}}">
-                            {{$services['name']}}
+                        @foreach ($services as $service)
+                        <option value="{{$service['id']}}">
+                            {{$service['name']}}
                         </option>
                         @endforeach
                     </select>
-                    <input class="input hidden" name="estimate_time" type="text" placeholder="Vui lòng nhập thời gian dự kiến">
-                    <input class="input hidden" name="spend_time" type="text" placeholder="Vui lòng nhập thời gian thực tế">
                     <input class="input hidden" name="qty_request" type="text" placeholder="Vui lòng nhập số lượng yêu cầu">
-                    <input class="input hidden" name="qty_completed" type="text" placeholder="Vui lòng nhập số lượng đã làm">
                     <input class="input hidden" name="deduction_amount" type="text" placeholder="Vui lòng nhập tiền phạt">
-                    <input class="input hidden" name="bonus_amount" type="text" placeholder="Vui lòng nhập thời tiền thưởng">
+                    <input class="input hidden" name="bonus_amount" type="text" placeholder="Vui lòng nhập tiền thưởng">
                     <textarea class="textarea text-2sm text-gray-600 font-normal hidden" name="note" rows="5" placeholder="Nhập ghi chú tại đây"></textarea>
                 </div>
                 <div class="flex flex-col">
@@ -697,6 +838,8 @@
         </div>
     </div>
 </div>
+
+<!-- Modal cập nhật mô tả -->
 <div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="update-description-task-modal" style="z-index: 90;">
     <div class="modal-content max-w-[1000px] top-5">
         <div class="modal-header pr-2.5">
@@ -704,8 +847,7 @@
                 Cập nhật mô tả
             </h3>
             <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
-                <i class="ki-filled ki-cross">
-                </i>
+                <i class="ki-filled ki-cross"></i>
             </button>
         </div>
         <div class="modal-body">
@@ -722,6 +864,8 @@
         </div>
     </div>
 </div>
+
+<!-- Modal thêm chỉ mục -->
 <div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="add-sub-task-modal" style="z-index: 90;">
     <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
         <div class="modal-header pr-2.5">
@@ -729,8 +873,7 @@
                 Chọn chỉ mục mới
             </h3>
             <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
-                <i class="ki-filled ki-cross">
-                </i>
+                <i class="ki-filled ki-cross"></i>
             </button>
         </div>
         <div class="modal-body">
@@ -768,6 +911,8 @@
         </div>
     </div>
 </div>
+
+<!-- Modal tải lên tệp -->
 <div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="upload-file-task-modal" style="z-index: 90;">
     <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
         <div class="modal-header pr-2.5">
@@ -798,7 +943,42 @@
         </div>
     </div>
 </div>
+
+<!-- Modal báo cáo hoàn thành -->
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="report-completion-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Báo cáo hoàn thành: <span id="report-task-name">{{$details['name']}}</span>
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="report-completion-form" class="grid gap-5 px-0 py-5">
+                <div class="flex flex-col gap-2.5">
+                    <div class="form-group">
+                        <label class="form-label required">Số lượng đã hoàn thành</label>
+                        <input name="quantity" type="number" min="1" max="{{$details['qty_request'] - $details['qty_completed']}}" class="input" placeholder="Nhập số lượng" required>
+                        <input type="hidden" name="task_id" value="{{$details['id']}}" id="report-task-id">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ghi chú (nếu có)</label>
+                        <textarea name="note" class="textarea" rows="3" placeholder="Nhập ghi chú về công việc đã hoàn thành"></textarea>
+                    </div>
+                </div>
+                <div class="flex flex-col">
+                    <button type="submit" class="btn btn-primary justify-center">
+                        Báo cáo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
+
 @push('scripts')
 <script>
     let _descriptionQuill;
@@ -816,7 +996,7 @@
         })
 
         $('button[data-modal-toggle="#update-description-task-modal"]').on('click', function() {
-            _descriptionQuill.clipboard.dangerouslyPasteHTML("");
+            _descriptionQuill.clipboard.dangerouslyPasteHTML("{!! $details['description'] !!}");
         })
 
         instanceUploadFileTask.on('hidden', () => {
@@ -848,7 +1028,11 @@
             postUpdateDescriptionTask($(this));
         })
 
-        flatpickrMake($("input[name=start_date]"), 'datetime');
+        $('#report-completion-form').on('submit', function(e) {
+            e.preventDefault();
+            postReportCompletion($(this));
+        })
+
         flatpickrMake($("input[name=due_date]"), 'datetime');
 
         _descriptionQuill = quillTemplate("#description_editor", "350px");
@@ -870,7 +1054,7 @@
                 window.location.reload();
                 break;
             default:
-                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
                 break;
         }
     }
@@ -887,7 +1071,7 @@
                 window.location.reload();
                 break;
             default:
-                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
                 break;
         }
     }
@@ -904,7 +1088,7 @@
                 window.location.reload();
                 break;
             default:
-                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
                 break;
         }
     }
@@ -921,7 +1105,7 @@
                 window.location.reload();
                 break;
             default:
-                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
                 break;
         }
     }
@@ -946,7 +1130,7 @@
                             window.location.reload();
                             break;
                         default:
-                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
                             break;
                     }
                 },
@@ -976,13 +1160,12 @@
                             window.location.reload();
                             break;
                         default:
-                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
                             break;
                     }
                 },
                 () => {}, {},
         );
-
     }
 
     async function postUpdateDescriptionTask() {
@@ -1000,9 +1183,96 @@
                 window.location.reload();
                 break;
             default:
-                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy râ!");
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
                 break;
         }
+    }
+
+    async function claimTask(taskId) {
+        Notiflix.Confirm.show(
+            'Nhận công việc',
+            'Bạn có chắc chắn muốn nhận công việc này?',
+            'Đúng',
+            'Huỷ',
+            async () => {
+                    let method = "post",
+                        url = "/task/claim",
+                        params = null,
+                        data = {
+                            task_id: taskId
+                        };
+                    let res = await axiosTemplate(method, url, params, data);
+                    switch (res.data.status) {
+                        case 200:
+                            showAlert('success', res.data.message);
+                            window.location.reload();
+                            break;
+                        default:
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                            break;
+                    }
+                },
+                () => {}, {},
+        );
+    }
+
+    async function postReportCompletion(_this) {
+        let method = "post",
+            url = "/task/add-contribution",
+            params = null,
+            data = _this.serialize();
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                break;
+        }
+    }
+
+    async function deleteContribution(contributionId) {
+        Notiflix.Confirm.show(
+            'Xóa báo cáo',
+            'Bạn có chắc chắn muốn xóa báo cáo hoàn thành này?',
+            'Đúng',
+            'Huỷ',
+            async () => {
+                    let method = "post",
+                        url = "/task/delete-contribution",
+                        params = null,
+                        data = {
+                            contribution_id: contributionId
+                        };
+                    let res = await axiosTemplate(method, url, params, data);
+                    switch (res.data.status) {
+                        case 200:
+                            showAlert('success', res.data.message);
+                            window.location.reload();
+                            break;
+                        default:
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                            break;
+                    }
+                },
+                () => {}, {},
+        );
+    }
+
+    // Hàm mở modal báo cáo hoàn thành với thông tin của task cụ thể
+    function openReportCompletionModal(taskId, taskName, totalQty, completedQty) {
+        // Cập nhật thông tin task vào modal
+        $('#report-task-name').text(taskName);
+        $('#report-task-id').val(taskId);
+
+        // Cập nhật số lượng tối đa có thể báo cáo
+        let maxQty = totalQty - completedQty;
+        $('input[name="quantity"]').attr('max', maxQty);
+
+        // Mở modal
+        KTModal.getInstance(document.querySelector('#report-completion-modal')).show();
     }
 </script>
 @endpush

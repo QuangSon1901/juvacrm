@@ -215,6 +215,13 @@ Route::group(
                         Route::post('/config-task/post', [TaskController::class, "configPost"])->name("config-post");
                         Route::post('/config-task/change-status', [TaskController::class, "configChangeStatus"])->name("config-change-status");
                         Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
+                        Route::post('/task/claim', [TaskController::class, "claimTask"])->name("claimTask");
+                        Route::post('/task/add-contribution', [TaskController::class, "addContribution"])->name("add-contribution");
+                        Route::post('/task/delete-contribution', [TaskController::class, 'deleteContribution'])->name('delete-contribution');
+                        Route::get('/task/available-tasks', [TaskController::class, 'getAvailableTasks'])->name('available-tasks');
+                        Route::get('/task/contributions', [TaskController::class, 'getUserContributions'])->name('user-contributions');
+                        Route::get('/task/dashboard/project/{id}', [TaskController::class, 'projectDashboard'])->name('project-dashboard');
+                        Route::get('/task/dashboard/user', [TaskController::class, 'userDashboard'])->name('user-dashboard');
                     }
                 );
 
