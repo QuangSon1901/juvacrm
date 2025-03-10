@@ -649,6 +649,105 @@ class ContractController extends Controller
             ? round(($totalPaid - $totalDeduction) / $totalContractValue * 100, 2)
             : 0;
 
+        // Lấy tasks của hợp đồng (thêm vào phần này)
+        $tasks = Task::with(['assign', 'status'])
+            ->where('contract_id', $id)
+            ->where('is_active', 1)
+            ->orderBy('parent_id', 'asc')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+
+        // Tổ chức tasks thành cấu trúc cha-con
+        $mainTasks = $tasks->whereNull('parent_id')->values();
+        $taskTree = [];
+
+        foreach ($mainTasks as $mainTask) {
+            $taskData = [
+                'id' => $mainTask->id,
+                'name' => $mainTask->name,
+                'type' => $mainTask->type,
+                'status' => [
+                    'id' => $mainTask->status->id ?? 0,
+                    'name' => $mainTask->status->name ?? 'N/A',
+                    'color' => $mainTask->status->color ?? 'gray'
+                ],
+                'assigned_user' => [
+                    'id' => $mainTask->assign->id ?? 0,
+                    'name' => $mainTask->assign->name ?? 'N/A'
+                ],
+                'start_date' => $mainTask->start_date,
+                'due_date' => $mainTask->due_date,
+                'qty_request' => $mainTask->qty_request,
+                'qty_completed' => $mainTask->qty_completed ?? 0,
+                'progress' => $mainTask->qty_request > 0 ? round(($mainTask->qty_completed ?? 0) / $mainTask->qty_request * 100, 0) : 0,
+                'created_at' => $mainTask->created_at,
+                'updated_at' => $mainTask->updated_at,
+                'children' => []
+            ];
+
+            // Tìm các task con cấp 1
+            $childTasks = $tasks->where('parent_id', $mainTask->id)->values();
+
+            foreach ($childTasks as $childTask) {
+                $childData = [
+                    'id' => $childTask->id,
+                    'name' => $childTask->name,
+                    'type' => $childTask->type,
+                    'status' => [
+                        'id' => $childTask->status->id ?? 0,
+                        'name' => $childTask->status->name ?? 'N/A',
+                        'color' => $childTask->status->color ?? 'gray'
+                    ],
+                    'assigned_user' => [
+                        'id' => $childTask->assign->id ?? 0,
+                        'name' => $childTask->assign->name ?? 'N/A'
+                    ],
+                    'start_date' => $childTask->start_date,
+                    'due_date' => $childTask->due_date,
+                    'qty_request' => $childTask->qty_request,
+                    'qty_completed' => $childTask->qty_completed ?? 0,
+                    'progress' => $childTask->qty_request > 0 ? round(($childTask->qty_completed ?? 0) / $childTask->qty_request * 100, 0) : 0,
+                    'created_at' => $childTask->created_at,
+                    'updated_at' => $childTask->updated_at,
+                    'children' => []
+                ];
+
+                // Tìm các task con cấp 2
+                $subChildTasks = $tasks->where('parent_id', $childTask->id)->values();
+
+                foreach ($subChildTasks as $subChildTask) {
+                    $subChildData = [
+                        'id' => $subChildTask->id,
+                        'name' => $subChildTask->name,
+                        'type' => $subChildTask->type,
+                        'status' => [
+                            'id' => $subChildTask->status->id ?? 0,
+                            'name' => $subChildTask->status->name ?? 'N/A',
+                            'color' => $subChildTask->status->color ?? 'gray'
+                        ],
+                        'assigned_user' => [
+                            'id' => $subChildTask->assign->id ?? 0,
+                            'name' => $subChildTask->assign->name ?? 'N/A'
+                        ],
+                        'start_date' => $subChildTask->start_date,
+                        'due_date' => $subChildTask->due_date,
+                        'qty_request' => $subChildTask->qty_request,
+                        'qty_completed' => $subChildTask->qty_completed ?? 0,
+                        'progress' => $subChildTask->qty_request > 0 ? round(($subChildTask->qty_completed ?? 0) / $subChildTask->qty_request * 100, 0) : 0,
+                        'created_at' => $subChildTask->created_at,
+                        'updated_at' => $subChildTask->updated_at
+                    ];
+
+                    $childData['children'][] = $subChildData;
+                }
+
+                $taskData['children'][] = $childData;
+            }
+
+            $taskTree[] = $taskData;
+        }
+
         // Biến đổi dữ liệu hợp đồng
         $details = [
             'id' => $contract->id,
@@ -701,6 +800,7 @@ class ContractController extends Controller
                 'payment_percentage' => $paymentPercentage,
             ],
             'contract_items' => $contractItems,
+            'tasks' => $taskTree,
             'payments' => $contract->payments->map(function ($payment) {
                 return [
                     'id' => $payment->id,
@@ -1636,8 +1736,6 @@ class ContractController extends Controller
      */
     public function updateContractServices(Request $request)
     {
-        dd($request->all());
-
         // Bắt đầu transaction để đảm bảo tính toàn vẹn dữ liệu
         DB::beginTransaction();
 

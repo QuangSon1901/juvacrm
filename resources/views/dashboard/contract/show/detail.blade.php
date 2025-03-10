@@ -138,6 +138,11 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
                                 Thanh toán
                             </span>
                         </div>
+                        <div class="tab cursor-pointer" data-tab-toggle="#tab-tasks">
+                            <span class="text-nowrap text-sm">
+                                Công việc
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -161,6 +166,11 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
         @include('dashboard.contract.show.payments', [
         'details' => $details,
         'data_init' => $data_init
+        ])
+
+        {{-- Tab Công việc (thêm phần này) --}}
+        @include('dashboard.contract.show.tasks', [
+        'details' => $details
         ])
     </div>
 </div>
