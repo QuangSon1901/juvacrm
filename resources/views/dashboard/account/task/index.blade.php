@@ -141,13 +141,6 @@
                                             </span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[240px]">
-                                        <span class="sort">
-                                            <span class="sort-label">
-                                                Thời gian thực hiện
-                                            </span>
-                                        </span>
-                                    </th>
                                     <th class="w-[60px]"></th>
                                 </tr>
                             </thead>
@@ -169,3 +162,35 @@
     </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+    async function claimTask(taskId) {
+        Notiflix.Confirm.show(
+            'Nhận công việc',
+            'Bạn có chắc chắn muốn nhận công việc này?',
+            'Đúng',
+            'Huỷ',
+            async () => {
+                    let method = "post",
+                        url = "/task/claim",
+                        params = null,
+                        data = {
+                            task_id: taskId
+                        };
+                    let res = await axiosTemplate(method, url, params, data);
+                    switch (res.data.status) {
+                        case 200:
+                            showAlert('success', res.data.message);
+                            // Tải lại danh sách
+                            loadTaskList();
+                            break;
+                        default:
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                            break;
+                    }
+                },
+                () => {}, {},
+        );
+    }
+</script>
+@endpush

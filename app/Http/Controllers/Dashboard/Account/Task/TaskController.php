@@ -56,15 +56,45 @@ class TaskController extends Controller
 
         $query->where('is_active', 1);
 
+        // Thêm các quan hệ cần thiết để tránh N+1 query
+        $query->with(['priority', 'status', 'assign', 'contract', 'parent', 'childs']);
+
         $paginationResult = PaginationService::paginate($query, $currentPage, TABLE_PERPAGE_NUM);
         $offset = $paginationResult['sorter']['offset'];
 
-
+        // Tính toán tiến độ tổng thể cho các task có task con
         $result = $paginationResult['data']->map(function ($item, $key) use ($offset) {
+            // Tính toán progress dựa trên task con nếu có
+            $progress = $item->progress;
+            $totalChilds = $item->childs->count();
+
+            if ($totalChilds > 0) {
+                $totalChildProgress = $item->childs->sum('progress');
+                $progress = round($totalChildProgress / $totalChilds);
+            }
+
+            // Tính toán thời gian còn lại và trạng thái deadline
+            $deadlineStatus = null;
+            $timeRemaining = null;
+
+            if ($item->due_date) {
+                $dueDate = \Carbon\Carbon::parse($item->due_date);
+                $now = \Carbon\Carbon::now();
+
+                if ($dueDate->lt($now) && $item->progress < 100) {
+                    $deadlineStatus = 'overdue';
+                    $timeRemaining = $now->diffForHumans($dueDate);
+                } else if ($dueDate->diffInDays($now) <= 3 && $item->progress < 100) {
+                    $deadlineStatus = 'upcoming';
+                    $timeRemaining = $dueDate->diffForHumans($now);
+                }
+            }
+
             return [
                 'index' => $offset + $key + 1,
                 'id' => $item->id,
                 'name' => $item->name,
+                'type' => $item->type,
                 'priority' => [
                     'id' => $item->priority->id ?? 0,
                     'name' => $item->priority->name ?? '',
@@ -80,149 +110,36 @@ class TaskController extends Controller
                     'color' => $item->status->color ?? '',
                 ],
                 'parent_id' => $item->parent_id,
+                'parent' => $item->parent ? [
+                    'id' => $item->parent->id,
+                    'name' => $item->parent->name
+                ] : null,
+                'contract' => $item->contract ? [
+                    'id' => $item->contract->id,
+                    'name' => $item->contract->name
+                ] : null,
                 'start_date' => $item->start_date,
                 'due_date' => $item->due_date,
-                'progress' => $item->progress,
+                'deadline_status' => $deadlineStatus,
+                'time_remaining' => $timeRemaining,
+                'progress' => $progress,
                 'estimate_time' => $item->estimate_time,
                 'spend_time' => $item->spend_time,
                 'qty_request' => $item->qty_request,
                 'qty_completed' => $item->qty_completed,
+                'has_children' => $totalChilds > 0,
+                'children_count' => $totalChilds,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
         });
+
         return response()->json([
             'status' => 200,
             'content' => view('dashboard.account.task.ajax-index', ['data' => $result])->render(),
             'sorter' => $paginationResult['sorter'],
         ]);
     }
-
-    // public function detailOld($id)
-    // {
-    //     $task = Task::find($id);
-    //     if (!$task) {
-    //         return abort(404, 'Công việc không tồn tại.');
-    //     }
-
-    //     $result = [
-    //         'id' => $task->id,
-    //         'name' => $task->name,
-    //         'priority' => [
-    //             'id' => $task->priority->id ?? 0,
-    //             'name' => $task->priority->name ?? '',
-    //             'color' => $task->priority->color ?? '',
-    //         ],
-    //         'assign' => [
-    //             'id' => $task->assign->id ?? 0,
-    //             'name' => $task->assign->name ?? '',
-    //         ],
-    //         'status' => [
-    //             'id' => $task->status->id ?? 0,
-    //             'name' => $task->status->name ?? '',
-    //             'color' => $task->status->color ?? '',
-    //         ],
-    //         'description' => $task->description,
-    //         'note' => $task->note,
-    //         'parent' => [
-    //             'id' => $task->parent->id ?? 0,
-    //             'name' => $task->parent->name ?? '',
-    //         ],
-    //         'contract' => [
-    //             'id' => $task->contract->id ?? 0,
-    //             'name' => $task->contract->name ?? '',
-    //         ],
-    //         'service' => [
-    //             'id' => $task->service->id ?? 0,
-    //             'name' => $task->service->name ?? '',
-    //         ],
-    //         'create_by' => [
-    //             'id' => $task->createdBy->id ?? 0,
-    //             'name' => $task->createdBy->name ?? '',
-    //         ],
-    //         'service_other' => $task->service_other,
-    //         'bonus_amount' => $task->bonus_amount,
-    //         'deduction_amount' => $task->deduction_amount,
-    //         'childs' => $task->childs->map(function ($child) {
-    //             return [
-    //                 'id' => $child->id,
-    //                 'name' => $child->name,
-    //                 'status' => [
-    //                     'id' => $child->status->id ?? 0,
-    //                     'name' => $child->status->name ?? '',
-    //                     'color' => $child->status->color ?? '',
-    //                 ],
-    //                 'assign' => [
-    //                     'id' => $child->assign->id ?? 0,
-    //                     'name' => $child->assign->name ?? '',
-    //                 ],
-    //                 'priority' => [
-    //                     'id' => $child->priority->id ?? 0,
-    //                     'name' => $child->priority->name ?? '',
-    //                     'color' => $child->priority->color ?? '',
-    //                 ],
-    //                 'start_date' => $child->start_date,
-    //                 'due_date' => $child->due_date,
-    //                 'qty_request' => $child->qty_request,
-    //                 'qty_completed' => $child->qty_completed,
-    //             ];
-    //         }),
-    //         'comments' => $task->comments->map(function ($comment) {
-    //             return [
-    //                 'id' => $comment->id,
-    //                 'message' => $comment->message,
-    //                 'user' => [
-    //                     'id' => $comment->user->id,
-    //                     'name' => $comment->user->name,
-    //                 ],
-    //                 'created_at' => $comment->created_at
-    //             ];
-    //         }),
-    //         'start_date' => $task->start_date,
-    //         'due_date' => $task->due_date,
-    //         'progress' => $task->progress,
-    //         'estimate_time' => $task->estimate_time,
-    //         'spend_time' => $task->spend_time,
-    //         'qty_request' => $task->qty_request,
-    //         'qty_completed' => $task->qty_completed,
-    //         'created_at' => $task->created_at,
-    //         'updated_at' => $task->updated_at,
-    //     ];
-
-    //     $priorities = TaskConfig::select('id', 'name', 'color')->where('type', 0)->where('is_active', 1)->orderBy('sort')->get()->toArray();
-    //     $statuses = TaskConfig::select('id', 'name', 'color')->where('type', 1)->where('is_active', 1)->orderBy('sort')->get()->toArray();
-    //     $users = User::select('id', 'name')->where('is_active', 1)->get()->toArray();
-    //     $activity_logs = ActivityLogs::where('action', TASK_ENUM_LOG)->where('fk_key', 'tbl_tasks|id')->where('fk_value', $id)->orderBy('created_at', 'desc')->get()->map(function ($log, $index) {
-    //         return [
-    //             'index' => $index,
-    //             'id' => $log->id,
-    //             'action' => $log->action,
-    //             'ip' => $log->ip,
-    //             'details' => $log->details,
-    //             'user' => [
-    //                 'id' => $log->user->id,
-    //                 'name' => $log->user->name,
-    //             ],
-    //             'created_at' => $log->created_at,
-    //         ];
-    //     });
-    //     $contracts = Contract::select('id', 'name')->where('is_active', 1)->get()->toArray();
-    //     $services = Service::select('id', 'name')->where('is_active', 1)->get()->toArray();
-    //     $attachments = Upload::select('id', 'name', 'type', 'size', 'driver_id', 'extension', 'created_at')->where('action', MEDIA_DRIVER_UPLOAD)->where('fk_key', 'tbl_tasks|id')->where('fk_value', $id)->orderBy('created_at', 'desc')->get()->toArray();
-    //     function getAllParentTaskIds($taskId)
-    //     {
-    //         $parentTask = Task::select('parent_id')->where('id', $taskId)->first();
-    //         if ($parentTask && $parentTask->parent_id) {
-    //             return array_merge([$parentTask->parent_id], getAllParentTaskIds($parentTask->parent_id));
-    //         }
-    //         return [];
-    //     }
-    //     $parentIds = getAllParentTaskIds($id);
-    //     $excludedIds = array_merge([$id], $parentIds);
-    //     $tasks = Task::select('id', 'name')->whereNotIn('id', $excludedIds)->whereNull('parent_id')->where('is_active', 1)->get()->toArray();
-
-    //     return view("dashboard.account.task.detail", ['details' => $result, 'priorities' => $priorities, 'statuses' => $statuses, 'users' => $users, 'activity_logs' => $activity_logs, 'contracts' => $contracts, 'services' => $services, 'tasks' => $tasks, 'attachments' => $attachments]);
-    // } 
 
     public function addComment(Request $request)
     {
@@ -1081,13 +998,13 @@ class TaskController extends Controller
 
             // Cập nhật số lượng đã hoàn thành của công việc
             $task->recalculateCompletedQuantity();
-            
+
             // Tự động cập nhật trạng thái nếu hoàn thành 100%
             if ($task->progress == 100) {
                 // Cần biết ID của trạng thái "Hoàn thành"
                 $completedStatusId = 4; // Giả sử 4 là ID của trạng thái Hoàn thành
                 $task->update(['status_id' => $completedStatusId]);
-                
+
                 // Cập nhật task cha nếu tất cả task con đã hoàn thành
                 $this->updateParentTaskStatus($task->parent_id);
             }
@@ -1168,15 +1085,15 @@ class TaskController extends Controller
             // Cập nhật lại số lượng đã hoàn thành và trạng thái của công việc
             $task = Task::find($taskId);
             $task->recalculateCompletedQuantity();
-            
+
             // Kiểm tra và cập nhật trạng thái task
             $completedStatusId = 4; // ID trạng thái "Hoàn thành"
             $inProgressStatusId = 3; // ID trạng thái "Đang thực hiện"
-            
+
             if ($task->qty_completed < $task->qty_request && $task->status_id == $completedStatusId) {
                 // Nếu đã hoàn thành nhưng giờ không đủ số lượng, chuyển về trạng thái đang thực hiện
                 $task->update(['status_id' => $inProgressStatusId]);
-                
+
                 // Cập nhật lại trạng thái của task cha nếu cần
                 if ($task->parent_id) {
                     $this->updateParentTaskStatus($task->parent_id);
@@ -1261,7 +1178,7 @@ class TaskController extends Controller
 
             // Danh sách các ID task đã được nhận
             $claimedTaskIds = [$task->id];
-            
+
             // Nhận task hiện tại
             $task->update([
                 'status_id' => $inProgressStatusId,
@@ -1274,17 +1191,17 @@ class TaskController extends Controller
                     ->where('is_active', 1)
                     ->whereIn('status_id', $allowedStatuses)
                     ->get();
-                
+
                 foreach ($childTasks as $childTask) {
                     $childTask->update([
                         'status_id' => $inProgressStatusId,
                         'assign_id' => $currentUserId
                     ]);
-                    
+
                     $claimedTaskIds[] = $childTask->id;
                 }
             }
-            
+
             // Lưu log
             foreach ($claimedTaskIds as $claimedTaskId) {
                 LogService::saveLog([
@@ -1298,10 +1215,10 @@ class TaskController extends Controller
 
             DB::commit();
 
-            $messageDetail = count($claimedTaskIds) > 1 
-                ? ' và ' . (count($claimedTaskIds) - 1) . ' công việc con' 
+            $messageDetail = count($claimedTaskIds) > 1
+                ? ' và ' . (count($claimedTaskIds) - 1) . ' công việc con'
                 : '';
-            
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Bạn đã nhận công việc' . $messageDetail . ' thành công.',
@@ -1323,27 +1240,27 @@ class TaskController extends Controller
         if (!$parentId) {
             return; // Không có task cha
         }
-        
+
         $parentTask = Task::find($parentId);
         if (!$parentTask) {
             return; // Task cha không tồn tại
         }
-        
+
         // Lấy tất cả task con đang hoạt động
         $childTasks = Task::where('parent_id', $parentId)
             ->where('is_active', 1)
             ->get();
-        
+
         if ($childTasks->isEmpty()) {
             return; // Không có task con
         }
-        
+
         // Kiểm tra xem tất cả task con đã hoàn thành chưa
         $completedStatusId = 4; // Giả sử 4 là ID của trạng thái "Hoàn thành"
         $allCompleted = $childTasks->every(function ($childTask) use ($completedStatusId) {
             return $childTask->status_id == $completedStatusId;
         });
-        
+
         if ($allCompleted) {
             // Nếu tất cả task con đã hoàn thành, cập nhật task cha
             $parentTask->update([
@@ -1351,7 +1268,7 @@ class TaskController extends Controller
                 'qty_completed' => $parentTask->qty_request, // Đánh dấu là đã hoàn thành 100%
                 'progress' => 100
             ]);
-            
+
             // Nếu task cha có task cha nữa, tiếp tục cập nhật lên trên
             if ($parentTask->parent_id) {
                 $this->updateParentTaskStatus($parentTask->parent_id);
@@ -1359,21 +1276,21 @@ class TaskController extends Controller
         } else {
             // Nếu có ít nhất một task con chưa hoàn thành
             $inProgressStatusId = 3; // Giả sử 3 là ID của trạng thái "Đang thực hiện"
-            
+
             // Tính phần trăm hoàn thành dựa trên tỷ lệ task con đã hoàn thành
             $completedChildCount = $childTasks->filter(function ($childTask) use ($completedStatusId) {
                 return $childTask->status_id == $completedStatusId;
             })->count();
-            
+
             $progressPercentage = round(($completedChildCount / $childTasks->count()) * 100);
-            
+
             // Cập nhật task cha
             $parentTask->update([
                 'status_id' => $inProgressStatusId,
                 'progress' => $progressPercentage,
                 'qty_completed' => round(($progressPercentage / 100) * $parentTask->qty_request)
             ]);
-            
+
             // Nếu task cha có task cha nữa, tiếp tục cập nhật lên trên
             if ($parentTask->parent_id) {
                 $this->updateParentTaskStatus($parentTask->parent_id);
