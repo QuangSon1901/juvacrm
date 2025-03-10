@@ -129,26 +129,16 @@
 
                         <div class="flex flex-col gap-5">
                             <div class="checkbox-group">
-                                <span class="checkbox-label text-gray-800 !font-bold">Ngày ký:</span>
-                                <span class="checkbox-label text-gray-800">{{formatDateTime($details['sign_date'], 'd-m-Y', 'Y-m-d')}}</span>
-                                @if ($canEdit)
-                                <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-contract-modal" data-name="sign_date">
-                                    <i class="ki-filled ki-notepad-edit"></i>
-                                </button>
-                                @endif
+                                <span class="checkbox-label text-gray-800 !font-bold">Ngày tạo:</span>
+                                <span class="checkbox-label text-gray-800">{{formatDateTime($details['created_at'], 'd-m-Y H:i:s')}}</span>
                             </div>
                             <div class="checkbox-group">
                                 <span class="checkbox-label text-gray-800 !font-bold">Ngày hiệu lực:</span>
-                                <span class="checkbox-label text-gray-800">{{formatDateTime($details['effective_date'], 'd-m-Y', 'Y-m-d')}}</span>
-                                @if ($canEdit)
-                                <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-contract-modal" data-name="effective_date">
-                                    <i class="ki-filled ki-notepad-edit"></i>
-                                </button>
-                                @endif
+                                <span class="checkbox-label text-gray-800">{{formatDateTime($details['effective_date'], 'd-m-Y H:i:s')}}</span>
                             </div>
                             <div class="checkbox-group">
-                                <span class="checkbox-label text-gray-800 !font-bold">Ngày hết hạn:</span>
-                                <span class="checkbox-label text-gray-800">{{formatDateTime($details['expiry_date'], 'd-m-Y', 'Y-m-d')}}</span>
+                                <span class="checkbox-label text-gray-800 !font-bold">Ngày bàn giao:</span>
+                                <span class="checkbox-label text-gray-800">{{formatDateTime($details['expiry_date'], 'd-m-Y H:i:s')}}</span>
                                 @if ($canEdit)
                                 <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-contract-modal" data-name="expiry_date">
                                     <i class="ki-filled ki-notepad-edit"></i>

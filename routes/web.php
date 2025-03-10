@@ -131,6 +131,7 @@ Route::group(
                 Route::get('/contracts', [ContractController::class, "index"])->name("contract");
                 Route::get('/contract/create-view', [ContractController::class, "createView"])->name("create-view");
                 Route::post('/contract/create', [ContractController::class, "create"])->name("create");
+                Route::post('/contract/update-info', [ContractController::class, "update"])->name("update-info");
                 Route::post('/contract/update', [ContractController::class, "updateContractServices"])->name("update");
                 Route::get('/contract-data', [ContractController::class, "data"])->name("data");
                 Route::get('/contract/{id}', [ContractController::class, 'detail'])->name('contract.detail');
@@ -143,6 +144,7 @@ Route::group(
                 Route::post('/contract/update-payment', [ContractController::class, 'updatePayment'])->name('contract.updatePayment');
                 Route::post('/contract/cancel-payment', [ContractController::class, 'cancelPayment'])->name('contract.cancelPayment');
                 Route::get('/contract/{id}/export-pdf', [ContractController::class, 'exportPdf'])->name('export-pdf');
+                Route::post('/contract/sync-contract-tasks', [ContractController::class, 'syncTasks'])->name('contract.sync-contract-tasks');
             }
         );
 

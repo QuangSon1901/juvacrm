@@ -92,7 +92,7 @@
 
     // Document ready
     $(document).ready(function() {
-        flatpickrMake($('input[name="sign_date"], input[name="effective_date"], input[name="expiry_date"], input[name="estimate_date"]'), 'date');
+        flatpickrMake($('input[name="effective_date"], input[name="expiry_date"], input[name="estimate_date"]'), 'datetime');
     });
 </script>
 @endpush

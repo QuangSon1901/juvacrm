@@ -83,7 +83,7 @@
             @if ($item['sign_date'])
                 <div class="flex items-center gap-1.5">
                     <i class="ki-duotone ki-calendar-tick text-gray-500 text-xs"></i>
-                    <span>Ký: {{formatDateTime($item['sign_date'], 'd-m-Y')}}</span>
+                    <span>Ngày tạo: {{formatDateTime($item['created_at'], 'd-m-Y')}}</span>
                 </div>
             @endif
             @if ($item['effective_date'])

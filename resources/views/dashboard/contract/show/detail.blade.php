@@ -288,13 +288,13 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
             postUpdateContract();
         });
 
-        flatpickrMake($("input[name=sign_date], input[name=effective_date], input[name=expiry_date]"), 'date');
+        flatpickrMake($("input[name=effective_date], input[name=expiry_date]"), 'datetime');
     });
 
     async function postUpdateContract() {
         let field = $('#update-contract-modal form').find('input:not(.hidden),select:not(.hidden),textarea:not(.hidden)');
         let method = "post",
-            url = "/contract/update",
+            url = "/contract/update-info",
             params = null,
             data = {
                 id: "{{$details['id']}}",

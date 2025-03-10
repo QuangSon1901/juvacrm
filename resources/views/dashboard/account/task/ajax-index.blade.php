@@ -6,68 +6,92 @@
         </span>
     </td>
     <td class="text-gray-800 font-normal">
-        @if ($item['status']['id'] != 0)
-        <span class="badge badge-sm badge-outline badge-{{$item['status']['color']}}">
-            {{$item['status']['name']}}
-        </span>
-        @else
-        ---
-        @endif
+        <div class="flex flex-col gap-1">
+            @if ($item['status']['id'] != 0)
+            <span class="badge badge-sm badge-outline badge-{{$item['status']['color']}}">
+                {{$item['status']['name']}}
+            </span>
+            @else
+            ---
+            @endif
 
-        @if ($item['deadline_status'] == 'overdue')
-        <span class="badge badge-sm badge-danger">Trễ hạn</span>
-        @elseif($item['deadline_status'] == 'upcoming')
-        <span class="badge badge-sm badge-warning">Sắp đến hạn</span>
-        @endif
+            @if ($item['deadline_status'] == 'overdue')
+            <span class="badge badge-sm badge-danger flex items-center gap-1">
+                <i class="ki-solid ki-timer text-xs"></i> Trễ hạn
+            </span>
+            @elseif($item['deadline_status'] == 'upcoming')
+            <span class="badge badge-sm badge-warning flex items-center gap-1">
+                <i class="ki-solid ki-timer text-xs"></i> Sắp đến hạn
+            </span>
+            @endif
+        </div>
     </td>
     <td class="text-gray-800 font-normal">
-        <div class="flex flex-wrap gap-2">
+        <!-- Tên công việc với badge ID và loại task -->
+
+        <div class="flex items-center gap-2 mb-1">
             <span class="badge badge-sm badge-outline badge-neutral">
-                ID: {{$item['id']}}
+                #{{$item['id']}}
             </span>
             @if ($item['type'])
             <span class="badge badge-sm badge-outline badge-primary">
                 {{$item['type']}}
             </span>
             @endif
-            @if ($item['parent_id'])
-            <a class="badge badge-sm badge-outline badge-neutral hover:text-primary" href="/task/{{$item['parent_id']}}">
-                Parent: {{$item['parent']['name'] ?? $item['parent_id']}}
-            </a>
-            @endif
-            @if ($item['priority']['id'] != 0)
-            <span class="badge badge-sm badge-outline badge-{{$item['priority']['color']}}">
-                {{$item['priority']['name']}}
-            </span>
-            @endif
-            @if ($item['has_children'])
-            <span class="badge badge-sm badge-outline badge-info">
-                {{$item['children_count']}} công việc con
-            </span>
-            @endif
-            <span class="badge badge-sm badge-outline badge-neutral">
-                SL: {{$item['qty_completed']}}/{{$item['qty_request']}}
-            </span>
         </div>
-        <a class="leading-none hover:text-primary text-gray-900 font-medium" href="/task/{{$item['id']}}">
+        <a class="text-gray-900 font-medium hover:text-primary" href="/task/{{$item['id']}}">
             {{$item['name']}}
         </a>
+
+        <!-- Thông tin phụ được tổ chức gọn gàng hơn -->
+        <div class="flex flex-wrap gap-2 text-xs mt-1">
+            @if ($item['parent_id'])
+            <a class="text-gray-600 hover:text-primary flex items-center gap-1" href="/task/{{$item['parent_id']}}">
+                <i class="ki-outline ki-up-square text-xs"></i>
+                <span>{{$item['parent']['name'] ?? $item['parent_id']}}</span>
+            </a>
+            @endif
+
+            @if ($item['priority']['id'] != 0)
+            <span class="text-{{$item['priority']['color']}} flex items-center gap-1">
+                <i class="ki-outline ki-flag text-xs"></i>
+                <span>{{$item['priority']['name']}}</span>
+            </span>
+            @endif
+
+            <span class="text-gray-600 flex items-center gap-1">
+                <i class="ki-outline ki-abstract-26 text-xs"></i>
+                <span>SL: {{$item['qty_completed']}}/{{$item['qty_request']}}</span>
+            </span>
+
+            @if ($item['has_children'])
+            <span class="text-info flex items-center gap-1">
+                <i class="ki-outline ki-element-11 text-xs"></i>
+                <span>{{$item['children_count']}} công việc con</span>
+            </span>
+            @endif
+        </div>
+
         @if ($item['contract'])
-        <div class="text-xs text-gray-500 mt-1">
-            Thuộc hợp đồng: {{$item['contract']['name']}}
+        <div class="text-xs text-gray-500 mt-1 flex items-center gap-1">
+            <i class="ki-outline ki-document text-xs"></i>
+            <span>{{$item['contract']['name']}}</span>
         </div>
         @endif
     </td>
     <td class="text-gray-800 font-normal">
         @if ($item['assign']['id'] == 0)
-        <span class="badge badge-sm badge-outline badge-warning">Chưa phân công</span>
+        <span class="badge badge-sm badge-outline badge-warning flex items-center gap-1">
+            <i class="ki-outline ki-user-tick text-xs"></i>
+            <span>Chưa phân công</span>
+        </span>
         @else
-        <div class="flex items-center gap-2.5">
-            <div class="flex flex-col gap-0.5">
+        <div class="flex items-center gap-2">
+            <div class="flex flex-col">
                 <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/member/{{$item['assign']['id']}}">
                     {{$item['assign']['name']}}
                 </a>
-                <span class="text-xs text-gray-700 font-normal">
+                <span class="text-xs text-gray-600 font-normal">
                     ID: {{$item['assign']['id']}}
                 </span>
             </div>
@@ -77,33 +101,38 @@
     <td class="text-sm text-gray-800 font-normal">
         @if ($item['start_date'])
         <p class="leading-none text-gray-900 font-medium">{{formatDateTime($item['start_date'], 'd-m-Y')}}</p>
-        <span class="text-gray-700 text-xs">{{formatDateTime($item['start_date'], 'H:i:s')}}</span>
+        <span class="text-gray-600 text-xs">{{formatDateTime($item['start_date'], 'H:i')}}</span>
         @else
-        ---
+        <span class="text-gray-500">Chưa xác định</span>
         @endif
     </td>
     <td class="text-sm text-gray-800 font-normal">
         @if ($item['due_date'])
-        <p class="leading-none text-gray-900 font-medium {{$item['deadline_status'] == 'overdue' ? 'text-danger' : ($item['deadline_status'] == 'upcoming' ? 'text-warning' : '')}}">
-            {{formatDateTime($item['due_date'], 'd-m-Y')}}
-        </p>
-        <span class="text-gray-700 text-xs">
-            {{formatDateTime($item['due_date'], 'H:i:s')}}
+        <!-- Deadline với hiển thị rõ ràng hơn -->
+        <div class="flex flex-col">
+            <p class="leading-none font-medium 
+                {{$item['deadline_status'] == 'overdue' ? 'text-danger' : ($item['deadline_status'] == 'upcoming' ? 'text-warning' : 'text-gray-900')}}">
+                {{formatDateTime($item['due_date'], 'd-m-Y')}}
+            </p>
+            <span class="text-gray-600 text-xs">{{formatDateTime($item['due_date'], 'H:i')}}</span>
+
             @if($item['time_remaining'])
-            <span class="text-{{$item['deadline_status'] == 'overdue' ? 'danger' : 'warning'}}">
-                ({{$item['time_remaining']}})
-            </span>
+            <div class="mt-1 text-xs px-2 py-0.5 rounded 
+                {{$item['deadline_status'] == 'overdue' ? 'bg-danger/10 text-danger' : 'bg-warning/10 text-warning'}}">
+                <i class="ki-outline {{$item['deadline_status'] == 'overdue' ? 'ki-timer' : 'ki-timer'}} text-xs mr-1"></i>
+                {{$item['time_remaining']}}
+            </div>
             @endif
-        </span>
+        </div>
         @else
-        ---
+        <span class="text-gray-500">Chưa xác định</span>
         @endif
     </td>
     <td class="text-gray-800 font-normal">
-        <div class="max-w-32 bg-gray-300 rounded-sm h-4">
+        <div class="max-w-32 bg-gray-200 rounded-sm h-4">
             <div class="{{$item['progress'] >= 100 ? 'bg-success' : 'bg-blue-800'}} h-4 rounded-sm flex items-center {{$item['progress'] == 0 ? 'justify-start' : 'justify-center'}}" style="width: {{$item['progress'] ?? 0}}%">
-                <span class="text-xs checkbox-label !text-white">
-                    &nbsp;{{$item['progress']}}%&nbsp;
+                <span class="text-xs font-medium text-white">
+                    {{$item['progress']}}%
                 </span>
             </div>
         </div>
@@ -111,8 +140,10 @@
     <td class="text-sm text-gray-800 font-normal">
         <span class="text-gray-900 font-medium">{{$item['estimate_time'] ?? 0}}h</span>
         @if($item['spend_time'] > 0)
-        <div class="text-xs {{$item['spend_time'] > $item['estimate_time'] ? 'text-danger' : 'text-success'}}">
-            Đã dùng: {{$item['spend_time']}}h
+        <div class="text-xs px-2 py-0.5 rounded mt-1 
+            {{$item['spend_time'] > $item['estimate_time'] ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}} inline-block">
+            <i class="ki-outline {{$item['spend_time'] > $item['estimate_time'] ? 'ki-clock-warning' : 'ki-check-circle'}} text-xs mr-1"></i>
+            {{$item['spend_time']}}h
         </div>
         @endif
     </td>

@@ -29,30 +29,16 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
             <div class="w-full">
-                <label class="form-label mb-1.5 text-gray-700 font-medium">Ngày ký</label>
-                <div class="relative">
-                    <input name="sign_date" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full !pl-10" type="text" placeholder="DD/MM/YYYY">
-                    <i class="ki-filled ki-calendar-8 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                </div>
-            </div>
-            <div class="w-full">
-                <label class="form-label mb-1.5 text-gray-700 font-medium">Ngày hiệu lực</label>
-                <div class="relative">
-                    <input name="effective_date" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full !pl-10" type="text" placeholder="DD/MM/YYYY">
-                    <i class="ki-filled ki-calendar-8 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                </div>
-            </div>
-            <div class="w-full">
-                <label class="form-label mb-1.5 text-gray-700 font-medium">Ngày hết hạn</label>
-                <div class="relative">
-                    <input name="expiry_date" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full !pl-10" type="text" placeholder="DD/MM/YYYY">
-                    <i class="ki-filled ki-calendar-8 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                </div>
-            </div>
-            <div class="w-full">
-                <label class="form-label mb-1.5 text-gray-700 font-medium">Thời gian dự kiến</label>
+                <label class="form-label mb-1.5 text-gray-700 font-medium">Thời gian dự kiến hoàn thành</label>
                 <div class="relative">
                     <input name="estimate_date" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full !pl-10" type="text" placeholder="DD/MM/YYYY">
+                    <i class="ki-filled ki-calendar-8 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            <div class="w-full">
+                <label class="form-label mb-1.5 text-gray-700 font-medium">Ngày bàn giao</label>
+                <div class="relative">
+                    <input name="expiry_date" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full !pl-10" type="text" placeholder="DD/MM/YYYY">
                     <i class="ki-filled ki-calendar-8 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
             </div>

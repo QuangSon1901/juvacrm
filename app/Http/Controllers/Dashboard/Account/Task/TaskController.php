@@ -1466,4 +1466,233 @@ class TaskController extends Controller
             ]);
         }
     }
+
+    /**
+     * Đồng bộ lại trạng thái và số lượng của các task theo hợp đồng
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function synchronizeContractTasks(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'contract_id' => 'required|exists:tbl_contracts,id',
+            ],
+            [
+                'required' => ':attribute không được để trống',
+                'exists' => ':attribute không tồn tại',
+            ],
+            [
+                'contract_id' => 'Mã hợp đồng',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $contractId = $request->contract_id;
+
+            // Lấy tất cả các task thuộc hợp đồng này theo cấu trúc phân cấp
+            // 1. Task hợp đồng (CONTRACT)
+            $contractTask = Task::where('contract_id', $contractId)
+                ->where('type', 'CONTRACT')
+                ->where('is_active', 1)
+                ->first();
+
+            if (!$contractTask) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Không tìm thấy công việc hợp đồng'
+                ]);
+            }
+
+            // 2. Lấy các task dịch vụ (SERVICE) của hợp đồng
+            $serviceTasks = Task::where('parent_id', $contractTask->id)
+                ->where('type', 'SERVICE')
+                ->where('is_active', 1)
+                ->get();
+
+            // 3. Lấy tất cả các task con (SUB) của các task dịch vụ
+            $subTasksByService = [];
+            foreach ($serviceTasks as $serviceTask) {
+                $subTasks = Task::where('parent_id', $serviceTask->id)
+                    ->where('type', 'SUB')
+                    ->where('is_active', 1)
+                    ->get();
+
+                $subTasksByService[$serviceTask->id] = $subTasks;
+            }
+
+            // Bắt đầu đồng bộ từ dưới lên trên
+            // 1. Đồng bộ các task con (SUB) trước - đảm bảo số lượng hoàn thành chính xác
+            foreach ($subTasksByService as $serviceId => $subTasks) {
+                foreach ($subTasks as $subTask) {
+                    $this->synchronizeTaskCompletion($subTask);
+                }
+            }
+
+            // 2. Đồng bộ các task dịch vụ (SERVICE) dựa vào tổng hợp task con
+            foreach ($serviceTasks as $serviceTask) {
+                $this->synchronizeTaskWithChildren($serviceTask);
+            }
+
+            // 3. Đồng bộ task hợp đồng (CONTRACT) dựa vào tổng hợp các task dịch vụ
+            $this->synchronizeTaskWithChildren($contractTask);
+
+            // Tính toán lại tiến độ tổng thể của hợp đồng
+            $contractProgress = $this->calculateContractProgress($contractTask);
+            $this->updateDuedateTaskByContract($contractId);
+            DB::commit();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Đã đồng bộ thành công trạng thái và số lượng công việc của hợp đồng',
+                'data' => [
+                    'contract_id' => $contractId,
+                    'contract_progress' => $contractProgress,
+                    'updated_at' => now()->format('Y-m-d H:i:s')
+                ]
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 500,
+                'message' => 'Đã xảy ra lỗi khi đồng bộ: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Đồng bộ số lượng hoàn thành của một task dựa trên báo cáo đóng góp
+     *
+     * @param Task $task
+     * @return void
+     */
+    private function synchronizeTaskCompletion(Task $task)
+    {
+        // Lấy tổng số lượng từ các đóng góp
+        $totalCompleted = TaskContribution::where('task_id', $task->id)
+            ->where('is_active', 1)
+            ->sum('quantity');
+
+        // Cập nhật số lượng đã hoàn thành
+        $task->qty_completed = $totalCompleted;
+
+        // Tính toán tiến độ phần trăm
+        $task->progress = $task->qty_request > 0 ? min(100, round(($totalCompleted / $task->qty_request) * 100)) : 0;
+
+        // Kiểm tra và cập nhật trạng thái
+        $this->updateTaskStatusBasedOnProgress($task);
+
+        $task->save();
+    }
+
+    /**
+     * Đồng bộ task dựa trên trạng thái của các task con
+     *
+     * @param Task $parentTask
+     * @return void
+     */
+    private function synchronizeTaskWithChildren(Task $parentTask)
+    {
+        // Lấy tất cả task con đang hoạt động
+        $childTasks = Task::where('parent_id', $parentTask->id)
+            ->where('is_active', 1)
+            ->get();
+
+        if ($childTasks->isEmpty()) {
+            // Nếu không có task con, đồng bộ dựa trên đóng góp
+            $this->synchronizeTaskCompletion($parentTask);
+            return;
+        }
+
+        // Tính toán tiến độ dựa trên các task con
+        $totalChildTasks = $childTasks->count();
+        $completedChildTasks = $childTasks->where('status_id', '>=', 4)->count();
+
+        // Tính phần trăm tiến độ dựa trên tỷ lệ task con hoàn thành
+        $parentTask->progress = $totalChildTasks > 0
+            ? round(($completedChildTasks / $totalChildTasks) * 100)
+            : 0;
+
+        // Nếu parent task chưa hoàn thành (status_id < 4), đặt qty_completed về 0
+        // Chỉ task không có task con mới tính qty_completed chính xác
+        if ($parentTask->progress < 100) {
+            $parentTask->qty_completed = 0;
+        }
+
+        // Kiểm tra và cập nhật trạng thái
+        $this->updateTaskStatusBasedOnProgress($parentTask);
+
+        $parentTask->save();
+    }
+
+    /**
+     * Cập nhật trạng thái task dựa theo tiến độ
+     *
+     * @param Task $task
+     * @return void
+     */
+    private function updateTaskStatusBasedOnProgress(Task $task)
+    {
+        // Danh sách ID trạng thái
+        $newStatusId = 1;        // Mới
+        $waitingStatusId = 2;    // Đang chờ
+        $inProgressStatusId = 3; // Đang thực hiện
+        $completedStatusId = 4;  // Hoàn thành
+
+        // Nếu tiến độ 100%, đánh dấu là hoàn thành
+        if ($task->progress >= 100) {
+            $task->status_id = $completedStatusId;
+        }
+        // Nếu tiến độ > 0 nhưng chưa hoàn thành, đánh dấu là đang thực hiện
+        else if ($task->progress > 0) {
+            $task->status_id = $inProgressStatusId;
+        }
+        // Giữ nguyên trạng thái nếu chưa có tiến độ
+    }
+
+    /**
+     * Tính toán tiến độ tổng thể của hợp đồng
+     *
+     * @param Task $contractTask
+     * @return int
+     */
+    private function calculateContractProgress(Task $contractTask)
+    {
+        // Lấy lại dữ liệu task từ DB sau khi cập nhật
+        $contractTask = Task::find($contractTask->id);
+
+        // Lấy tất cả task dịch vụ của hợp đồng
+        $serviceTasks = Task::where('parent_id', $contractTask->id)
+            ->where('type', 'SERVICE')
+            ->where('is_active', 1)
+            ->get();
+
+        // Nếu tiến độ ở task hợp đồng đã đồng bộ từ task dịch vụ, trả về giá trị đó
+        return $contractTask->progress;
+    }
+
+    /**
+     * Cập nhật lại duedate
+     *
+     * @param
+     * @return int
+     */
+    private function updateDuedateTaskByContract($contract_id)
+    {
+        $contract = Contract::find($contract_id);
+        $tasks = Task::where('contract_id', $contract_id);
+        
+        return $tasks->update(['due_date' => $contract->expiry_date]);
+    }
 }

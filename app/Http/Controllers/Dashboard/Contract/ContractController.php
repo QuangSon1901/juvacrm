@@ -157,10 +157,10 @@ class ContractController extends Controller
                 'customer_tax_code' => 'nullable|string|max:50',
                 'address' => 'nullable|string|max:255',
                 'phone' => 'nullable|string|max:20',
-                'sign_date' => 'nullable|date_format:d/m/Y',
-                'effective_date' => 'nullable|date_format:d/m/Y',
-                'expiry_date' => 'nullable|date_format:d/m/Y',
-                'estimate_date' => 'nullable|date_format:d/m/Y',
+                'sign_date' => 'nullable|date_format:d-m-Y H:i:s',
+                'effective_date' => 'nullable|date_format:d-m-Y H:i:s',
+                'expiry_date' => 'nullable|date_format:d-m-Y H:i:s',
+                'estimate_date' => 'nullable|date_format:d-m-Y H:i:s',
                 'total_value' => 'nullable|numeric',
                 'note' => 'nullable|string',
                 'terms_and_conditions' => 'nullable|string',
@@ -195,16 +195,16 @@ class ContractController extends Controller
 
             // Xử lý các trường ngày tháng
             if ($request->filled('sign_date')) {
-                $contractData['sign_date'] = \DateTime::createFromFormat('d/m/Y', $request->input('sign_date'))->format('Y-m-d');
+                $contractData['sign_date'] = formatDateTime($request->input('sign_date'), 'Y-m-d H:i:s', 'd-m-Y H:i:s');
             }
             if ($request->filled('effective_date')) {
-                $contractData['effective_date'] = \DateTime::createFromFormat('d/m/Y', $request->input('effective_date'))->format('Y-m-d');
+                $contractData['effective_date'] = formatDateTime($request->input('effective_date'), 'Y-m-d H:i:s', 'd-m-Y H:i:s');
             }
             if ($request->filled('expiry_date')) {
-                $contractData['expiry_date'] = \DateTime::createFromFormat('d/m/Y', $request->input('expiry_date'))->format('Y-m-d');
+                $contractData['expiry_date'] = formatDateTime($request->input('expiry_date'), 'Y-m-d H:i:s', 'd-m-Y H:i:s');
             }
             if ($request->filled('estimate_date')) {
-                $contractData['estimate_date'] = \DateTime::createFromFormat('d/m/Y', $request->input('estimate_date'))->format('Y-m-d');
+                $contractData['estimate_date'] = formatDateTime($request->input('estimate_date'), 'Y-m-d H:i:s', 'd-m-Y H:i:s');
             }
 
             // Tạo mã hợp đồng tự động
@@ -428,7 +428,7 @@ class ContractController extends Controller
                 'payments.method'
             ])->findOrFail($request['id']);
 
-            $contract->update(['status' => 1]);
+            $contract->update(['status' => 1, 'effective_date' => date('Y-m-d H:i:s')]);
 
             // Tạo task chính cho hợp đồng
             $mainTaskData = [
@@ -438,9 +438,9 @@ class ContractController extends Controller
                 'priority_id' => 1, // Độ ưu tiên mặc định
                 'assign_id' => $contract->user_id, // Gán cho nhân viên phụ trách
                 'start_date' => $contract->effective_date,
-                'due_date' => $contract->estimate_date ?? $contract->expiry_date,
-                'estimate_time' => (!empty($contract->estimate_date) && !empty($contract->effective_date))
-                    ? (strtotime($contract->estimate_date) - strtotime($contract->effective_date)) / 3600
+                'due_date' => $contract->expiry_date,
+                'estimate_time' => (!empty($contract->expiry_date) && !empty($contract->effective_date))
+                    ? (strtotime($contract->expiry_date) - strtotime($contract->effective_date)) / 3600
                     : 24, // Quy đổi thành giờ
                 'description' => "Công việc tổng thể cho hợp đồng #$contract->contract_number",
                 'qty_request' => 1,
@@ -474,9 +474,9 @@ class ContractController extends Controller
                     'priority_id' => 1,
                     'assign_id' => $contract->user_id,
                     'start_date' => $contract->effective_date,
-                    'due_date' => $contract->estimate_date ?? $contract->expiry_date,
-                    'estimate_time' => (!empty($contract->estimate_date) && !empty($contract->effective_date))
-                        ? (strtotime($contract->estimate_date) - strtotime($contract->effective_date)) / 3600
+                    'due_date' => $contract->expiry_date,
+                    'estimate_time' => (!empty($contract->expiry_date) && !empty($contract->effective_date))
+                        ? (strtotime($contract->expiry_date) - strtotime($contract->effective_date)) / 3600
                         : 24,
                     'description' => "Công việc thực hiện {$service->name} cho hợp đồng #$contract->contract_number",
                     'qty_request' => $service->quantity,
@@ -510,9 +510,9 @@ class ContractController extends Controller
                         'priority_id' => 1,
                         'assign_id' => $contract->user_id,
                         'start_date' => $contract->effective_date,
-                        'due_date' => $contract->estimate_date ?? $contract->expiry_date,
-                        'estimate_time' => (!empty($contract->estimate_date) && !empty($contract->effective_date))
-                            ? (strtotime($contract->estimate_date) - strtotime($contract->effective_date)) / 3600 / 2
+                        'due_date' => $contract->expiry_date,
+                        'estimate_time' => (!empty($contract->expiry_date) && !empty($contract->effective_date))
+                            ? (strtotime($contract->expiry_date) - strtotime($contract->effective_date)) / 3600 / 2
                             : 12, // Chia đôi thời gian so với task cha
                         'description' => "Công việc con {$subService->name} cho dịch vụ {$service->name}",
                         'qty_request' => $subService->quantity,
@@ -702,7 +702,7 @@ class ContractController extends Controller
                 'due_date' => $mainTask->due_date,
                 'qty_request' => $mainTask->qty_request,
                 'qty_completed' => $mainTask->qty_completed ?? 0,
-                'progress' => $mainTask->qty_request > 0 ? round(($mainTask->qty_completed ?? 0) / $mainTask->qty_request * 100, 0) : 0,
+                'progress' => $mainTask->progress,
                 'created_at' => $mainTask->created_at,
                 'updated_at' => $mainTask->updated_at,
                 'children' => []
@@ -729,7 +729,7 @@ class ContractController extends Controller
                     'due_date' => $childTask->due_date,
                     'qty_request' => $childTask->qty_request,
                     'qty_completed' => $childTask->qty_completed ?? 0,
-                    'progress' => $childTask->qty_request > 0 ? round(($childTask->qty_completed ?? 0) / $childTask->qty_request * 100, 0) : 0,
+                    'progress' => $childTask->progress,
                     'created_at' => $childTask->created_at,
                     'updated_at' => $childTask->updated_at,
                     'children' => []
@@ -756,7 +756,7 @@ class ContractController extends Controller
                         'due_date' => $subChildTask->due_date,
                         'qty_request' => $subChildTask->qty_request,
                         'qty_completed' => $subChildTask->qty_completed ?? 0,
-                        'progress' => $subChildTask->qty_request > 0 ? round(($subChildTask->qty_completed ?? 0) / $subChildTask->qty_request * 100, 0) : 0,
+                        'progress' => $subChildTask->progress,
                         'created_at' => $subChildTask->created_at,
                         'updated_at' => $subChildTask->updated_at
                     ];
@@ -905,9 +905,9 @@ class ContractController extends Controller
             'user_id' => 'nullable|integer|exists:tbl_users,id',
             'provider_id' => 'nullable|integer|exists:tbl_customers,id',
             'category_id' => 'nullable|integer|exists:tbl_categories,id',
-            'sign_date' => 'nullable|date',
-            'effective_date' => 'nullable|date',
-            'expiry_date' => 'nullable|date|after:effective_date',
+            'sign_date' => 'nullable|date_format:d-m-Y H:i:s',
+            'effective_date' => 'nullable|date_format:d-m-Y H:i:s',
+            'expiry_date' => 'nullable|date_format:d-m-Y H:i:s|after:effective_date',
             'note' => 'nullable|string|max:500',
             'terms_and_conditions' => 'nullable|string|max:5000',
         ]);
@@ -922,15 +922,8 @@ class ContractController extends Controller
         DB::beginTransaction();
 
         try {
-            $contract = Contract::find($request['id']);
-
-            if (!$contract) {
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'Hợp đồng không tồn tại.',
-                ]);
-            }
-
+            $contract = Contract::findOrFail($request['id']);
+            
             $data = $request->only([
                 'name',
                 'status',
@@ -946,13 +939,13 @@ class ContractController extends Controller
 
             // Format ngày tháng nếu có
             if (!empty($data['sign_date'])) {
-                $data['sign_date'] = formatDateTime($data['sign_date'], 'Y-m-d', 'd-m-Y');
+                $data['sign_date'] = formatDateTime($data['sign_date'], 'Y-m-d H:i:s', 'd-m-Y H:i:s');
             }
             if (!empty($data['effective_date'])) {
-                $data['effective_date'] = formatDateTime($data['effective_date'], 'Y-m-d', 'd-m-Y');
+                $data['effective_date'] = formatDateTime($data['effective_date'], 'Y-m-d H:i:s', 'd-m-Y H:i:s');
             }
             if (!empty($data['expiry_date'])) {
-                $data['expiry_date'] = formatDateTime($data['expiry_date'], 'Y-m-d', 'd-m-Y');
+                $data['expiry_date'] = formatDateTime($data['expiry_date'], 'Y-m-d H:i:s', 'd-m-Y H:i:s');
             }
 
             // Loại bỏ các trường null để không ghi đè dữ liệu cũ bằng null
@@ -965,6 +958,10 @@ class ContractController extends Controller
             }
 
             $contract->update($data);
+
+            if ($contract->status == 1) {
+                $this->syncContractTasksInternal($contract->id);
+            }
 
             // Ghi log (tương tự cách bạn làm)
             $updatedField = array_key_first($data); // Lấy trường đầu tiên được cập nhật
@@ -1085,9 +1082,9 @@ class ContractController extends Controller
                         'priority_id' => 1,
                         'assign_id' => $contract->user_id,
                         'start_date' => $contract->effective_date,
-                        'due_date' => $contract->estimate_date ?? $contract->expiry_date,
-                        'estimate_time' => (!empty($contract->estimate_date) && !empty($contract->effective_date))
-                            ? (strtotime($contract->estimate_date) - strtotime($contract->effective_date)) / 3600
+                        'due_date' => $contract->expiry_date,
+                        'estimate_time' => (!empty($contract->expiry_date) && !empty($contract->effective_date))
+                            ? (strtotime($contract->expiry_date) - strtotime($contract->effective_date)) / 3600
                             : 24,
                         'description' => "Công việc thực hiện {$serviceName} cho hợp đồng #{$contract->contract_number}",
                         'qty_request' => $request->quantity,
@@ -1108,9 +1105,9 @@ class ContractController extends Controller
                                 'priority_id' => 1,
                                 'assign_id' => $contract->user_id,
                                 'start_date' => $contract->effective_date,
-                                'due_date' => $contract->estimate_date ?? $contract->expiry_date,
-                                'estimate_time' => (!empty($contract->estimate_date) && !empty($contract->effective_date))
-                                    ? (strtotime($contract->estimate_date) - strtotime($contract->effective_date)) / 3600 / 2 // Một nửa thời gian so với task cha
+                                'due_date' => $contract->expiry_date,
+                                'estimate_time' => (!empty($contract->expiry_date) && !empty($contract->effective_date))
+                                    ? (strtotime($contract->expiry_date) - strtotime($contract->effective_date)) / 3600 / 2 // Một nửa thời gian so với task cha
                                     : 12,
                                 'description' => "Công việc con {$subService['name']} cho dịch vụ {$serviceName}",
                                 'qty_request' => $subService['quantity'] ?? 1,
@@ -1125,6 +1122,11 @@ class ContractController extends Controller
 
             // Cập nhật tổng giá trị hợp đồng
             $this->updateContractTotalValue($contract);
+
+            // Đồng bộ lại task sau khi thêm dịch vụ - thêm dòng này
+            if ($contract->status == 1) {
+                $this->syncContractTasksInternal($contract->id);
+            }
 
             LogService::saveLog([
                 'action' => 'ADD_CONTRACT_SERVICE',
@@ -1244,6 +1246,11 @@ class ContractController extends Controller
 
             $this->updateContractTotalValue($contract);
 
+            // Đồng bộ lại task sau khi cập nhật dịch vụ - thêm dòng này
+            if ($contract->status == 1) {
+                $this->syncContractTasksInternal($contract->id);
+            }
+
             LogService::saveLog([
                 'action' => 'UPDATE_CONTRACT_SERVICE',
                 'ip' => $request->getClientIp(),
@@ -1329,6 +1336,10 @@ class ContractController extends Controller
 
             // Cập nhật tổng giá trị hợp đồng
             $this->updateContractTotalValue($contract);
+
+            if ($contract->status == 1) {
+                $this->syncContractTasksInternal($contract->id);
+            }
 
             // Lưu nhật ký
             LogService::saveLog([
@@ -2063,6 +2074,11 @@ class ContractController extends Controller
                 $this->createNewTasksForServices($newTasksToCreate, $contract);
             }
 
+            // Đồng bộ lại toàn bộ task sau các thay đổi - thêm dòng này
+            if ($contract->status == 1) {
+                $this->syncContractTasksInternal($contract->id);
+            }
+
             // Logging
             LogService::saveLog([
                 'action' => 'UPDATE_CONTRACT_SERVICES',
@@ -2625,9 +2641,9 @@ class ContractController extends Controller
                 'priority_id' => 1, // Độ ưu tiên mặc định
                 'assign_id' => $contract->user_id, // Gán cho nhân viên phụ trách
                 'start_date' => $contract->effective_date,
-                'due_date' => $contract->estimate_date ?? $contract->expiry_date,
-                'estimate_time' => (!empty($contract->estimate_date) && !empty($contract->effective_date))
-                    ? (strtotime($contract->estimate_date) - strtotime($contract->effective_date)) / 3600
+                'due_date' => $contract->expiry_date,
+                'estimate_time' => (!empty($contract->effective_date) && !empty($contract->effective_date))
+                    ? (strtotime($contract->effective_date) - strtotime($contract->effective_date)) / 3600
                     : 24, // Quy đổi thành giờ
                 'description' => "Công việc tổng thể cho hợp đồng #$contract->contract_number",
                 'qty_request' => 1,
@@ -2673,9 +2689,9 @@ class ContractController extends Controller
                 'priority_id' => 1, // Độ ưu tiên mặc định
                 'assign_id' => $contract->user_id, // Gán cho nhân viên phụ trách
                 'start_date' => $contract->effective_date ?? date('Y-m-d'),
-                'due_date' => $contract->estimate_date ?? $contract->expiry_date ?? date('Y-m-d', strtotime('+30 days')),
-                'estimate_time' => (!empty($contract->estimate_date) && !empty($contract->effective_date))
-                    ? (strtotime($contract->estimate_date) - strtotime($contract->effective_date)) / 3600
+                'due_date' => $contract->expiry_date ?? date('Y-m-d', strtotime('+30 days')),
+                'estimate_time' => (!empty($contract->effective_date) && !empty($contract->effective_date))
+                    ? (strtotime($contract->effective_date) - strtotime($contract->effective_date)) / 3600
                     : ($serviceType === 'SUB' ? 12 : 24), // Nếu là task con thì thời gian ít hơn
                 'description' => $serviceType === 'SERVICE'
                     ? "Công việc thực hiện {$taskInfo['serviceName']} cho hợp đồng #{$contract->contract_number}"
@@ -2748,6 +2764,95 @@ class ContractController extends Controller
             return response()->json([
                 'status' => 500,
                 'message' => 'Đã xảy ra lỗi khi hủy hợp đồng: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Đồng bộ lại trạng thái và số lượng của các task theo hợp đồng
+     * 
+     * @param int $contractId ID của hợp đồng cần đồng bộ
+     * @return bool Trạng thái thành công
+     */
+    private function syncContractTasksInternal($contractId)
+    {
+        try {
+            // Tạo instance của TaskController
+            $taskController = new \App\Http\Controllers\Dashboard\Account\Task\TaskController();
+
+            // Tạo request mới với contract_id
+            $request = new \Illuminate\Http\Request();
+            $request->merge(['contract_id' => $contractId]);
+
+            // Gọi phương thức synchronizeContractTasks
+            $response = $taskController->synchronizeContractTasks($request);
+
+            // Kiểm tra kết quả
+            $responseData = json_decode($response->getContent(), true);
+            return $responseData['status'] == 200;
+        } catch (\Exception $e) {
+            // Log lỗi nếu cần
+            \Illuminate\Support\Facades\Log::error('Không thể đồng bộ công việc cho hợp đồng ' . $contractId . ': ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Gọi đồng bộ task từ controller hợp đồng
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function syncTasks(Request $request)
+    {
+        $validator = ValidatorService::make($request, [
+            'contract_id' => 'required|integer|exists:tbl_contracts,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        try {
+            $contractId = $request->contract_id;
+            $contract = Contract::findOrFail($contractId);
+
+            // Đảm bảo hợp đồng đang triển khai
+            if ($contract->status != 1) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Chỉ có thể đồng bộ task cho hợp đồng đang trong trạng thái triển khai.'
+                ]);
+            }
+
+            // Tạo instance của TaskController và gọi phương thức đồng bộ
+            $taskController = new \App\Http\Controllers\Dashboard\Account\Task\TaskController();
+            $response = $taskController->synchronizeContractTasks($request);
+
+            // Lấy kết quả từ response
+            $responseData = json_decode($response->getContent(), true);
+
+            // Lưu log
+            LogService::saveLog([
+                'action' => 'SYNC_CONTRACT_TASKS',
+                'ip' => $request->getClientIp(),
+                'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã đồng bộ task cho hợp đồng #' . $contract->contract_number,
+                'fk_key' => 'tbl_contracts|id',
+                'fk_value' => $contractId,
+            ]);
+
+            return response()->json([
+                'status' => $responseData['status'],
+                'message' => $responseData['message'],
+                'data' => $responseData['data'] ?? null
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Đã xảy ra lỗi khi đồng bộ công việc: ' . $e->getMessage()
             ]);
         }
     }

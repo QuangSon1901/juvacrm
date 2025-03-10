@@ -125,9 +125,6 @@
                                             {{$details['status']['name']}}
                                         </span>
                                         @endif
-                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="status_id">
-                                            <i class="ki-filled ki-notepad-edit"></i>
-                                        </button>
                                     </div>
                                 </div>
                                 <div class="flex flex-col gap-5">
@@ -169,7 +166,7 @@
                                 <div class="flex flex-col gap-5">
                                     <div class="checkbox-group">
                                         <span class="checkbox-label text-gray-800 !font-bold">
-                                            Deadline:
+                                            Hạn chót:
                                         </span>
                                         @if ($details['due_date'])
                                         <span class="checkbox-label text-gray-800">
@@ -205,9 +202,6 @@
                                         <span class="checkbox-label text-gray-800">
                                             {{$details['qty_request'] ?? 0}}
                                         </span>
-                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="qty_request">
-                                            <i class="ki-filled ki-notepad-edit"></i>
-                                        </button>
                                     </div>
                                 </div>
                                 <div class="flex flex-col gap-5">
@@ -265,90 +259,185 @@
                                     <span class="badge badge-xs badge-primary badge-outline">{{count($details['service_tasks'])}}</span>
                                 </div>
                             </div>
-                            <div class="flex flex-col gap-2">
+                            <div class="flex flex-col gap-3">
                                 @if (count($details['service_tasks']) == 0)
                                 <div class="text-center text-gray-500">Chưa có công việc dịch vụ nào</div>
                                 @endif
 
                                 @foreach ($details['service_tasks'] as $serviceTask)
-                                <div class="relative flex items-center justify-between gap-1 w-full after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[4px] after:h-[78%] after:bg-gray-200 pl-4 hover:bg-gray-50 hover:after:bg-blue-800">
-                                    <div class="flex flex-col">
+                                @php
+                                    $isOverdue = false;
+                                    $overdueDays = 0;
+                                    if ($serviceTask['due_date']) {
+                                        $dueDate = \Carbon\Carbon::parse($serviceTask['due_date']);
+                                        $now = \Carbon\Carbon::now();
+                                        if ($dueDate->lt($now) && $serviceTask['progress'] < 100) {
+                                            $isOverdue = true;
+                                            $overdueDays = $now->diffInDays($dueDate);
+                                        }
+                                    }
+                                @endphp
+                                <div class="bg-white border border-gray-200 rounded-lg p-3">
+                                    <!-- Header với tên và action buttons -->
+                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                         <div>
-                                            <a href="/task/{{$serviceTask['id']}}">
-                                                <span class="checkbox-label font-normal text-primary">#{{$serviceTask['id']}}:</span>
-                                                <span class="checkbox-label font-semibold hover:text-primary-active">{{$serviceTask['name']}}</span>
+                                            <a href="/task/{{$serviceTask['id']}}" class="text-primary hover:text-primary-active font-medium">
+                                                {{$serviceTask['name']}}
                                             </a>
                                         </div>
-                                        <div>
-                                            <span class="checkbox-label font-normal text-gray-700">{{$serviceTask['qty_completed'] ?? 0}}/{{$serviceTask['qty_request'] ?? 0}}</span>
-                                            <span>-</span>
-                                            <span class="checkbox-label font-normal text-{{$serviceTask['status']['color']}}">{{$serviceTask['status']['name'] ?? '---'}}</span>
-                                            @if ($serviceTask['priority']['id'] != 0)
-                                            <span>-</span>
-                                            <span class="checkbox-label font-normal text-{{$serviceTask['priority']['color']}}">{{$serviceTask['priority']['name']}}</span>
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-xs font-medium">{{$serviceTask['progress'] ?? 0}}%</span>
+                                                <div class="w-16 bg-gray-200 rounded h-1.5">
+                                                    <div class="bg-blue-600 h-1.5 rounded" style="width: {{$serviceTask['progress'] ?? 0}}%"></div>
+                                                </div>
+                                            </div>
+                                            @if (in_array($serviceTask['status']['id'], [1, 2]))
+                                            <button class="btn btn-xs btn-primary" onclick="claimTask({{$serviceTask['id']}})">
+                                            Nhận việc
+                                            </button>
+                                            @elseif (in_array($serviceTask['status']['id'], [3]) && count($serviceTask['sub_tasks']) == 0)
+                                            <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$serviceTask['id']}}, '{{$serviceTask['name']}}', {{$serviceTask['qty_request']}}, {{$serviceTask['qty_completed']}})">
+                                                Báo cáo
+                                            </button>
                                             @endif
+                                            <a href="/task/{{$serviceTask['id']}}" class="btn btn-xs btn-icon btn-light">
+                                                <i class="ki-outline ki-eye"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Thông tin tóm tắt -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-xs">
+                                        <div class="flex flex-col">
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">Mã:</span>
+                                                <span>#{{$serviceTask['id']}}</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">Trạng thái:</span>
+                                                <span class="badge badge-sm badge-{{$serviceTask['status']['color']}}">{{$serviceTask['status']['name']}}</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">Số lượng:</span>
+                                                <span>{{$serviceTask['qty_completed'] ?? 0}}/{{$serviceTask['qty_request'] ?? 0}} đơn vị</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col">
                                             @if ($serviceTask['due_date'])
-                                            <span>-</span>
-                                            <span class="checkbox-label font-normal">Deadline: <span class="font-medium">{{formatDateTime($serviceTask['due_date'], 'd-m-Y')}}</span></span>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">Hạn chót:</span>
+                                                <span>{{formatDateTime($serviceTask['due_date'], 'd-m-Y')}}</span>
+                                            </div>
+                                            @if ($isOverdue)
+                                            <div class="text-danger font-medium">
+                                                Đã quá hạn {{$overdueDays}} ngày!
+                                            </div>
+                                            @endif
+                                            @endif
+                                            @if ($serviceTask['priority']['id'] != 0)
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">Độ ưu tiên:</span>
+                                                <span class="text-{{$serviceTask['priority']['color']}}">{{$serviceTask['priority']['name']}}</span>
+                                            </div>
                                             @endif
                                         </div>
+                                    </div>
 
-                                        <!-- Hiển thị công việc con của dịch vụ này -->
-                                        @if (count($serviceTask['sub_tasks']) > 0)
-                                        <div class="mt-2 pl-4">
-                                            <div class="text-xs font-medium text-gray-700 mb-1">Công việc con:</div>
+                                    <!-- Hiển thị công việc con của dịch vụ này -->
+                                    @if (count($serviceTask['sub_tasks']) > 0)
+                                    <div class="mt-2 pt-2 border-t border-gray-100">
+                                        <div class="flex items-center gap-1 mb-1">
+                                            <button class="text-xs text-gray-600 flex items-center gap-1 w-full" 
+                                                    onclick="toggleSubTasks_{{$serviceTask['id']}}()">
+                                                <i class="ki-outline ki-right text-xs" id="icon-{{$serviceTask['id']}}"></i>
+                                                <span>{{count($serviceTask['sub_tasks'])}} công việc con</span>
+                                            </button>
+                                        </div>
+                                        <div id="sub-tasks-{{$serviceTask['id']}}" class="hidden pl-3 space-y-2 mt-2">
                                             @foreach ($serviceTask['sub_tasks'] as $subTask)
-                                            <div class="relative flex items-center justify-between gap-1 w-full mt-1 after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[3px] after:h-[78%] after:bg-gray-200 pl-3 hover:bg-gray-50 hover:after:bg-blue-800">
-                                                <div class="flex flex-col">
-                                                    <div>
-                                                        <a href="/task/{{$subTask['id']}}">
-                                                            <span class="text-xs font-normal text-primary">#{{$subTask['id']}}:</span>
-                                                            <span class="text-xs font-semibold hover:text-primary-active">{{$subTask['name']}}</span>
-                                                        </a>
-                                                    </div>
-                                                    <div class="text-xs">
-                                                        <span class="font-normal text-gray-700">{{$subTask['qty_completed'] ?? 0}}/{{$subTask['qty_request'] ?? 0}}</span>
-                                                        <span>-</span>
-                                                        <span class="font-normal text-{{$subTask['status']['color']}}">{{$subTask['status']['name'] ?? '---'}}</span>
+                                            @php
+                                                $isSubTaskOverdue = false;
+                                                $subTaskOverdueDays = 0;
+                                                if ($subTask['due_date']) {
+                                                    $subTaskDueDate = \Carbon\Carbon::parse($subTask['due_date']);
+                                                    $now = \Carbon\Carbon::now();
+                                                    if ($subTaskDueDate->lt($now) && ($subTask['progress'] ?? 0) < 100) {
+                                                        $isSubTaskOverdue = true;
+                                                        $subTaskOverdueDays = $now->diffInDays($subTaskDueDate);
+                                                    }
+                                                }
+                                                $subTaskProgress = $subTask['qty_request'] > 0 
+                                                    ? round(($subTask['qty_completed'] ?? 0) / $subTask['qty_request'] * 100) 
+                                                    : 0;
+                                            @endphp
+                                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-2 rounded gap-2">
+                                                <div>
+                                                    <a href="/task/{{$subTask['id']}}" class="text-xs hover:text-primary font-semibold">
+                                                        Tên: {{$subTask['name']}}
+                                                    </a>
+                                                    <div class="grid grid-cols-1 gap-1 mt-1 text-xs">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="font-semibold">Trạng thái:</span>
+                                                            <span class="badge badge-sm badge-{{$subTask['status']['color']}}">{{$subTask['status']['name']}}</span>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="font-semibold">Số lượng:</span>
+                                                            <span>{{$subTask['qty_completed'] ?? 0}}/{{$subTask['qty_request'] ?? 0}} đơn vị</span>
+                                                        </div>
                                                         @if ($subTask['due_date'])
-                                                        <span>-</span>
-                                                        <span class="font-normal">Deadline: <span class="font-medium">{{formatDateTime($subTask['due_date'], 'd-m-Y')}}</span></span>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="font-semibold">Hạn chót:</span>
+                                                            <span>{{formatDateTime($subTask['due_date'], 'd-m-Y')}}</span>
+                                                        </div>
+                                                        @if ($isSubTaskOverdue)
+                                                        <div class="text-danger text-xs font-medium">
+                                                            Đã quá hạn {{$subTaskOverdueDays}} ngày!
+                                                        </div>
+                                                        @endif
                                                         @endif
                                                     </div>
                                                 </div>
-                                                <div class="flex space-x-1">
-                                                    @if (in_array($subTask['status']['id'], [1, 2]))
-                                                    <button class="btn btn-xs btn-primary" onclick="claimTask({{$subTask['id']}})">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="flex items-center gap-1">
+                                                        <span class="text-xs font-medium">{{$subTaskProgress}}%</span>
+                                                        <div class="w-12 bg-gray-200 rounded h-1">
+                                                            <div class="bg-blue-400 h-1 rounded" style="width: {{$subTaskProgress}}%"></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex space-x-1">
+                                                        @if (in_array($subTask['status']['id'], [1, 2]))
+                                                        <button class="btn btn-xs btn-primary" onclick="claimTask({{$subTask['id']}})">
                                                         Nhận việc
-                                                    </button>
-                                                    @elseif (in_array($subTask['status']['id'], [3]))
-                                                    <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$subTask['id']}}, '{{$subTask['name']}}', {{$subTask['qty_request']}}, {{$subTask['qty_completed']}})">
-                                                        Báo cáo
-                                                    </button>
-                                                    @endif
-                                                    <a href="/task/{{$subTask['id']}}" class="btn btn-xs btn-light">
-                                                        <i class="ki-outline ki-arrow-right"></i>
-                                                    </a>
+                                                        </button>
+                                                        @elseif (in_array($subTask['status']['id'], [3]))
+                                                        <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$subTask['id']}}, '{{$subTask['name']}}', {{$subTask['qty_request']}}, {{$subTask['qty_completed']}})">
+                                                            Báo cáo
+                                                        </button>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                             @endforeach
                                         </div>
-                                        @endif
                                     </div>
-                                    <div class="flex space-x-1">
-                                        @if (in_array($serviceTask['status']['id'], [1, 2]))
-                                        <button class="btn btn-xs btn-primary" onclick="claimTask({{$serviceTask['id']}})">
-                                            Nhận việc
-                                        </button>
-                                        @elseif (in_array($serviceTask['status']['id'], [3]) && count($serviceTask['sub_tasks']) == 0)
-                                        <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$serviceTask['id']}}, '{{$serviceTask['name']}}', {{$serviceTask['qty_request']}}, {{$serviceTask['qty_completed']}})">
-                                            Báo cáo
-                                        </button>
-                                        @endif
-                                        <a href="/task/{{$serviceTask['id']}}" class="btn btn-xs btn-light">
-                                            <i class="ki-outline ki-eye"></i>
-                                        </a>
-                                    </div>
+                                    <script>
+                                        function toggleSubTasks_{{$serviceTask['id']}}() {
+                                            const content = document.getElementById('sub-tasks-{{$serviceTask['id']}}');
+                                            const icon = document.getElementById('icon-{{$serviceTask['id']}}');
+                                            
+                                            if (content.classList.contains('hidden')) {
+                                                content.classList.remove('hidden');
+                                                icon.classList.remove('ki-right');
+                                                icon.classList.add('ki-down');
+                                            } else {
+                                                content.classList.add('hidden');
+                                                icon.classList.remove('ki-down');
+                                                icon.classList.add('ki-right');
+                                            }
+                                        }
+                                    </script>
+                                    @endif
                                 </div>
                                 @endforeach
                             </div>
@@ -367,53 +456,105 @@
                                     <span class="badge badge-xs badge-primary badge-outline">{{count($details['sub_tasks'])}}</span>
                                 </div>
                             </div>
-                            <div class="flex flex-col gap-2">
+                            <div class="flex flex-col gap-3">
                                 @if (count($details['sub_tasks']) == 0)
                                 <div class="text-center text-gray-500">Chưa có công việc con nào</div>
                                 @endif
 
                                 @foreach ($details['sub_tasks'] as $subTask)
-                                <div class="relative flex items-center justify-between gap-1 w-full after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[4px] after:h-[78%] after:bg-gray-200 pl-4 hover:bg-gray-50 hover:after:bg-blue-800">
-                                    <div class="flex flex-col">
+                                @php
+                                    $isOverdue = false;
+                                    $overdueDays = 0;
+                                    if ($subTask['due_date']) {
+                                        $dueDate = \Carbon\Carbon::parse($subTask['due_date']);
+                                        $now = \Carbon\Carbon::now();
+                                        if ($dueDate->lt($now) && ($subTask['progress'] ?? 0) < 100) {
+                                            $isOverdue = true;
+                                            $overdueDays = $now->diffInDays($dueDate);
+                                        }
+                                    }
+                                    $subTaskProgress = $subTask['qty_request'] > 0 
+                                        ? round(($subTask['qty_completed'] ?? 0) / $subTask['qty_request'] * 100) 
+                                        : 0;
+                                @endphp
+                                <div class="bg-white border border-gray-200 rounded-lg p-3">
+                                    <!-- Header với tên và action buttons -->
+                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                         <div>
-                                            <a href="/task/{{$subTask['id']}}">
-                                                <span class="checkbox-label font-normal text-primary">#{{$subTask['id']}}:</span>
-                                                <span class="checkbox-label font-semibold hover:text-primary-active">{{$subTask['name']}}</span>
+                                            <a href="/task/{{$subTask['id']}}" class="text-primary hover:text-primary-active font-medium">
+                                                {{$subTask['name']}}
                                             </a>
                                         </div>
-                                        <div>
-                                            <span class="checkbox-label font-normal text-gray-700">{{$subTask['qty_completed'] ?? 0}}/{{$subTask['qty_request'] ?? 0}}</span>
-                                            <span>-</span>
-                                            <span class="checkbox-label font-normal text-{{$subTask['status']['color']}}">{{$subTask['status']['name'] ?? '---'}}</span>
-                                            @if ($subTask['priority']['id'] != 0)
-                                            <span>-</span>
-                                            <span class="checkbox-label font-normal text-{{$subTask['priority']['color']}}">{{$subTask['priority']['name']}}</span>
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-xs font-medium">{{$subTaskProgress}}%</span>
+                                                <div class="w-16 bg-gray-200 rounded h-1.5">
+                                                    <div class="bg-blue-600 h-1.5 rounded" style="width: {{$subTaskProgress}}%"></div>
+                                                </div>
+                                            </div>
+                                            @if (in_array($subTask['status']['id'], [1, 2]))
+                                            <button class="btn btn-xs btn-primary" onclick="claimTask({{$subTask['id']}})">
+                                            Nhận việc
+                                            </button>
+                                            @elseif (in_array($subTask['status']['id'], [3]))
+                                            <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$subTask['id']}}, '{{$subTask['name']}}', {{$subTask['qty_request']}}, {{$subTask['qty_completed']}})">
+                                                Báo cáo
+                                            </button>
                                             @endif
-                                            @if ($subTask['due_date'])
-                                            <span>-</span>
-                                            <span class="checkbox-label font-normal">Deadline: <span class="font-medium">{{formatDateTime($subTask['due_date'], 'd-m-Y')}}</span></span>
-                                            @endif
+                                            <a href="/task/{{$subTask['id']}}" class="btn btn-xs btn-icon btn-light">
+                                                <i class="ki-outline ki-eye"></i>
+                                            </a>
                                         </div>
                                     </div>
-                                    <div class="flex space-x-1">
-                                        @if (in_array($subTask['status']['id'], [1, 2]))
-                                        <button class="btn btn-xs btn-primary" onclick="claimTask({{$subTask['id']}})">
-                                            Nhận việc
-                                        </button>
-                                        @elseif (in_array($subTask['status']['id'], [3]))
-                                        <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$subTask['id']}}, '{{$subTask['name']}}', {{$subTask['qty_request']}}, {{$subTask['qty_completed']}})">
-                                            Báo cáo
-                                        </button>
-                                        @endif
-                                        <a href="/task/{{$subTask['id']}}" class="btn btn-xs btn-light">
-                                            <i class="ki-outline ki-eye"></i>
-                                        </a>
+                                    
+                                    <!-- Thông tin tóm tắt -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-xs">
+                                        <div class="flex flex-col">
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">Mã:</span>
+                                                <span>#{{$subTask['id']}}</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">Trạng thái:</span>
+                                                <span class="badge badge-sm badge-{{$subTask['status']['color']}}">{{$subTask['status']['name']}}</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">Số lượng:</span>
+                                                <span>{{$subTask['qty_completed'] ?? 0}}/{{$subTask['qty_request'] ?? 0}} đơn vị</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            @if ($subTask['due_date'])
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">Hạn chót:</span>
+                                                <span>{{formatDateTime($subTask['due_date'], 'd-m-Y')}}</span>
+                                            </div>
+                                            @if ($isOverdue)
+                                            <div class="text-danger font-medium">
+                                                Đã quá hạn {{$overdueDays}} ngày!
+                                            </div>
+                                            @endif
+                                            @endif
+                                            @if ($subTask['priority']['id'] != 0)
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">Độ ưu tiên:</span>
+                                                <span class="text-{{$subTask['priority']['color']}}">{{$subTask['priority']['name']}}</span>
+                                            </div>
+                                            @endif
+                                            @if ($subTask['assign']['id'] != 0)
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">Người phụ trách:</span>
+                                                <span>{{$subTask['assign']['name']}}</span>
+                                            </div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                                 @endforeach
                             </div>
                         </div>
                         @endif
+
                         {{--
                         <!-- Hiển thị danh sách chỉ mục (cho mục cũ) -->
                         @if (count($details['childs']) > 0)
@@ -451,7 +592,7 @@
                                             @endif
                                             @if ($subtask['due_date'])
                                             <span>-</span>
-                                            <span class="checkbox-label font-normal">Deadline: <span class="font-medium">{{formatDateTime($subtask['due_date'], 'd-m-Y')}}</span></span>
+                                            <span class="checkbox-label font-normal">Hạn chót: <span class="font-medium">{{formatDateTime($subtask['due_date'], 'd-m-Y')}}</span></span>
                                             @endif
                                         </div>
                                     </div>
@@ -529,9 +670,6 @@
                                         ---
                                         @endif
                                     </span>
-                                    <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="contract_id">
-                                        <i class="ki-filled ki-notepad-edit"></i>
-                                    </button>
                                 </div>
                                 <div class="checkbox-group">
                                     <span class="checkbox-label text-gray-800 !font-bold">
@@ -547,11 +685,8 @@
                                         <li class="text-xs checkbox-label text-gray-800">{{$details['service_other']}}</li>
                                         @endif
                                     </ul>
-                                    <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="service_id">
-                                        <i class="ki-filled ki-notepad-edit"></i>
-                                    </button>
                                 </div>
-                                <div class="checkbox-group">
+                                {{--<div class="checkbox-group">
                                     <span class="checkbox-label text-gray-800 !font-bold">
                                         Tiền thưởng hoàn thành:
                                     </span>
@@ -572,7 +707,7 @@
                                     <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="deduction_amount">
                                         <i class="ki-filled ki-notepad-edit"></i>
                                     </button>
-                                </div>
+                                </div>--}}
                             </div>
                         </div>
                     </div>
@@ -807,7 +942,7 @@
                         @endforeach
                     </select>
                     <input class="input hidden" name="name" type="text" placeholder="Vui lòng nhập tên công việc mới">
-                    <input class="input hidden" name="due_date" type="text" placeholder="Vui lòng nhập deadline">
+                    <input class="input hidden" name="due_date" type="text" placeholder="Vui lòng nhập hạn chót">
                     <select name="contract_id" class="select hidden">
                         <option value="" selected>Chọn hợp đồng</option>
                         @foreach ($contracts as $contract)
