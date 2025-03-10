@@ -47,7 +47,7 @@ class TaskController extends Controller
 
         $query = Task::query()
             ->myTask($request['filter']['my_task'] ?? 0)
-            ->levelTask($request['filter']['level_task'] ?? 'max')
+            ->levelTask($request['filter']['level_task'] ?? 'CONTRACT')
             ->priorityTask($request['filter']['priority_task'] ?? '')
             ->statusTask($request['filter']['status_task'] ?? '')
             ->search($request['filter']['search'] ?? '');

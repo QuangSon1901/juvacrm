@@ -38,24 +38,38 @@ class ContractController extends Controller
 
         // Xây dựng query cơ bản
         $query = Contract::query()
-            ->with(['user', 'provider']) // Load relationships
+            ->with(['user', 'provider', 'tasks', 'payments']) // Thêm relationships cần thiết
             ->when($request->input('filter.search'), function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('contract_number', 'like', "%{$search}%");
             })
             ->when($request->input('filter.my_contract'), function ($query) use ($request) {
-                $query->where('user_id', auth()->id()); // Lọc hợp đồng của tôi
+                $query->where('user_id', auth()->id());
             })
-            ->when($request->input('filter.status'), function ($query, $status) {
-                $query->where('status', $status); // Lọc theo trạng thái nếu có
+            ->when($request->has('filter.status') && $request->input('filter.status') !== null, function ($query) use ($request) {
+                $query->where('status', $request->input('filter.status'));
             });
 
         // Phân trang
         $paginationResult = PaginationService::paginate($query, $currentPage, TABLE_PERPAGE_NUM);
         $offset = $paginationResult['sorter']['offset'];
 
-        // Format dữ liệu trả về
+        // Format dữ liệu trả về với thông tin tổng quát hơn
         $result = $paginationResult['data']->map(function ($item, $key) use ($offset) {
+            // Tính toán tổng giá trị và số tiền đã thanh toán
+            $totalValue = $item->total_value;
+            $totalPaid = $item->payments->where('status', 1)->where('is_active', 1)->where('payment_stage', '!=', 3)->sum('price');
+            $totalDeduction = $item->payments->where('status', 1)->where('is_active', 1)->where('payment_stage', 3)->sum('price');
+            $totalDeduction = abs($totalDeduction);
+            $totalRemaining = $totalValue - $totalPaid + $totalDeduction;
+            $paymentPercentage = $totalValue > 0 ? round(($totalPaid - $totalDeduction) / $totalValue * 100, 2) : 0;
+
+            // Tính tiến độ công việc
+            $tasks = $item->tasks->where('is_active', 1);
+            $totalTasks = $tasks->count();
+            $completedTasks = $tasks->where('status_id', '>=', 4)->count();
+            $taskProgress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+
             return [
                 'index' => $offset + $key + 1,
                 'id' => $item->id,
@@ -72,7 +86,15 @@ class ContractController extends Controller
                 'sign_date' => $item->sign_date,
                 'effective_date' => $item->effective_date,
                 'expiry_date' => $item->expiry_date,
-                'total_value' => $item->total_value,
+                'total_value' => $totalValue,
+                'total_paid' => $totalPaid,
+                'total_remaining' => $totalRemaining,
+                'payment_percentage' => $paymentPercentage,
+                'task_progress' => $taskProgress,
+                'task_stats' => [
+                    'total' => $totalTasks,
+                    'completed' => $completedTasks,
+                ],
                 'status' => $item->status,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,

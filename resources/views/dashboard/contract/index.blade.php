@@ -38,6 +38,7 @@
                             <option value="0">Chờ duyệt</option>
                             <option value="1">Đang triển khai</option>
                             <option value="2">Đã hoàn thành</option>
+                            <option value="3">Đã huỷ</option>
                         </select>
                         <a href="/contract/create-view" class="btn btn-primary btn-sm">
                             Thêm hợp đồng
@@ -51,44 +52,44 @@
                         <table class="table table-border" data-datatable-table="true">
                             <thead>
                                 <tr>
-                                    <th class="w-[100px]">
+                                    <th class="w-[50px]">
                                         <span class="sort">
                                             <span class="sort-label">STT</span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[150px]">
+                                    <th class="min-w-[120px]">
                                         <span class="sort">
                                             <span class="sort-label">Trạng thái</span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[300px]">
+                                    <th class="min-w-[250px]">
                                         <span class="sort">
                                             <span class="sort-label">Tên hợp đồng</span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[240px]">
+                                    <th class="min-w-[160px]">
                                         <span class="sort">
-                                            <span class="sort-label">Nhân viên phụ trách</span>
+                                            <span class="sort-label">Nhân viên</span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[240px]">
+                                    <th class="min-w-[160px]">
                                         <span class="sort">
                                             <span class="sort-label">Khách hàng</span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[150px]">
+                                    <th class="min-w-[140px]">
                                         <span class="sort">
-                                            <span class="sort-label">Ngày ký</span>
+                                            <span class="sort-label">Giá trị</span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[150px]">
+                                    <th class="min-w-[140px]">
                                         <span class="sort">
-                                            <span class="sort-label">Ngày hiệu lực</span>
+                                            <span class="sort-label">Tiến độ</span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[150px]">
+                                    <th class="min-w-[180px]">
                                         <span class="sort">
-                                            <span class="sort-label">Ngày hết hạn</span>
+                                            <span class="sort-label">Thời gian</span>
                                         </span>
                                     </th>
                                     <th class="w-[60px]"></th>
@@ -112,3 +113,71 @@
     </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+    async function saveCreateTaskContract(id) {
+        Notiflix.Confirm.show(
+            'Tạo công việc',
+            'Bạn có chắc chắn muốn tạo công việc cho hợp đồng này? Sau khi tạo sẽ không thể sửa đổi',
+            'Đúng',
+            'Hủy',
+            async () => {
+                    let method = "post",
+                        url = "/contract/create-task",
+                        params = null,
+                        data = {
+                            id
+                        };
+                    try {
+                        let res = await axiosTemplate(method, url, params, data);
+                        switch (res.data.status) {
+                            case 200:
+                                showAlert('success', res.data.message);
+                                window.location.reload();
+                                break;
+                            default:
+                                showAlert('warning', res?.data?.message || "Đã có lỗi xảy ra!");
+                                break;
+                        }
+                    } catch (error) {
+                        showAlert('error', "Đã có lỗi xảy ra khi gửi yêu cầu!");
+                        console.error(error);
+                    }
+                },
+                () => {}, {}
+        );
+    }
+    async function saveCancelContract(id) {
+        Notiflix.Confirm.show(
+            'Huỷ hợp đồng',
+            'Bạn có chắc chắn muốn huỷ hợp đồng? Sau khi huỷ không thể hoàn tác.',
+            'Đúng',
+            'Hủy',
+            async () => {
+                    let method = "post",
+                        url = "/contract/cancel",
+                        params = null,
+                        data = {
+                            id
+                        };
+                    try {
+                        let res = await axiosTemplate(method, url, params, data);
+                        switch (res.data.status) {
+                            case 200:
+                                showAlert('success', res.data.message);
+                                window.location.reload();
+                                break;
+                            default:
+                                showAlert('warning', res?.data?.message || "Đã có lỗi xảy ra!");
+                                break;
+                        }
+                    } catch (error) {
+                        showAlert('error', "Đã có lỗi xảy ra khi gửi yêu cầu!");
+                        console.error(error);
+                    }
+                },
+                () => {}, {}
+        );
+    }
+</script>
+@endpush

@@ -45,7 +45,9 @@ class Task extends Model
     {
         if (!empty($search)) 
             return $query->where('name', 'like', "%$search%")
-                ->orWhere('sub_name', 'like', "%$search%");
+                ->orWhere('sub_name', 'like', "%$search%")
+                ->orWhere('id', 'like', "%$search%")
+                ->orWhere('description', 'like', "%$search%");
         return $query;
     }
 
@@ -59,11 +61,11 @@ class Task extends Model
 
     public function scopeLevelTask($query, $type)
     {
-        if ($type == 'max') {
-            return $query->whereNull('parent_id');
+        if ($type == 'SERVICE') {
+            return $query->where('type', 'SERVICE');
         };
         
-        return $query->whereDoesntHave('childs');
+        return $query->where('type', 'CONTRACT');
     }
 
     public function scopePriorityTask($query, $type)

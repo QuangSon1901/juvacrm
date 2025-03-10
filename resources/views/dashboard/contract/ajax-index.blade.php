@@ -6,28 +6,27 @@
         </span>
     </td>
     <td class="text-gray-800 font-normal">
-        <span class="badge badge-sm badge-outline badge-neutral">
-            @if ($item['status'] == 0)
-                Chờ duyệt
-            @elseif ($item['status'] == 1)
-                Đang triển khai
-            @elseif ($item['status'] == 2)
-                Đã hoàn tất
-            @endif
-        </span>
+        @if ($item['status'] == 0)
+            <span class="badge badge-sm badge-outline badge-warning">Chờ duyệt</span>
+        @elseif ($item['status'] == 1)
+            <span class="badge badge-sm badge-outline badge-primary">Đang triển khai</span>
+        @elseif ($item['status'] == 2)
+            <span class="badge badge-sm badge-outline badge-success">Đã hoàn tất</span>
+        @elseif ($item['status'] == 3)
+            <span class="badge badge-sm badge-outline badge-danger">Đã hủy</span>
+        @endif
     </td>
     <td class="text-gray-800 font-normal">
-        <div class="flex flex-wrap gap-2">
-            <span class="badge badge-sm badge-outline badge-neutral">
-                Số HD: {{$item['contract_number']}}
-            </span>
-            <span class="badge badge-sm badge-outline badge-neutral">
-                Tổng: {{number_format($item['total_value'], 0, ',', '.')}}
-            </span>
+        <div class="flex flex-col gap-2">
+            <a class="leading-none hover:text-primary text-gray-900 font-medium" href="/contract/{{$item['id']}}">
+                {{$item['name']}}
+            </a>
+            <div class="flex flex-wrap gap-2">
+                <span class="badge badge-sm badge-outline badge-neutral">
+                    {{$item['contract_number']}}
+                </span>
+            </div>
         </div>
-        <a class="leading-none hover:text-primary text-gray-900 font-medium" href="/contract/{{$item['id']}}">
-            {{$item['name']}}
-        </a>
     </td>
     <td class="text-gray-800 font-normal">
         @if ($item['user']['id'] == 0)
@@ -38,9 +37,6 @@
                 <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/member/{{$item['user']['id']}}">
                     {{$item['user']['name']}}
                 </a>
-                <span class="text-xs text-gray-700 font-normal">
-                    ID: {{$item['user']['id']}}
-                </span>
             </div>
         </div>
         @endif
@@ -53,32 +49,56 @@
             <a class="leading-none font-medium text-sm text-gray-900 hover:text-primary" href="/customer/{{$item['customer']['id']}}">
                 {{$item['customer']['name']}}
             </a>
-            <span class="text-xs text-gray-700 font-normal">
-                ID: {{$item['customer']['id']}}
-            </span>
         </div>
         @endif
     </td>
     <td class="text-sm text-gray-800 font-normal">
-        @if ($item['sign_date'])
-        <p class="leading-none text-gray-900 font-medium">{{formatDateTime($item['sign_date'], 'd-m-Y')}}</p>
+        <div class="flex flex-col gap-0.5">
+            <div class="text-base font-medium">{{number_format($item['total_value'], 0, ',', '.')}} ₫</div>
+            <div class="flex items-center gap-1 text-xs">
+                <span class="{{$item['payment_percentage'] >= 100 ? 'text-green-600' : 'text-blue-600'}}">{{$item['payment_percentage']}}%</span>
+                <div class="w-20 h-1.5 bg-gray-200 rounded-full">
+                    <div class="h-1.5 rounded-full {{$item['payment_percentage'] >= 100 ? 'bg-green-600' : 'bg-blue-600'}}" style="width: {{min($item['payment_percentage'], 100)}}%"></div>
+                </div>
+            </div>
+        </div>
+    </td>
+    <td class="text-sm text-gray-800 font-normal">
+        @if ($item['task_stats']['total'] > 0)
+            <div class="flex flex-col gap-0.5">
+                <div class="flex items-center gap-1">
+                    <span class="text-xs">{{$item['task_progress']}}%</span>
+                    <div class="w-20 h-1.5 bg-gray-200 rounded-full">
+                        <div class="h-1.5 rounded-full bg-indigo-600" style="width: {{$item['task_progress']}}%"></div>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-600">{{$item['task_stats']['completed']}}/{{$item['task_stats']['total']}} công việc</div>
+            </div>
         @else
-        ---
+            <span class="text-xs text-gray-500">Chưa có công việc</span>
         @endif
     </td>
     <td class="text-sm text-gray-800 font-normal">
-        @if ($item['effective_date'])
-        <p class="leading-none text-gray-900 font-medium">{{formatDateTime($item['effective_date'], 'd-m-Y')}}</p>
-        @else
-        ---
-        @endif
-    </td>
-    <td class="text-sm text-gray-800 font-normal">
-        @if ($item['expiry_date'])
-        <p class="leading-none text-gray-900 font-medium">{{formatDateTime($item['expiry_date'], 'd-m-Y')}}</p>
-        @else
-        ---
-        @endif
+        <div class="flex flex-col gap-1">
+            @if ($item['sign_date'])
+                <div class="flex items-center gap-1.5">
+                    <i class="ki-duotone ki-calendar-tick text-gray-500 text-xs"></i>
+                    <span>Ký: {{formatDateTime($item['sign_date'], 'd-m-Y')}}</span>
+                </div>
+            @endif
+            @if ($item['effective_date'])
+                <div class="flex items-center gap-1.5">
+                    <i class="ki-duotone ki-calendar-edit text-blue-500 text-xs"></i>
+                    <span>Hiệu lực: {{formatDateTime($item['effective_date'], 'd-m-Y')}}</span>
+                </div>
+            @endif
+            @if ($item['expiry_date'])
+                <div class="flex items-center gap-1.5">
+                    <i class="ki-duotone ki-calendar-close text-red-500 text-xs"></i>
+                    <span>Hết hạn: {{formatDateTime($item['expiry_date'], 'd-m-Y')}}</span>
+                </div>
+            @endif
+        </div>
     </td>
     <td class="w-[60px]">
         <div class="menu" data-menu="true">
@@ -108,6 +128,30 @@
                             </span>
                         </a>
                     </div>
+                    @if ($item['status'] == 0)
+                    <div class="menu-item">
+                        <button class="menu-link" onclick="saveCreateTaskContract({{$item['id']}})">
+                            <span class="menu-icon">
+                                <i class="ki-filled ki-plus"></i>
+                            </span>
+                            <span class="menu-title">
+                                Tạo công việc
+                            </span>
+                        </button>
+                    </div>
+                    @endif
+                    @if ($item['status'] != 3)
+                    <div class="menu-item">
+                        <button class="menu-link" onclick="saveCancelContract({{$item['id']}})">
+                            <span class="menu-icon">
+                                <i class="ki-filled ki-trash !text-red-500"></i>
+                            </span>
+                            <span class="menu-title !text-red-500">
+                                Hủy hợp đồng
+                            </span>
+                        </button>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>

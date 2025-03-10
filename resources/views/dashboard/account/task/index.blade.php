@@ -27,11 +27,11 @@
                         <div class="flex flex-col gap-2">
                             <div class="flex flex-wrap lg:justify-end gap-2">
                                 <select data-filter="level_task" class="select select-sm w-40">
-                                    <option value="max" selected>
-                                        Cấp cao nhất
+                                    <option value="CONTRACT" selected>
+                                        Theo hợp đồng
                                     </option>
-                                    <option value="min">
-                                        Cấp nhỏ nhất
+                                    <option value="SERVICE">
+                                        Theo dịch vụ
                                     </option>
                                 </select>
                                 <select data-filter="priority_task" class="select select-sm w-40">
