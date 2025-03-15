@@ -24,7 +24,7 @@
             <select name="user_id" class="select border-gray-200 focus:border-blue-500 rounded-lg w-full">
                 <option class="disabled" disabled selected>Vui lòng chọn</option>
                 @foreach ($details['users'] as $user)
-                <option value="{{$user['id']}}">{{$user['name']}}</option>
+                <option value="{{$user['id']}}" @if($user['id']==Session::get(ACCOUNT_CURRENT_SESSION)['id']) selected @endif>{{$user['name']}}</option>
                 @endforeach
             </select>
         </div>

@@ -66,13 +66,22 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
                 </button>
                 @endif
 
+                @if ($details['status'] == 1)
+                <button type="button" class="btn btn-outline btn-success px-5 py-2 flex items-center gap-2" onclick="saveCompleteContract({{$details['id']}})">
+                    <i class="ki-filled ki-check text-white"></i>
+                    <span>Hoàn tất hợp đồng</span>
+                </button>
+                @endif
+
                 @if ($details['status'] != 3)
                 <a href="{{ route('dashboard.contract.export-pdf', $details['id']) }}" class="btn btn-light px-5 py-2 flex items-center gap-2">
                     <i class="ki-filled ki-file-down text-gray-700"></i>
                     <span>Xuất PDF</span>
                 </a>
+                @endif
 
-                <button type="button" class="btn btn-outline btn-danger px-5 py-2 flex items-center gap-2" onclick="saveCancelContract({{$details['id']}})">
+                @if ($details['status'] < 2) 
+                    <button type="button" class="btn btn-outline btn-danger px-5 py-2 flex items-center gap-2" onclick="saveCancelContract({{$details['id']}})">
                     <i class="ki-filled ki-cross text-white"></i>
                     <span>Huỷ hợp đồng</span>
                 </button>
@@ -299,6 +308,25 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
             data = {
                 id: "{{$details['id']}}",
                 [field.attr('name')]: field.val()
+            };
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                break;
+        }
+    }
+
+    async function saveCompleteContract(id) {
+        let method = "post",
+            url = "/contract/complete",
+            params = null,
+            data = {
+                id
             };
         let res = await axiosTemplate(method, url, params, data);
         switch (res.data.status) {

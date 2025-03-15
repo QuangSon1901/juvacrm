@@ -133,6 +133,7 @@ Route::group(
                 Route::post('/contract/create', [ContractController::class, "create"])->name("create");
                 Route::post('/contract/update-info', [ContractController::class, "update"])->name("update-info");
                 Route::post('/contract/update', [ContractController::class, "updateContractServices"])->name("update");
+                Route::post('/contract/complete', [ContractController::class, "complete"])->name("complete");
                 Route::get('/contract-data', [ContractController::class, "data"])->name("data");
                 Route::get('/contract/{id}', [ContractController::class, 'detail'])->name('contract.detail');
                 Route::post('/contract/create-task', [ContractController::class, 'createContractTasks'])->name('contract.create-task');

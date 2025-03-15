@@ -117,7 +117,7 @@
                                 Xem hợp đồng
                             </span>
                         </a>
-                        <a class="menu-link" href="/contract/create-view?customer_id={{$item['id']}}">
+                        <a class="menu-link" href="/contract/create-view?customer={{$item['id']}}">
                             <span class="menu-icon">
                                 <i class="ki-filled ki-questionnaire-tablet">
                                 </i>

@@ -180,6 +180,101 @@
                                                 <input name="service_note[]" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full" type="text" placeholder="Ghi chú" value="{{ $service['note'] ?? '' }}" {{ !$canEdit ? 'disabled' : '' }}>
                                             </div>
                                         </div>
+                                        <div class="flex gap-2 mb-3">
+                                            @if($canEdit)
+                                            <button type="button" class="btn btn-sm btn-light" onclick="addSubService(this)">
+                                                <i class="ki-filled ki-plus text-blue-500 mr-1"></i>
+                                                Thêm dịch vụ con
+                                            </button>
+                                            @endif
+                                        </div>
+                                        <div class="sub-services-container border-gray-100">
+                                            @foreach($service['sub_services'] ?? [] as $subServiceIndex => $subService)
+                                            <div class="sub-service-item mb-2 rounded p-2 border-l-2 border-gray-400" data-sub-service-id="sub_service_{{ $itemIndex }}_{{ $serviceIndex }}_{{ $subServiceIndex }}">
+                                                <div class="grid grid-cols-1 lg:!grid-cols-12 gap-2">
+                                                    <div class="lg:!col-span-6">
+                                                        <label class="block text-gray-700 text-sm mb-1">Góc máy</label>
+                                                        <input name="sub_service_name[]" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full" type="text" placeholder="Góc máy" value="{{ $subService['name'] }}" {{ !$canEdit ? 'disabled' : '' }}>
+                                                        <!-- Add contract_sub_service_id field -->
+                                                        <input type="hidden" name="contract_sub_service_id[]" value="{{ $subService['id'] ?? '' }}">
+                                                    </div>
+                                                    <div class="lg:!col-span-2">
+                                                        <label class="block text-gray-700 text-sm mb-1">Số lượng</label>
+                                                        <input name="sub_service_quantity[]" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full sub-service-quantity" type="text" placeholder="Số lượng" oninput="calculateSubServiceTotal(this)" value="{{ $subService['quantity'] }}" {{ !$canEdit ? 'disabled' : '' }}>
+                                                    </div>
+                                                    <div class="lg:!col-span-4">
+                                                        <label class="block text-gray-700 text-sm mb-1">Thành tiền</label>
+                                                        <div class="relative">
+                                                            <input name="sub_service_total[]" class="input border-gray-200 focus:border-blue-500 rounded-lg !pl-6 w-full sub-service-total" type="text" placeholder="Thành tiền" readonly value="{{$subService['total'] }}" {{ !$canEdit ? 'disabled' : '' }}>
+                                                            <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">₫</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="lg:!col-span-6">
+                                                        <label class="block text-gray-700 text-sm mb-1">Nội dung</label>
+                                                        <textarea name="sub_service_content[]" class="textarea border-gray-200 focus:border-blue-500 rounded-lg w-full" type="text" placeholder="Nội dung" {{ !$canEdit ? 'disabled' : '' }}>{{ $subService['content'] }}</textarea>
+                                                    </div>
+                                                    <div class="lg:!col-span-6">
+                                                        <label class="block text-gray-700 text-sm mb-1">Hình ảnh</label>
+                                                        <div class="flex items-center gap-1">
+                                                            @if($canEdit)
+                                                            <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub_service')">
+                                                                <i class="ki-filled ki-file-up"></i>
+                                                                Tải ảnh
+                                                            </button>
+                                                            @endif
+                                                            @if(isset($subService['image_url']) && $subService['image_url'])
+                                                            <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden relative group">
+                                                                <!-- Thêm loading spinner -->
+                                                                <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
+                                                                    <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
+                                                                </div>
+                                                                <!-- Thêm icon xem và xóa ảnh -->
+                                                                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <a href="{{ $subService['image_url'] }}" target="_blank" class="p-1 text-white hover:text-blue-200" title="Xem ảnh">
+                                                                        <i class="ki-filled ki-eye"></i>
+                                                                    </a>
+                                                                    @if($canEdit)
+                                                                    <button type="button" class="p-1 text-white hover:text-red-200" title="Xóa ảnh" onclick="removeImage(this, 'sub_service')">
+                                                                        <i class="ki-filled ki-trash"></i>
+                                                                    </button>
+                                                                    @endif
+                                                                </div>
+                                                                <img class="sub-service-image-preview h-full w-full object-cover cursor-pointer" src="{{ $subService['image_url'] }}" alt="" onclick="window.open('{{ $subService['image_url'] }}', '_blank')">
+                                                            </div>
+                                                            @else
+                                                            <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden hidden relative group">
+                                                                <!-- Thêm loading spinner -->
+                                                                <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
+                                                                    <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
+                                                                </div>
+                                                                <!-- Thêm icon xem và xóa ảnh -->
+                                                                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <a href="#" target="_blank" class="p-1 text-white hover:text-blue-200" title="Xem ảnh">
+                                                                        <i class="ki-filled ki-eye"></i>
+                                                                    </a>
+                                                                    @if($canEdit)
+                                                                    <button type="button" class="p-1 text-white hover:text-red-200" title="Xóa ảnh" onclick="removeImage(this, 'sub_service')">
+                                                                        <i class="ki-filled ki-trash"></i>
+                                                                    </button>
+                                                                    @endif
+                                                                </div>
+                                                                <img class="sub-service-image-preview h-full w-full object-cover cursor-pointer" src="" alt="" onclick="window.open(this.src, '_blank')">
+                                                            </div>
+                                                            @endif
+                                                            <input type="file" name="sub_service_image[]" class="sub-service-image-input hidden" accept="image/*" onchange="previewImage(this)" {{ !$canEdit ? 'disabled' : '' }}>
+                                                            <!-- Thêm input hidden để lưu driver_id -->
+                                                            <input type="hidden" name="sub_service_driver_id[]" value="{{ $subService['driver_id'] ?? '' }}">
+                                                            @if($canEdit)
+                                                            <button type="button" class="btn btn-sm btn-icon btn-light hover:!bg-red-100 h-8 w-8" onclick="removeSubService(this)">
+                                                                <i class="ki-filled ki-trash !text-red-500"></i>
+                                                            </button>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endforeach
+                                        </div>
                                     </div>
                                     @else
                                     {{-- Standard Service --}}

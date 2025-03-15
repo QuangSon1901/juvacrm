@@ -172,7 +172,7 @@
         switch (res.data.status) {
             case 200:
                 showAlert('success', res.data.message);
-                window.location.reload();
+                window.location.href = '/customer/' + res.data.data.id;
                 break;
             default:
                 showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");

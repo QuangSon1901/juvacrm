@@ -32,6 +32,23 @@ class ContractController extends Controller
         return view("dashboard.contract.index");
     }
 
+    public function complete(Request $request) {
+        try {
+            $contract = Contract::findOrFail($request['id']);
+            $contract->update(['status' => 2]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Hợp đồng đã hoàn tất.',
+            ]);
+        }  catch (\Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage() ?? 'Đã xảy ra lỗi khi hoàn tất hợp đồng.',
+            ]);
+        }
+    }
+
     public function data(Request $request)
     {
         $currentPage = $request->input('page', 1);
@@ -126,6 +143,7 @@ class ContractController extends Controller
             'products' => $products,
             'payments' => $payments,
             'currencies' => $currencies,
+            'customer' => $request['customer'] ?? 0
         ];
 
         if (isset($request['customer_id'])) {
@@ -383,6 +401,8 @@ class ContractController extends Controller
                     }
                 }
             }
+
+            Customer::where('id', $contract->provider_id)->update(['type' => 1]);
 
             // Commit transaction nếu mọi thứ thành công
             DB::commit();

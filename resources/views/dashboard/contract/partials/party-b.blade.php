@@ -12,25 +12,30 @@
             <select name="provider_id" class="select border-gray-200 focus:border-blue-500 rounded-lg w-full">
                 <option class="disabled" disabled selected>Vui lòng chọn</option>
                 @foreach ($details['customers'] as $customer)
-                <option value="{{$customer['id']}}" @if (isset($details['customer']) && $customer['id']==$details['customer']['id']) selected @endif>{{$customer['name']}}</option>
+                @php
+                    if ($customer['id'] == $details['customer']) {
+                        $customer_active = $customer;
+                    }
+                @endphp
+                <option value="{{$customer['id']}}" @if($customer['id'] == $details['customer']) selected @endif>{{$customer['name']}}</option>
                 @endforeach
             </select>
         </div>
         <div class="w-full">
             <label class="form-label mb-1.5 text-gray-700 font-medium">Người đại diện</label>
-            <input name="customer_representative" class="input border-gray-200 focus:border-blue-500 rounded-lg" type="text" placeholder="Tên người đại diện" value="@if (isset($details['customer'])) {{$details['customer']['representative'] ?? ''}} @endif">
+            <input name="customer_representative" class="input border-gray-200 focus:border-blue-500 rounded-lg" type="text" placeholder="Tên người đại diện" value="{{$customer_active['name'] ?? ''}}">
         </div>
         <div class="w-full">
             <label class="form-label mb-1.5 text-gray-700 font-medium">Mã số thuế</label>
-            <input name="customer_tax_code" class="input border-gray-200 focus:border-blue-500 rounded-lg" type="text" placeholder="Mã số thuế khách hàng" value="@if (isset($details['customer'])) {{$details['customer']['tax_code'] ?? ''}} @endif">
+            <input name="customer_tax_code" class="input border-gray-200 focus:border-blue-500 rounded-lg" type="text" placeholder="Mã số thuế khách hàng" value="{{$customer_active['tax'] ?? ''}}">
         </div>
         <div class="w-full">
             <label class="form-label mb-1.5 text-gray-700 font-medium">Địa chỉ</label>
-            <input name="address" class="input border-gray-200 focus:border-blue-500 rounded-lg" type="text" placeholder="Địa chỉ khách hàng" value="@if (isset($details['customer'])) {{$details['customer']['address']}} @endif">
+            <input name="address" class="input border-gray-200 focus:border-blue-500 rounded-lg" type="text" placeholder="Địa chỉ khách hàng" value="{{$customer_active['address'] ?? ''}}">
         </div>
         <div class="w-full">
             <label class="form-label mb-1.5 text-gray-700 font-medium">Điện thoại</label>
-            <input name="phone" class="input border-gray-200 focus:border-blue-500 rounded-lg" type="text" placeholder="Số điện thoại" value="@if (isset($details['customer'])) {{$details['customer']['phone']}} @endif">
+            <input name="phone" class="input border-gray-200 focus:border-blue-500 rounded-lg" type="text" placeholder="Số điện thoại" value="{{$customer_active['phone'] ?? ''}}">
         </div>
     </div>
 </div>

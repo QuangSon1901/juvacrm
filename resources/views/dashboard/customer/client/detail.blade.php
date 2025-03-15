@@ -134,7 +134,7 @@
                                         Lần tương tác gần nhất
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                        {{date('d-m-Y', strtotime($contact['updated_at']))}}
+                                        {{$contact['updated_at'] ?? ''}}
                                     </td>
                                 </tr>
                             </tbody>
@@ -173,6 +173,12 @@
                         <h3 class="card-title">
                             Danh sách hợp đồng
                         </h3>
+                        <div class="flex gap-2">
+                            <a href="/contract/create-view?customer={{ $details['id'] }}" class="btn btn-light btn-xs">
+                                <i class="ki-filled ki-plus"></i>
+                                Tạo hợp đồng
+                            </a>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="flex items-center flex-wrap justify-between gap-2.5">

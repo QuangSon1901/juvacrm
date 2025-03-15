@@ -20,9 +20,9 @@
         <div class="mt-5">
             <label class="form-label mb-1.5 text-gray-700 font-medium">Loại hình dịch vụ</label>
             <select name="category_id" class="select border-gray-200 focus:border-blue-500 rounded-lg w-full">
-                <option class="disabled" disabled selected>Vui lòng chọn</option>
+                <option class="disabled" disabled>Vui lòng chọn</option>
                 @foreach ($details['categories'] as $category)
-                <option value="{{$category['id']}}">{{$category['name']}}</option>
+                <option value="{{$category['id']}}" selected>{{$category['name']}}</option>
                 @endforeach
             </select>
         </div>

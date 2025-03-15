@@ -71,11 +71,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div>
+                        <!-- <div>
                             <a href="/task/create" class="btn btn-primary btn-sm">
                                 Thêm công việc
                             </a>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
