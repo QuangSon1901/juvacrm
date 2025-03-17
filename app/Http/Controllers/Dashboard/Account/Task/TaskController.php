@@ -3195,12 +3195,15 @@ public function confirmFeedbackResolved(Request $request)
             $this->updateTaskStatus($taskId, 4); // 4 = Hoàn thành
         }
         
-        // Cập nhật trạng thái task hợp đồng
+        // Xác định và cập nhật trạng thái task hợp đồng
         $contractTaskId = $feedback->task_id;
-        Task::where('id', $contractTaskId)->update(['status_id' => 4]);
+        $newContractStatus = $this->determineContractTaskStatus($contractTaskId);
+        Task::where('id', $contractTaskId)->update(['status_id' => $newContractStatus]);
         
-        // Cập nhật task cha/con
-        $this->updateParentTaskStatus($contractTaskId);
+        // Cập nhật status của task cha (nếu có)
+        if ($feedback->task->parent_id) {
+            $this->updateParentTaskStatus($feedback->task->parent_id);
+        }
 
         LogService::saveLog([
             'action' => TASK_ENUM_LOG,
@@ -3301,11 +3304,13 @@ public function requestFeedbackRevision(Request $request)
             $this->updateTaskStatus($taskId, 7); // 7 = Cần chỉnh sửa
         }
 
-        // Cập nhật cả task hợp đồng
+        // Khi yêu cầu làm lại, task hợp đồng luôn ở trạng thái cần chỉnh sửa
         Task::where('id', $feedback->task_id)->update(['status_id' => 7]); // Cần chỉnh sửa
         
-        // Cập nhật task cha
-        $this->updateParentTaskStatus($feedback->task_id);
+        // Cập nhật status của task cha (nếu có)
+        if ($feedback->task->parent_id) {
+            $this->updateParentTaskStatus($feedback->task->parent_id);
+        }
 
         LogService::saveLog([
             'action' => TASK_ENUM_LOG,
@@ -3328,6 +3333,73 @@ public function requestFeedbackRevision(Request $request)
             'message' => 'Đã xảy ra lỗi khi yêu cầu làm lại feedback: ' . $e->getMessage(),
         ]);
     }
+}
+
+/**
+ * Xác định và cập nhật trạng thái task hợp đồng dựa trên tất cả các task con
+ * 
+ * @param int $contractTaskId ID của task hợp đồng
+ * @return int Trạng thái mới của task hợp đồng
+ */
+private function determineContractTaskStatus($contractTaskId)
+{
+    // Lấy tất cả các task con (tất cả các cấp) của task hợp đồng
+    $allChildTasks = $this->getAllChildTasks($contractTaskId);
+    
+    if ($allChildTasks->isEmpty()) {
+        return 3; // Nếu không có task con, giữ trạng thái đang thực hiện
+    }
+    
+    // Loại bỏ các task đã bị huỷ (status = 6)
+    $activeTasks = $allChildTasks->filter(function($task) {
+        return $task->status_id != 6;
+    });
+    
+    if ($activeTasks->isEmpty()) {
+        return 3; // Nếu tất cả task đều đã huỷ, giữ trạng thái đang thực hiện
+    }
+    
+    // Kiểm tra xem có task nào cần chỉnh sửa không (status = 7)
+    $needsRevisionCount = $activeTasks->where('status_id', 7)->count();
+    if ($needsRevisionCount > 0) {
+        // Nếu có bất kỳ task nào cần chỉnh sửa, task hợp đồng cũng cần chỉnh sửa
+        return 7;
+    }
+    
+    // Kiểm tra xem tất cả task đã hoàn thành chưa (status = 4)
+    $completedCount = $activeTasks->where('status_id', 4)->count();
+    if ($completedCount == $activeTasks->count()) {
+        // Nếu tất cả task con đều đã hoàn thành, task hợp đồng cũng hoàn thành
+        return 4;
+    }
+    
+    // Trường hợp còn lại: không có task nào cần chỉnh sửa, nhưng chưa tất cả đều hoàn thành
+    return 3; // Đang thực hiện
+}
+
+/**
+ * Lấy tất cả các task con ở mọi cấp của một task
+ * 
+ * @param int $taskId ID của task cha
+ * @return \Illuminate\Support\Collection Danh sách tất cả các task con
+ */
+private function getAllChildTasks($taskId)
+{
+    // Lấy các task con trực tiếp
+    $directChildren = Task::where('parent_id', $taskId)
+        ->where('is_active', 1)
+        ->get();
+    
+    // Khởi tạo collection để lưu tất cả task con
+    $allChildren = collect($directChildren);
+    
+    // Đệ quy lấy tất cả task con ở các cấp thấp hơn
+    foreach ($directChildren as $child) {
+        $grandChildren = $this->getAllChildTasks($child->id);
+        $allChildren = $allChildren->merge($grandChildren);
+    }
+    
+    return $allChildren;
 }
 
     /**

@@ -277,3 +277,73 @@
 .select2-container--default .select2-selection--single:focus {
     border-color: var(--tw-gray-400); /* Tùy chọn: thay đổi màu viền khi hover/focus */
 }
+
+
+.btn-warning {
+    color: #fff;
+    background-color: var(--tw-warning)
+}
+
+.btn-warning.active,.btn-warning:active,.btn-warning:focus,.btn-warning:hover {
+    background-color: var(--tw-warning-active);
+    box-shadow: var(--tw-warning-box-shadow)
+}
+
+.btn-outline.btn-warning {
+    color: var(--tw-warning);
+    background-color: var(--tw-warning-light);
+    border-color: var(--tw-warning-clarity)
+}
+
+.btn-outline.btn-warning i {
+    color: var(--tw-warning)
+}
+
+.btn-outline.btn-warning.active,.btn-outline.btn-warning:active,.btn-outline.btn-warning:focus,.btn-outline.btn-warning:hover {
+    color: var(--tw-warning-inverse);
+    background-color: var(--tw-warning);
+    border-color: var(--tw-warning);
+    box-shadow: none
+}
+
+.btn-outline.btn-warning.active i,.btn-outline.btn-warning:active i,.btn-outline.btn-warning:focus i,.btn-outline.btn-warning:hover i {
+    color: var(--tw-warning-inverse)
+}
+
+.btn-clear.btn-warning {
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--tw-warning)
+}
+
+.btn-clear.btn-warning.active,.btn-clear.btn-warning:active,.btn-clear.btn-warning:focus,.btn-clear.btn-warning:hover {
+    color: var(--tw-warning-inverse);
+    background-color: var(--tw-warning);
+    border-color: var(--tw-warning);
+    box-shadow: none
+}
+
+.btn-clear.btn-warning.active i,.btn-clear.btn-warning:active i,.btn-clear.btn-warning:focus i,.btn-clear.btn-warning:hover i {
+    color: var(--tw-warning-inverse)
+}
+
+.btn-subtle.btn-warning {
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--tw-warning)
+}
+
+.btn-subtle.btn-warning i {
+    color: var(--tw-warning)
+}
+
+.btn-subtle.btn-warning.active,.btn-subtle.btn-warning:active,.btn-subtle.btn-warning:focus,.btn-subtle.btn-warning:hover {
+    color: var(--tw-warning);
+    background-color: var(--tw-warning-light);
+    border-color: var(--tw-warning-light);
+    box-shadow: none
+}
+
+.btn-subtle.btn-warning.active i,.btn-subtle.btn-warning:active i,.btn-subtle.btn-warning:focus i,.btn-subtle.btn-warning:hover i {
+    color: var(--tw-warning)
+}
