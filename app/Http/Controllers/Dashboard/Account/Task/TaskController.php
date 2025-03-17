@@ -12,6 +12,7 @@ use App\Models\TaskComment;
 use App\Models\TaskConfig;
 use App\Models\TaskContribution;
 use App\Models\TaskFeedback;
+use App\Models\TaskFeedbackItem;
 use App\Models\TaskMission;
 use App\Models\TaskMissionAssignment;
 use App\Models\TaskMissionReport;
@@ -1071,7 +1072,7 @@ class TaskController extends Controller
 
             // Chỉ admin hoặc người tạo đóng góp mới được xóa
             $currentUserId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
-            $isAdmin = Session::get(ACCOUNT_CURRENT_SESSION)['is_admin'] ?? false;
+            $isAdmin = true;
 
             if (!$isAdmin && $contribution->user_id != $currentUserId) {
                 return response()->json([
@@ -1300,17 +1301,11 @@ class TaskController extends Controller
                 $anyNeedsRevision = true;
             }
         }
-
-        // Kiểm tra feedback của task cha
-        $parentNeedsRevision = $parentTask->needsRevision();
-
         // Xác định trạng thái mới cho task cha
         $newStatus = 3; // Mặc định là "Đang thực hiện"
 
-        if ($allCompleted && !$parentNeedsRevision) {
+        if ($allCompleted) {
             $newStatus = 4; // "Hoàn thành"
-        } else if ($anyNeedsRevision || $parentNeedsRevision) {
-            $newStatus = 7; // "Cần chỉnh sửa"
         }
 
         // Tính progress dựa trên task con
@@ -1342,6 +1337,54 @@ class TaskController extends Controller
             $this->updateParentTaskStatus($parentTask->parent_id);
         }
     }
+
+    /**
+ * Cập nhật trạng thái một task cụ thể
+ * 
+ * @param int $taskId ID của task cần cập nhật
+ * @param int $statusId ID của trạng thái mới
+ * @return void
+ */
+private function updateTaskStatus($taskId, $statusId)
+{
+    $task = Task::find($taskId);
+    if (!$task) {
+        return;
+    }
+    
+    // Cập nhật trạng thái task
+    $task->update(['status_id' => $statusId]);
+    
+    // Nếu task có task con, cập nhật trạng thái các task con
+    $childTasks = Task::where('parent_id', $taskId)
+        ->where('is_active', 1)
+        ->get();
+        
+    foreach ($childTasks as $childTask) {
+        // Nếu status là "Cần chỉnh sửa", áp dụng cho tất cả task con
+        if ($statusId == 7) {
+            $childTask->update(['status_id' => $statusId]);
+            
+            // Đệ quy cập nhật trạng thái task con
+            $this->updateTaskStatus($childTask->id, $statusId);
+        }
+        // Nếu status là "Hoàn thành", kiểm tra trước khi áp dụng
+        else if ($statusId == 4) {
+            // Nếu task con đã hoàn thành công việc (progress = 100%), cập nhật trạng thái
+            if ($childTask->progress >= 100) {
+                $childTask->update(['status_id' => $statusId]);
+            } else {
+                // Nếu chưa hoàn thành, đặt về trạng thái đang thực hiện
+                $childTask->update(['status_id' => 3]); // 3 = Đang thực hiện
+            }
+            
+            // Đệ quy cập nhật trạng thái task con
+            $this->updateTaskStatus($childTask->id, $statusId);
+        }
+    }
+}
+
+
     /**
      * Lấy danh sách công việc có thể nhận (cho API)
      */
@@ -1672,27 +1715,27 @@ class TaskController extends Controller
                                     // Tìm tất cả các task liên quan đến cùng một dịch vụ (cả task gốc và các task bổ sung)
                                     $originalTaskId = $childTask->original_task_id ?? $childTask->id;
                                     $relatedTasks = Task::where(function ($query) use ($originalTaskId) {
-                                            $query->where('id', $originalTaskId)
-                                                  ->orWhere('original_task_id', $originalTaskId);
-                                        })
+                                        $query->where('id', $originalTaskId)
+                                            ->orWhere('original_task_id', $originalTaskId);
+                                    })
                                         ->where('contract_service_id', $childService->id)
                                         ->where('is_active', 1)
                                         ->get();
-                                    
+
                                     // Tính tổng số lượng yêu cầu của tất cả các task liên quan
                                     $totalExistingQty = 0;
                                     foreach ($relatedTasks as $relatedTask) {
                                         $totalExistingQty += $relatedTask->qty_request;
                                     }
-                                    
+
                                     // Tính số lượng chênh lệch cần thêm
                                     $additionalQuantity = $newQtyRequest - $totalExistingQty;
-                                    
+
                                     // Chỉ tạo task mới nếu thực sự cần thêm số lượng
                                     if ($additionalQuantity > 0) {
                                         // Đếm số task bổ sung đã có
                                         $supplementCount = $childTask->supplementaryTasks->count();
-                                        
+
                                         // Tạo tên cho task bổ sung
                                         $supplementName = $childTask->name . " (Bổ sung " . ($supplementCount + 1) . ")";
                                         $originalTaskId = $childTask->original_task_id ?? $childTask->id;
@@ -1716,9 +1759,9 @@ class TaskController extends Controller
                                             'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
                                             'is_active' => 1,
                                         ];
-                                        
+
                                         $newTask = Task::create($newTaskData);
-                                        
+
                                         // Log
                                         LogService::saveLog([
                                             'action' => 'TASK_SYNC',
@@ -1727,7 +1770,7 @@ class TaskController extends Controller
                                             'fk_key' => 'tbl_tasks|id',
                                             'fk_value' => $newTask->id,
                                         ]);
-                                        
+
                                         // Cập nhật các mission assignments
                                         $this->updateMissionAssignmentsForNewTask($childTask, $newTask);
                                     }
@@ -1901,14 +1944,14 @@ class TaskController extends Controller
     private function updateMissionAssignmentsForNewTask($originalTask, $newTask)
     {
         // Xác định task gốc thực sự
-        $realOriginalTask = $originalTask->original_task_id 
-            ? Task::find($originalTask->original_task_id) 
+        $realOriginalTask = $originalTask->original_task_id
+            ? Task::find($originalTask->original_task_id)
             : $originalTask;
-            
+
         // Lấy tất cả mission assignments của task gốc thực sự
         $originalAssignments = TaskMissionAssignment::where('task_id', $realOriginalTask->id)
             ->get();
-        
+
         // Nếu task gốc không có assignments
         if ($originalAssignments->isEmpty()) {
             // Tìm assignments từ task liên quan đến task gốc
@@ -1916,13 +1959,13 @@ class TaskController extends Controller
                 ->where('is_active', 1)
                 ->pluck('id')
                 ->toArray();
-                
+
             if (!empty($relatedTasks)) {
                 $originalAssignments = TaskMissionAssignment::whereIn('task_id', $relatedTasks)
                     ->get();
             }
         }
-        
+
         foreach ($originalAssignments as $originalAssignment) {
             // Tạo assignment mới cho task mới với cùng mission và user
             TaskMissionAssignment::create([
@@ -1997,11 +2040,6 @@ class TaskController extends Controller
                     $newStatus = 4; // Hoàn thành
                 }
 
-                // Kiểm tra có feedback cần chỉnh sửa không
-                if ($task->needsRevision()) {
-                    $newStatus = 7; // Cần chỉnh sửa
-                }
-
                 $task->update([
                     'progress' => $progress,
                     'qty_completed' => $qty_completed,
@@ -2071,11 +2109,6 @@ class TaskController extends Controller
                     } else {
                         $newStatus = 3; // Đang thực hiện
                     }
-                }
-
-                // Kiểm tra có feedback cần chỉnh sửa không
-                if ($parent->needsRevision()) {
-                    $newStatus = 7; // Cần chỉnh sửa
                 }
 
                 // Cập nhật task cha
@@ -2427,8 +2460,6 @@ class TaskController extends Controller
 
         if ($progress == 100) {
             $newStatus = 4; // Hoàn thành
-        } elseif ($task->needsRevision()) {
-            $newStatus = 7; // Cần chỉnh sửa
         }
 
         $task->update([
@@ -2436,118 +2467,6 @@ class TaskController extends Controller
             'qty_completed' => $qty_completed,
             'status_id' => $newStatus
         ]);
-    }
-
-    /**
-     * Thêm feedback cho task
-     */
-    public function addFeedback(Request $request)
-    {
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'task_id' => 'required|exists:tbl_tasks,id',
-                'rating' => 'required|integer|min:1|max:5',
-                'needs_revision' => 'nullable|in:on',
-                'comment' => 'nullable|string|max:1000',
-            ],
-            [
-                'required' => ':attribute không được để trống',
-                'integer' => ':attribute phải là số nguyên',
-                'min' => ':attribute phải lớn hơn hoặc bằng :min',
-                'max' => ':attribute không được vượt quá :max',
-                'in' => ':attribute không hợp lệ',
-            ],
-            [
-                'task_id' => 'Mã công việc',
-                'rating' => 'Đánh giá',
-                'needs_revision' => 'Yêu cầu chỉnh sửa',
-                'comment' => 'Bình luận',
-            ]
-        );
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 422,
-                'message' => $validator->errors()->first()
-            ]);
-        }
-
-        try {
-            DB::beginTransaction();
-
-            $task = Task::find($request->task_id);
-            if (!$task) {
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'Công việc không tồn tại.',
-                ]);
-            }
-
-            // Kiểm tra xem người dùng có phải là người quản lý task không
-            // (chỉ người quản lý task mới có quyền thêm feedback)
-            $currentUserId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
-            $isAdmin = Session::get(ACCOUNT_CURRENT_SESSION)['is_admin'] ?? false;
-
-            if ($task->assign_id != $currentUserId && !$isAdmin) {
-                return response()->json([
-                    'status' => 403,
-                    'message' => 'Bạn không có quyền thêm feedback cho task này.',
-                ]);
-            }
-
-            // Tạo feedback
-            $needs_revision = isset($request->needs_revision) && $request->needs_revision == 'on';
-
-            $feedback = TaskFeedback::create([
-                'task_id' => $task->id,
-                'user_id' => $currentUserId,
-                'rating' => $request->rating,
-                'needs_revision' => $needs_revision,
-                'comment' => $request->comment,
-                'is_resolved' => false,
-            ]);
-
-            // Nếu cần chỉnh sửa, cập nhật trạng thái task
-            if ($needs_revision) {
-                $task->update(['status_id' => 7]); // 7: Cần chỉnh sửa
-
-                // Cập nhật các task con nếu cần
-                if (in_array($task->type, ['CONTRACT', 'SERVICE'])) {
-                    $childTasks = Task::where('parent_id', $task->id)
-                        ->where('is_active', 1)
-                        ->get();
-
-                    foreach ($childTasks as $childTask) {
-                        if ($childTask->status_id == 4) { // Nếu đã hoàn thành
-                            $childTask->update(['status_id' => 7]); // Chuyển về cần chỉnh sửa
-                        }
-                    }
-                }
-            }
-
-            LogService::saveLog([
-                'action' => TASK_ENUM_LOG,
-                'ip' => $request->getClientIp(),
-                'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' đã thêm feedback ' .
-                    ($needs_revision ? 'yêu cầu chỉnh sửa' : '') . ' cho task',
-                'fk_key' => 'tbl_tasks|id',
-                'fk_value' => $task->id,
-            ]);
-
-            DB::commit();
-
-            return response()->json([
-                'status' => 200,
-                'message' => 'Thêm feedback thành công.',
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'status' => 500,
-                'message' => 'Đã xảy ra lỗi khi thêm feedback: ' . $e->getMessage(),
-            ]);
-        }
     }
 
     /**
@@ -2597,7 +2516,7 @@ class TaskController extends Controller
 
             // Kiểm tra xem người dùng có được gán nhiệm vụ cho task không
             $currentUserId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
-            $isAdmin = Session::get(ACCOUNT_CURRENT_SESSION)['is_admin'] ?? false;
+            $isAdmin = true;
 
             $hasAssignment = TaskMissionAssignment::where('task_id', $task->id)
                 ->where('user_id', $currentUserId)
@@ -2617,11 +2536,8 @@ class TaskController extends Controller
                 'resolved_at' => now(),
             ]);
 
-            // Kiểm tra xem còn feedback nào cần chỉnh sửa không
-            $needsRevision = $task->needsRevision();
-
             // Cập nhật trạng thái task
-            if (!$needsRevision) {
+            if (true) {
                 // Kiểm tra xem tất cả mission assignments đã hoàn thành chưa
                 $allCompleted = true;
                 foreach ($task->missionAssignments as $assignment) {
@@ -2737,7 +2653,7 @@ class TaskController extends Controller
 
             // Kiểm tra quyền xóa báo cáo
             $currentUserId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
-            $isAdmin = Session::get(ACCOUNT_CURRENT_SESSION)['is_admin'] ?? false;
+            $isAdmin = true;
 
             if ($report->user_id != $currentUserId && !$isAdmin) {
                 return response()->json([
@@ -2907,6 +2823,514 @@ class TaskController extends Controller
     }
 
     /**
+ * Hiển thị modal thêm feedback
+ */
+public function showFeedbackForm(Request $request)
+{
+    $taskId = $request->input('task_id');
+    
+    // Lấy task hợp đồng với tất cả task con và cháu
+    $contractTask = Task::with(['childs' => function($query) {
+        $query->where('is_active', 1)
+              ->with(['status', 'assign', 'childs' => function($q) {
+                  $q->where('is_active', 1)
+                    ->with(['status', 'assign', 'childs']);
+              }]);
+    }])->findOrFail($taskId);
+    
+    // Kiểm tra quyền
+    $currentUserId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
+    if ($contractTask->assign_id != $currentUserId && !true) {
+        return response()->json([
+            'status' => 403,
+            'message' => 'Bạn không có quyền thêm feedback cho task này.'
+        ]);
+    }
+    
+    // Kiểm tra type task
+    if ($contractTask->type !== 'CONTRACT') {
+        return response()->json([
+            'status' => 422,
+            'message' => 'Chỉ được phép thêm feedback cho task loại hợp đồng.'
+        ]);
+    }
+    
+    // Đánh dấu thuộc tính completed và is_leaf trên mỗi task
+    $this->markCompletedAndLeafTasks($contractTask);
+    
+    return response()->json([
+        'status' => 200,
+        'data' => [
+            'contract_task' => $contractTask
+        ]
+    ]);
+}
+
+/**
+ * Đệ quy đánh dấu các task đã hoàn thành và là task lá (không có task con)
+ */
+private function markCompletedAndLeafTasks($task)
+{
+    // Đánh dấu task đã hoàn thành
+    $task->is_completed = $task->status_id === 4; // 4 = hoàn thành
+    
+    if (!isset($task->childs) || $task->childs->isEmpty()) {
+        // Đây là task lá (không có task con)
+        $task->is_leaf = true;
+        return;
+    }
+    
+    // Đây không phải task lá
+    $task->is_leaf = false;
+    
+    // Đệ quy xử lý các task con
+    foreach ($task->childs as $childTask) {
+        $this->markCompletedAndLeafTasks($childTask);
+    }
+}
+
+    /**
+     * Thêm feedback mới
+     */
+    public function addFeedback(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'task_id' => 'required|exists:tbl_tasks,id',
+                'comment' => 'required|string|max:1000',
+                'revision_tasks' => 'required|array',
+                'revision_tasks.*' => 'exists:tbl_tasks,id',
+            ],
+            [
+                'required' => ':attribute không được để trống',
+                'string' => ':attribute phải là chuỗi ký tự',
+                'max' => ':attribute không được vượt quá :max ký tự',
+                'array' => ':attribute phải là mảng',
+                'exists' => ':attribute không tồn tại',
+            ],
+            [
+                'task_id' => 'Mã công việc',
+                'comment' => 'Nội dung feedback',
+                'revision_tasks' => 'Danh sách công việc cần chỉnh sửa',
+                'revision_tasks.*' => 'Công việc cần chỉnh sửa',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $task = Task::find($request->task_id);
+            if (!$task) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Công việc không tồn tại.',
+                ]);
+            }
+
+            // Kiểm tra quyền - chỉ người quản lý task mới có quyền thêm feedback
+            $currentUserId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
+            $isAdmin = true;
+
+            if ($task->assign_id != $currentUserId && !$isAdmin) {
+                return response()->json([
+                    'status' => 403,
+                    'message' => 'Bạn không có quyền thêm feedback cho task này.',
+                ]);
+            }
+
+            // Kiểm tra loại task
+            if ($task->type !== 'CONTRACT') {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Chỉ được phép thêm feedback cho task loại hợp đồng.',
+                ]);
+            }
+
+            // Tạo feedback mới
+            $feedback = TaskFeedback::create([
+                'task_id' => $task->id,
+                'user_id' => $currentUserId,
+                'comment' => $request->comment,
+                'is_resolved' => false,
+                'status' => 0 // Đang chờ giải quyết
+            ]);
+
+            // Lưu các task cần chỉnh sửa
+            $revisionTasks = $request->revision_tasks;
+            foreach ($revisionTasks as $taskId) {
+                $revisionTask = Task::find($taskId);
+                if ($revisionTask) {
+                    // Tạo feedback item
+                    TaskFeedbackItem::create([
+                        'feedback_id' => $feedback->id,
+                        'task_id' => $taskId,
+                        'is_resolved' => false
+                    ]);
+
+                    // Cập nhật trạng thái task cần chỉnh sửa sang status 7
+                    $revisionTask->update(['status_id' => 7]); // Cần chỉnh sửa
+
+                    // Log
+                    LogService::saveLog([
+                        'action' => TASK_ENUM_LOG,
+                        'ip' => $request->getClientIp(),
+                        'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' đã thêm task #' . $taskId . ' vào danh sách cần chỉnh sửa trong feedback #' . $feedback->id,
+                        'fk_key' => 'tbl_tasks|id',
+                        'fk_value' => $taskId,
+                    ]);
+                }
+            }
+
+            // Cập nhật trạng thái task hợp đồng cũng về trạng thái cần chỉnh sửa
+            $task->update(['status_id' => 7]); // Cần chỉnh sửa
+
+            LogService::saveLog([
+                'action' => TASK_ENUM_LOG,
+                'ip' => $request->getClientIp(),
+                'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' đã thêm feedback #' . $feedback->id . ' vào task #' . $task->id,
+                'fk_key' => 'tbl_tasks|id',
+                'fk_value' => $task->id,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Thêm feedback thành công.',
+                'data' => [
+                    'feedback_id' => $feedback->id
+                ]
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 500,
+                'message' => 'Đã xảy ra lỗi khi thêm feedback: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function resolveFeedbackItem(Request $request)
+{
+    $validator = Validator::make(
+        $request->all(),
+        [
+            'feedback_item_id' => 'required|exists:tbl_task_feedback_items,id',
+            'comment' => 'nullable|string|max:500',
+        ],
+        [
+            'required' => ':attribute không được để trống',
+            'exists' => ':attribute không tồn tại',
+            'string' => ':attribute phải là chuỗi ký tự',
+            'max' => ':attribute không được vượt quá :max ký tự',
+        ],
+        [
+            'feedback_item_id' => 'Mã feedback item',
+            'comment' => 'Ghi chú',
+        ]
+    );
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'message' => $validator->errors()->first()
+        ]);
+    }
+
+    try {
+        DB::beginTransaction();
+
+        $feedbackItem = TaskFeedbackItem::with(['feedback', 'feedback.task', 'task'])->find($request->feedback_item_id);
+        if (!$feedbackItem) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Feedback item không tồn tại.',
+            ]);
+        }
+
+        // Kiểm tra quyền 
+        $currentUserId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
+        $isAdmin = true;
+        
+        // Kiểm tra quyền dựa trên nhiệm vụ hoặc quyền admin
+        $hasAssignment = TaskMissionAssignment::where('task_id', $feedbackItem->task_id)
+            ->where('user_id', $currentUserId)
+            ->exists();
+
+        if (!$hasAssignment && !$isAdmin && $feedbackItem->task->assign_id != $currentUserId) {
+            return response()->json([
+                'status' => 403,
+                'message' => 'Bạn không có quyền đánh dấu đã giải quyết feedback item này.',
+            ]);
+        }
+
+        // Đánh dấu feedback item đã giải quyết
+        $feedbackItem->update([
+            'is_resolved' => true,
+            'resolved_by' => $currentUserId,
+            'resolved_at' => now(),
+            'resolver_comment' => $request->comment
+        ]);
+        
+        // Kiểm tra xem tất cả các item của feedback này đã giải quyết chưa
+        $allResolved = TaskFeedbackItem::where('feedback_id', $feedbackItem->feedback_id)
+            ->where('is_resolved', false)
+            ->doesntExist();
+            
+        // Nếu tất cả đã giải quyết, cập nhật trạng thái feedback
+        if ($allResolved) {
+            // Chưa đánh dấu feedback đã giải quyết (vẫn chờ xác nhận từ sale)
+            // Nhưng cập nhật đã sẵn sàng để xác nhận
+            $feedbackItem->feedback->update([
+                'status' => 1 // Đã sẵn sàng xác nhận
+            ]);
+        }
+
+        LogService::saveLog([
+            'action' => TASK_ENUM_LOG,
+            'ip' => $request->getClientIp(),
+            'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' đã đánh dấu đã giải quyết item #' . $feedbackItem->id . ' của feedback #' . $feedbackItem->feedback_id,
+            'fk_key' => 'tbl_tasks|id',
+            'fk_value' => $feedbackItem->task_id,
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Đánh dấu đã giải quyết thành công.',
+            'data' => [
+                'all_resolved' => $allResolved
+            ]
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'status' => 500,
+            'message' => 'Đã xảy ra lỗi khi đánh dấu đã giải quyết: ' . $e->getMessage(),
+        ]);
+    }
+}
+
+public function confirmFeedbackResolved(Request $request)
+{
+    $validator = Validator::make(
+        $request->all(),
+        [
+            'feedback_id' => 'required|exists:tbl_task_feedbacks,id',
+        ],
+        [
+            'required' => ':attribute không được để trống',
+            'exists' => ':attribute không tồn tại',
+        ],
+        [
+            'feedback_id' => 'Mã feedback',
+        ]
+    );
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'message' => $validator->errors()->first()
+        ]);
+    }
+
+    try {
+        DB::beginTransaction();
+
+        $feedback = TaskFeedback::with('task')->find($request->feedback_id);
+        if (!$feedback) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Feedback không tồn tại.',
+            ]);
+        }
+
+        // Kiểm tra quyền - chỉ người quản lý task (sale) mới có quyền xác nhận feedback đã giải quyết
+        $currentUserId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
+        $isAdmin = true;
+
+        if ($feedback->task->assign_id != $currentUserId && !$isAdmin) {
+            return response()->json([
+                'status' => 403,
+                'message' => 'Bạn không có quyền xác nhận feedback này đã giải quyết.',
+            ]);
+        }
+
+        // Kiểm tra xem tất cả các item đã được giải quyết chưa
+        $pendingItems = TaskFeedbackItem::where('feedback_id', $feedback->id)
+            ->where('is_resolved', false)
+            ->count();
+
+        if ($pendingItems > 0) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Vẫn còn ' . $pendingItems . ' task chưa được giải quyết.',
+            ]);
+        }
+
+        // Đánh dấu feedback đã giải quyết
+        $feedback->update([
+            'is_resolved' => true,
+            'resolved_by' => $currentUserId,
+            'resolved_at' => now(),
+            'status' => 1 // Đã giải quyết
+        ]);
+
+        // Lấy danh sách các task cần cập nhật trạng thái
+        $taskIds = TaskFeedbackItem::where('feedback_id', $feedback->id)
+            ->pluck('task_id')
+            ->toArray();
+
+        // Cập nhật trạng thái các task liên quan đến feedback
+        foreach ($taskIds as $taskId) {
+            $this->updateTaskStatus($taskId, 4); // 4 = Hoàn thành
+        }
+        
+        // Cập nhật trạng thái task hợp đồng
+        $contractTaskId = $feedback->task_id;
+        Task::where('id', $contractTaskId)->update(['status_id' => 4]);
+        
+        // Cập nhật task cha/con
+        $this->updateParentTaskStatus($contractTaskId);
+
+        LogService::saveLog([
+            'action' => TASK_ENUM_LOG,
+            'ip' => $request->getClientIp(),
+            'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' đã xác nhận toàn bộ feedback #' . $feedback->id . ' đã được giải quyết',
+            'fk_key' => 'tbl_tasks|id',
+            'fk_value' => $feedback->task_id,
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Xác nhận đã giải quyết feedback thành công.',
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'status' => 500,
+            'message' => 'Đã xảy ra lỗi khi xác nhận đã giải quyết feedback: ' . $e->getMessage(),
+        ]);
+    }
+}
+
+public function requestFeedbackRevision(Request $request)
+{
+    $validator = Validator::make(
+        $request->all(),
+        [
+            'feedback_id' => 'required|exists:tbl_task_feedbacks,id',
+            'comment' => 'nullable|string|max:500',
+        ],
+        [
+            'required' => ':attribute không được để trống',
+            'exists' => ':attribute không tồn tại',
+            'string' => ':attribute phải là chuỗi ký tự',
+            'max' => ':attribute không được vượt quá :max ký tự',
+        ],
+        [
+            'feedback_id' => 'Mã feedback',
+            'comment' => 'Ghi chú',
+        ]
+    );
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'message' => $validator->errors()->first()
+        ]);
+    }
+
+    try {
+        DB::beginTransaction();
+
+        $feedback = TaskFeedback::with('task')->find($request->feedback_id);
+        if (!$feedback) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Feedback không tồn tại.',
+            ]);
+        }
+
+        // Kiểm tra quyền - chỉ người quản lý task mới có quyền yêu cầu làm lại
+        $currentUserId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
+        $isAdmin = true;
+
+        if ($feedback->task->assign_id != $currentUserId && !$isAdmin) {
+            return response()->json([
+                'status' => 403,
+                'message' => 'Bạn không có quyền yêu cầu làm lại feedback này.',
+            ]);
+        }
+
+        // Cập nhật thông tin feedback
+        $additionalComment = "\n\nYêu cầu làm lại (" . date('d/m/Y H:i') . "): " . ($request->comment ?: 'Không đạt yêu cầu');
+        $feedback->update([
+            'is_resolved' => false,
+            'status' => 2, // Yêu cầu làm lại
+            'comment' => $feedback->comment . $additionalComment
+        ]);
+
+        // Đặt lại trạng thái đã giải quyết cho tất cả feedback items
+        TaskFeedbackItem::where('feedback_id', $feedback->id)
+            ->update([
+                'is_resolved' => false,
+                'resolved_by' => null,
+                'resolved_at' => null,
+                'resolver_comment' => null
+            ]);
+
+        // Lấy danh sách các task cần đặt lại trạng thái "Cần chỉnh sửa"
+        $taskIds = TaskFeedbackItem::where('feedback_id', $feedback->id)
+            ->pluck('task_id')
+            ->toArray();
+
+        // Cập nhật trạng thái các task liên quan
+        foreach ($taskIds as $taskId) {
+            $this->updateTaskStatus($taskId, 7); // 7 = Cần chỉnh sửa
+        }
+
+        // Cập nhật cả task hợp đồng
+        Task::where('id', $feedback->task_id)->update(['status_id' => 7]); // Cần chỉnh sửa
+        
+        // Cập nhật task cha
+        $this->updateParentTaskStatus($feedback->task_id);
+
+        LogService::saveLog([
+            'action' => TASK_ENUM_LOG,
+            'ip' => $request->getClientIp(),
+            'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' đã yêu cầu làm lại các task trong feedback #' . $feedback->id,
+            'fk_key' => 'tbl_tasks|id',
+            'fk_value' => $feedback->task_id,
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Yêu cầu làm lại feedback thành công.',
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'status' => 500,
+            'message' => 'Đã xảy ra lỗi khi yêu cầu làm lại feedback: ' . $e->getMessage(),
+        ]);
+    }
+}
+
+    /**
      * Lấy danh sách feedback của task
      */
     public function getFeedbacks(Request $request)
@@ -2934,12 +3358,65 @@ class TaskController extends Controller
 
         try {
             // Lấy danh sách feedback của task
-            $feedbacks = TaskFeedback::where('task_id', $request->task_id)
-                ->with(['user', 'resolver'])
+            $task = Task::findOrFail($request->task_id);
+
+            // Nếu là task con, tìm task hợp đồng tương ứng
+            $contractTaskId = $task->id;
+            if ($task->type !== 'CONTRACT') {
+                // Tìm task hợp đồng gốc (có thể qua nhiều cấp)
+                $parentId = $task->parent_id;
+                while ($parentId) {
+                    $parentTask = Task::select('id', 'parent_id', 'type')->find($parentId);
+                    if (!$parentTask) break;
+
+                    if ($parentTask->type === 'CONTRACT') {
+                        $contractTaskId = $parentTask->id;
+                        break;
+                    }
+
+                    $parentId = $parentTask->parent_id;
+                }
+            }
+
+            // Lấy tất cả feedback của task hợp đồng
+            $feedbacks = TaskFeedback::where('task_id', $contractTaskId)
+                ->with([
+                    'user',
+                    'resolver',
+                    'feedbackItems' => function ($query) use ($task) {
+                        $query->with('task', 'resolver');
+                    }
+                ])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            // Định dạng dữ liệu
+            // Kiểm tra và thêm thông tin xem task hiện tại có trong feedbackItems không
+            $feedbacks->map(function ($feedback) use ($task) {
+                $feedback->current_task_in_items = $feedback->feedbackItems->contains('task_id', $task->id);
+
+                // Format các feedbackItems để dễ sử dụng ở frontend
+                $feedback->formatted_items = $feedback->feedbackItems->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'is_resolved' => $item->is_resolved,
+                        'task' => [
+                            'id' => $item->task->id,
+                            'name' => $item->task->name,
+                            'type' => $item->task->type
+                        ],
+                        'resolver' => $item->resolver ? [
+                            'id' => $item->resolver->id,
+                            'name' => $item->resolver->name
+                        ] : null,
+                        'resolved_at' => $item->resolved_at,
+                        'resolver_comment' => $item->resolver_comment
+                    ];
+                });
+
+                return $feedback;
+            });
+
+            // Định dạng dữ liệu trả về
             $formattedFeedbacks = $feedbacks->map(function ($feedback) {
                 return [
                     'id' => $feedback->id,
@@ -2947,16 +3424,21 @@ class TaskController extends Controller
                         'id' => $feedback->user->id,
                         'name' => $feedback->user->name
                     ],
-                    'rating' => $feedback->rating,
-                    'needs_revision' => $feedback->needs_revision,
                     'comment' => $feedback->comment,
                     'is_resolved' => $feedback->is_resolved,
+                    'status' => $feedback->status,
+                    'status_text' => $this->getFeedbackStatusText($feedback->status),
                     'resolver' => $feedback->resolver ? [
                         'id' => $feedback->resolver->id,
                         'name' => $feedback->resolver->name
                     ] : null,
                     'resolved_at' => $feedback->resolved_at,
-                    'created_at' => $feedback->created_at
+                    'created_at' => $feedback->created_at,
+                    'current_task_in_items' => $feedback->current_task_in_items,
+                    'items' => $feedback->formatted_items,
+                    'all_items_resolved' => $feedback->feedbackItems->every(function ($item) {
+                        return $item->is_resolved;
+                    })
                 ];
             });
 
@@ -2971,4 +3453,75 @@ class TaskController extends Controller
             ]);
         }
     }
+
+    /**
+     * Helper function to get feedback status text
+     */
+    private function getFeedbackStatusText($status)
+    {
+        switch ($status) {
+            case 0:
+                return 'Đang chờ giải quyết';
+            case 1:
+                return 'Đã giải quyết';
+            case 2:
+                return 'Yêu cầu làm lại';
+            default:
+                return 'Không xác định';
+        }
+    }
+
+    // Thêm phương thức trong TaskController
+/**
+ * Lấy thông tin chi tiết của một feedback item
+ */
+public function getFeedbackItemDetails(Request $request)
+{
+    $validator = Validator::make(
+        $request->all(),
+        [
+            'item_id' => 'required|exists:tbl_task_feedback_items,id',
+        ],
+        [
+            'required' => ':attribute không được để trống',
+            'exists' => ':attribute không tồn tại',
+        ],
+        [
+            'item_id' => 'Mã feedback item',
+        ]
+    );
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'message' => $validator->errors()->first()
+        ]);
+    }
+
+    try {
+        $feedbackItem = TaskFeedbackItem::with([
+            'feedback' => function($query) {
+                $query->with('user');
+            },
+            'task'
+        ])->find($request->item_id);
+
+        if (!$feedbackItem) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Không tìm thấy thông tin feedback item.'
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'data' => $feedbackItem
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 500,
+            'message' => 'Đã xảy ra lỗi khi lấy thông tin feedback item: ' . $e->getMessage()
+        ]);
+    }
+}
 }

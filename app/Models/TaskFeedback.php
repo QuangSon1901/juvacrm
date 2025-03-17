@@ -8,46 +8,41 @@ class TaskFeedback extends Model
     protected $table = 'tbl_task_feedbacks';
     
     protected $fillable = [
-        'task_id',
-        'user_id',
-        'rating',
-        'needs_revision',
-        'comment',
-        'is_resolved',
-        'resolved_by',
-        'resolved_at',
-        'severity_level', // Thêm mức độ nghiêm trọng (1-3)
-        'affects_child_tasks', // Có ảnh hưởng các task con không
-        'specific_child_tasks', // Lưu mảng các task con cụ thể cần sửa (JSON)
-        'revision_type' // Loại chỉnh sửa: minor, normal, major
+        'task_id',      // ID của task hợp đồng
+        'user_id',      // Người tạo feedback (sale/quản lý)
+        'comment',      // Nội dung feedback
+        'is_resolved',  // Đã giải quyết chưa?
+        'resolved_by',  // Người xác nhận đã giải quyết
+        'resolved_at',  // Thời điểm xác nhận giải quyết
+        'status'        // Trạng thái: 0-Đang chờ, 1-Đã giải quyết, 2-Yêu cầu làm lại
     ];
 
     protected $casts = [
-        'needs_revision' => 'boolean',
         'is_resolved' => 'boolean',
         'resolved_at' => 'datetime',
-        'specific_child_tasks' => 'array'
     ];
 
-    // Quan hệ
+    // Quan hệ với Task
     public function task()
     {
         return $this->belongsTo(Task::class);
     }
 
+    // Quan hệ với User tạo feedback
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    // Quan hệ với User xác nhận giải quyết
     public function resolver()
     {
         return $this->belongsTo(User::class, 'resolved_by');
     }
 
-    // Thêm các responses/replies cho feedback
-    public function responses()
+    // Các task cần sửa trong feedback này
+    public function feedbackItems()
     {
-        return $this->hasMany(TaskFeedbackResponse::class, 'feedback_id');
+        return $this->hasMany(TaskFeedbackItem::class, 'feedback_id');
     }
 }

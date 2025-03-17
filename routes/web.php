@@ -229,10 +229,15 @@ Route::group(
                         Route::get('/task/task-missions', [TaskController::class, 'getTaskMissions'])->name('get-task-missions');
                         Route::post('/task/report-mission', [TaskController::class, 'reportMission'])->name('report-mission');
                         Route::post('/task/delete-mission-report', [TaskController::class, 'deleteMissionReport'])->name('delete-mission-report');
-                        Route::get('/task/feedbacks', [TaskController::class, 'getFeedbacks'])->name('get-feedbacks');
-                        Route::post('/task/add-feedback', [TaskController::class, 'addFeedback'])->name('add-feedback');
-                        Route::post('/task/resolve-feedback', [TaskController::class, 'resolveFeedback'])->name('resolve-feedback');
-                        
+
+                        Route::get('/task/show-feedback-form', [TaskController::class, 'showFeedbackForm']);
+                        Route::get('/task/feedbacks', [TaskController::class, 'getFeedbacks']);
+                        Route::post('/task/add-feedback', [TaskController::class, 'addFeedback']);
+                        Route::post('/task/resolve-feedback-item', [TaskController::class, 'resolveFeedbackItem']);
+                        Route::post('/task/confirm-feedback-resolved', [TaskController::class, 'confirmFeedbackResolved']);
+                        Route::post('/task/request-feedback-revision', [TaskController::class, 'requestFeedbackRevision']);
+                        Route::get('/task/feedback-item-details', [TaskController::class, 'getFeedbackItemDetails']);
+
                         Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
                     }
                 );

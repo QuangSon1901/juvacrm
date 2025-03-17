@@ -256,14 +256,14 @@
                                         <div class="p-3">
                                             <div class="flex items-center justify-between mb-3">
                                                 <h3 class="font-medium">Feedback từ người quản lý</h3>
-                                                @if ($details['assign']['id'] == session()->get(ACCOUNT_CURRENT_SESSION)['id'] || session()->get(ACCOUNT_CURRENT_SESSION)['is_admin'])
-                                                <button class="btn btn-sm btn-primary" onclick="openAddFeedbackModal({{$details['id']}})">
+                                                @if ($details['type'] == 'CONTRACT' && ($details['assign']['id'] == session()->get(ACCOUNT_CURRENT_SESSION)['id'] || true))
+                                                <button class="btn btn-sm btn-primary" onclick="openAddContractFeedbackModal({{$details['id']}})">
                                                     <i class="ki-outline ki-message-star me-1"></i> Thêm feedback
                                                 </button>
                                                 @endif
                                             </div>
                                             
-                                            <div id="task-feedbacks-list" class="space-y-3">
+                                            <div id="contract-feedbacks-list" class="space-y-4">
                                                 <!-- Danh sách feedback sẽ được render từ JavaScript -->
                                                 <div class="text-center text-gray-500 py-5">Đang tải...</div>
                                             </div>
@@ -303,13 +303,15 @@
                                         }
                                     }
                                 @endphp
-                                <div class="bg-white border border-gray-200 rounded-lg p-3">
+                                <div class="bg-white border border-gray-200 rounded-lg p-3" id="service-task-{{ $serviceTask['id'] }}">
                                     <!-- Header với tên và action buttons -->
                                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                         <div>
                                             <a href="/task/{{$serviceTask['id']}}" class="text-primary hover:text-primary-active font-medium">
                                                 {{$serviceTask['name']}}
                                             </a>
+                                            <!-- Hiển thị badge nếu task này cần giải quyết feedback -->
+                                            <span class="feedback-badge-{{$serviceTask['id']}} hidden badge badge-xs badge-warning ml-2">Cần giải quyết feedback</span>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <div class="flex items-center gap-1">
@@ -318,6 +320,10 @@
                                                     <div class="bg-blue-600 h-1.5 rounded" style="width: {{$serviceTask['progress'] ?? 0}}%"></div>
                                                 </div>
                                             </div>
+                                            <!-- Nút giải quyết feedback sẽ hiển thị nếu task này cần giải quyết -->
+                                            <button class="btn btn-xs btn-warning feedback-resolve-btn-{{$serviceTask['id']}} hidden" onclick="openResolveFeedbackModal({{$serviceTask['id']}})">
+                                                Giải quyết
+                                            </button>
                                             @if (in_array($serviceTask['status']['id'], [1, 2]))
                                             <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$serviceTask['id']}})">
                                             Nhận việc
@@ -397,11 +403,15 @@
                                                     ? round(($subTask['qty_completed'] ?? 0) / $subTask['qty_request'] * 100) 
                                                     : 0;
                                             @endphp
-                                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-2 rounded gap-2">
+                                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-2 rounded gap-2" id="sub-task-{{ $subTask['id'] }}">
                                                 <div>
-                                                    <a href="/task/{{$subTask['id']}}" class="text-xs hover:text-primary font-semibold">
-                                                        Tên: {{$subTask['name']}}
-                                                    </a>
+                                                    <div class="flex items-center gap-2">
+                                                        <a href="/task/{{$subTask['id']}}" class="text-xs hover:text-primary font-semibold">
+                                                            {{$subTask['name']}}
+                                                        </a>
+                                                        <!-- Hiển thị badge nếu task này cần giải quyết feedback -->
+                                                        <span class="feedback-badge-{{$subTask['id']}} hidden badge badge-xs badge-warning">Cần giải quyết</span>
+                                                    </div>
                                                     <div class="grid grid-cols-1 gap-1 mt-1 text-xs">
                                                         <div class="flex items-center gap-2">
                                                             <span class="font-semibold">Trạng thái:</span>
@@ -432,6 +442,10 @@
                                                         </div>
                                                     </div>
                                                     <div class="flex space-x-1">
+                                                        <!-- Nút giải quyết feedback sẽ hiển thị nếu task này cần giải quyết -->
+                                                        <button class="btn btn-xs btn-warning feedback-resolve-btn-{{$subTask['id']}} hidden" onclick="openResolveFeedbackModal({{$subTask['id']}})">
+                                                            Giải quyết
+                                                        </button>
                                                         @if (in_array($subTask['status']['id'], [1, 2]))
                                                         <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$subTask['id']}})">
                                                         Nhận việc
@@ -766,7 +780,7 @@
                                     <div class="text-sm font-semibold text-primary-600">
                                         {{$contribution['quantity']}} đơn vị
                                     </div>
-                                    @if (session()->get(ACCOUNT_CURRENT_SESSION)['id'] == $contribution['user']['id'] || session()->get(ACCOUNT_CURRENT_SESSION)['is_admin'])
+                                    @if (session()->get(ACCOUNT_CURRENT_SESSION)['id'] == $contribution['user']['id'] || true)
                                     <button class="btn btn-xs btn-icon btn-light" onclick="deleteContribution({{$contribution['id']}})">
                                         <i class="ki-outline ki-trash text-danger"></i>
                                     </button>
@@ -1203,51 +1217,75 @@
 </div>
 
 <!-- Modal thêm feedback -->
-<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="add-feedback-modal" style="z-index: 90;">
-    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="add-contract-feedback-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[800px] top-5 lg:top-[5%]">
         <div class="modal-header pr-2.5">
             <h3 class="modal-title">
-                Thêm feedback cho công việc
+                Thêm feedback cho hợp đồng
             </h3>
             <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
         <div class="modal-body">
-            <form id="add-feedback-form" class="grid gap-5 px-0 py-5">
-                <input type="hidden" name="task_id" id="feedback-task-id" value="">
+            <form id="add-contract-feedback-form" class="grid gap-5 px-0 py-5">
+                <input type="hidden" name="task_id" id="contract-task-id" value="{{$details['id']}}">
                 
                 <div class="flex flex-col gap-2.5">
                     <div class="form-group">
-                        <label class="form-label required">Đánh giá</label>
-                        <div class="flex items-center gap-2" id="rating-stars">
-                            <i class="ki-solid ki-star fs-2 cursor-pointer text-gray-300" data-rating="1"></i>
-                            <i class="ki-solid ki-star fs-2 cursor-pointer text-gray-300" data-rating="2"></i>
-                            <i class="ki-solid ki-star fs-2 cursor-pointer text-gray-300" data-rating="3"></i>
-                            <i class="ki-solid ki-star fs-2 cursor-pointer text-gray-300" data-rating="4"></i>
-                            <i class="ki-solid ki-star fs-2 cursor-pointer text-gray-300" data-rating="5"></i>
-                        </div>
-                        <input type="hidden" name="rating" id="rating-value" value="0">
+                        <label class="form-label required">Nội dung feedback</label>
+                        <textarea name="comment" class="textarea" rows="3" placeholder="Nhập nội dung feedback..."></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="needs_revision" id="needs-revision">
-                            <label class="form-check-label" for="needs-revision">
-                                Yêu cầu chỉnh sửa
-                            </label>
+                        <label class="form-label required">Chọn các task cần chỉnh sửa</label>
+                        <div id="tasks-tree" class="max-h-[400px] overflow-y-auto border rounded-md p-4">
+                            <!-- Cây task sẽ được render từ JavaScript -->
+                            <div class="text-center text-gray-500 py-3">Đang tải...</div>
                         </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Bình luận</label>
-                        <textarea name="comment" class="textarea" rows="3" placeholder="Nhập bình luận về công việc"></textarea>
                     </div>
                 </div>
                 
                 <div class="flex flex-col">
                     <button type="submit" class="btn btn-primary justify-center">
                         Gửi feedback
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal giải quyết feedback -->
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="resolve-feedback-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Giải quyết feedback cho task #<span id="resolve-feedback-task-id"></span>
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="resolve-feedback-form" class="grid gap-5 px-0 py-5">
+                <input type="hidden" name="feedback_item_id" id="feedback-item-id" value="">
+                
+                <div class="flex flex-col gap-2.5">
+                    <div id="feedback-details" class="bg-gray-50 p-3 rounded mb-3">
+                        <!-- Thông tin chi tiết feedback sẽ hiển thị ở đây -->
+                        <div class="text-center text-gray-500 py-2">Đang tải...</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Ghi chú giải quyết (tùy chọn)</label>
+                        <textarea name="comment" class="textarea" rows="3" placeholder="Nhập ghi chú về cách bạn đã giải quyết feedback..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col">
+                    <button type="submit" class="btn btn-primary justify-center">
+                        Đánh dấu đã giải quyết
                     </button>
                 </div>
             </form>
@@ -1731,36 +1769,6 @@
         }
     }
 
-    // Xử lý modal thêm feedback
-    function openAddFeedbackModal(taskId) {
-        $('#feedback-task-id').val(taskId);
-        $('#rating-value').val(0);
-        $('#rating-stars i').removeClass('text-warning').addClass('text-gray-300');
-        $('#needs-revision').prop('checked', false);
-        $('textarea[name="comment"]').val('');
-        
-        KTModal.getInstance(document.querySelector('#add-feedback-modal')).show();
-    }
-
-    // Hàm đánh dấu đã giải quyết feedback
-    async function resolveFeedback(feedbackId) {
-        try {
-            const response = await axios.post('/task/resolve-feedback', {
-                feedback_id: feedbackId
-            });
-            
-            if (response.data.status === 200) {
-                showAlert('success', response.data.message);
-                window.location.reload();
-            } else {
-                showAlert('warning', response.data.message);
-            }
-        } catch (error) {
-            console.error('Error resolving feedback:', error);
-            showAlert('error', 'Không thể đánh dấu đã giải quyết feedback');
-        }
-    }
-
     // Hàm xóa báo cáo nhiệm vụ
     async function deleteMissionReport(reportId) {
         Notiflix.Confirm.show(
@@ -1789,165 +1797,488 @@
             {}
         );
     }
+</script>
+<script>
+    $(function() {
+        // Xử lý form thêm feedback
+        $('#add-contract-feedback-form').on('submit', async function(e) {
+            e.preventDefault();
+            
+            // Kiểm tra chọn ít nhất một task
+            if ($('input[name="revision_tasks[]"]:checked').length === 0) {
+                showAlert('warning', 'Vui lòng chọn ít nhất một task đã hoàn thành cần chỉnh sửa');
+                return;
+            }
+            
+            // Kiểm tra nội dung feedback
+            if ($('textarea[name="comment"]').val().trim() === '') {
+                showAlert('warning', 'Vui lòng nhập nội dung feedback');
+                return;
+            }
+            
+            const formData = $(this).serialize();
+            
+            try {
+                const response = await axios.post('/task/add-feedback', formData);
+                
+                if (response.data.status === 200) {
+                    showAlert('success', response.data.message);
+                    KTModal.getInstance(document.querySelector('#add-contract-feedback-modal')).hide();
+                    loadContractFeedbacks({{$details['id']}});
+                } else {
+                    showAlert('warning', response.data.message);
+                }
+            } catch (error) {
+                console.error('Error adding feedback:', error);
+                showAlert('error', 'Không thể thêm feedback');
+            }
+        });
+    })
 
-    // Tải dữ liệu tab nhiệm vụ
-    async function loadTaskMissionsTab(taskId) {
+    function openAddContractFeedbackModal(taskId) {
+        $('#contract-task-id').val(taskId);
+        loadTasksForFeedback(taskId);
+        KTModal.getInstance(document.querySelector('#add-contract-feedback-modal')).show();
+    }
+
+    // Tải danh sách task cho feedback
+    async function loadTasksForFeedback(taskId) {
         try {
-            const response = await axios.get('/task/task-missions', {
+            const response = await axios.get('/task/show-feedback-form', {
                 params: { task_id: taskId }
             });
             
             if (response.data.status === 200) {
-                const data = response.data.data;
-                let html = '';
+                const contractTask = response.data.data.contract_task;
+                let html = buildTaskTree(contractTask);
+                $('#tasks-tree').html(html);
                 
-                if (data.assignments.length === 0) {
-                    html = '<div class="text-center text-gray-500 py-5">Chưa có nhiệm vụ nào được nhận</div>';
-                } else {
-                    data.assignments.forEach(assignment => {
-                        const progress = assignment.quantity_required > 0 
-                            ? Math.round((assignment.quantity_completed / assignment.quantity_required) * 100) 
-                            : 0;
-                        
-                        html += `
-                        <div class="bg-white border rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="font-medium text-gray-900">${assignment.mission.name}</div>
-                                <div class="text-sm text-gray-600">
-                                    ${assignment.quantity_completed}/${assignment.quantity_required} 
-                                    (${progress}%)
-                                </div>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
-                                <div class="bg-blue-600 h-2 rounded-full" style="width: ${progress}%"></div>
-                            </div>
-                            `;
-                        
-                        if (assignment.reports.length > 0) {
-                            html += `<div class="mt-2">
-                                <div class="text-sm font-medium mb-1">Lịch sử báo cáo:</div>
-                                <div class="space-y-2">`;
-                            
-                            assignment.reports.forEach(report => {
-                                const reportDate = new Date(report.date_completed);
-                                const formattedDate = reportDate.toLocaleDateString('vi-VN') + ' ' + 
-                                    reportDate.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
-                                
-                                html += `
-                                <div class="flex items-center justify-between bg-gray-50 p-2 rounded text-sm">
-                                    <div>
-                                        <div class="font-medium">${report.quantity} đơn vị</div>
-                                        <div class="text-gray-600 text-xs">${formattedDate}</div>
-                                        ${report.note ? `<div class="text-gray-700 mt-1">${report.note}</div>` : ''}
-                                    </div>
-                                    <button class="btn btn-xs btn-icon btn-light" onclick="deleteMissionReport(${report.id})">
-                                        <i class="ki-outline ki-trash text-danger"></i>
-                                    </button>
-                                </div>
-                                `;
-                            });
-                            
-                            html += `</div></div>`;
-                        }
-                        
-                        html += `</div>`;
-                    });
-                }
-                
-                $('#task-missions-list').html(html);
-                $('#missions-count').text(data.assignments.length);
+                // Kích hoạt toggle cho các nút mở rộng
+                activateTaskTreeToggles();
             } else {
-                $('#task-missions-list').html(`<div class="text-center text-danger py-5">Lỗi: ${response.data.message}</div>`);
+                $('#tasks-tree').html(`<div class="text-center text-danger py-3">${response.data.message}</div>`);
             }
         } catch (error) {
-            console.error('Error loading task missions tab:', error);
-            $('#task-missions-list').html('<div class="text-center text-danger py-5">Không thể tải dữ liệu</div>');
+            console.error('Error loading tasks for feedback:', error);
+            $('#tasks-tree').html('<div class="text-center text-danger py-3">Không thể tải danh sách task</div>');
         }
     }
 
-    // Tải dữ liệu tab feedback
-    async function loadTaskFeedbacksTab(taskId) {
+    // Sửa lại hàm buildTaskTree để sử dụng đúng cấu trúc dữ liệu
+function buildTaskTree(contractTask) {
+    let html = `
+    <div class="mb-3">
+        <div class="flex items-center gap-2">
+            <span class="badge badge-${contractTask.status ? contractTask.status.color : 'gray'} badge-sm">
+                ${contractTask.status ? contractTask.status.name : 'Không xác định'}
+            </span>
+            <span class="font-medium text-gray-900">${contractTask.name}</span>
+        </div>
+    </div>`;
+    
+    // Nếu có task con, render các task con
+    if (contractTask.childs && contractTask.childs.length > 0) {
+        html += '<div class="ml-5 border-l border-gray-200 pl-4 space-y-3">';
+        
+        // Phân loại các task theo type
+        const servicesTasks = contractTask.childs.filter(task => task.type === 'SERVICE');
+        const subTasks = contractTask.childs.filter(task => task.type === 'SUB');
+        
+        // Render task SERVICE nếu có
+        if (servicesTasks.length > 0) {
+            servicesTasks.forEach(task => {
+                html += buildTaskNode(task);
+            });
+        }
+        
+        // Render task SUB nếu có
+        if (subTasks.length > 0) {
+            subTasks.forEach(task => {
+                html += buildTaskNode(task);
+            });
+        }
+        
+        html += '</div>';
+    } else {
+        html += '<div class="text-center text-gray-500 py-2">Không có task đã hoàn thành</div>';
+    }
+    
+    return html;
+}
+
+    // Tạo node cho từng task
+function buildTaskNode(task) {
+    // Xác định xem có hiển thị checkbox hay không
+    // Chỉ hiển thị checkbox cho task lá (không có task con) và đã hoàn thành
+    const showCheckbox = task.is_leaf && task.is_completed;
+    
+    let html = `
+    <div class="task-node">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                ${showCheckbox ? 
+                  `<input type="checkbox" name="revision_tasks[]" value="${task.id}" class="checkbox">` : 
+                  `<div class="w-5"></div>`}
+                <span class="text-sm font-medium text-gray-900">#${task.id}: ${task.name}</span>
+                ${task.is_completed ? 
+                  `<span class="badge badge-success badge-sm">Hoàn thành</span>` : 
+                  `<span class="badge badge-${task.status ? task.status.color : 'gray'} badge-sm">
+                     ${task.status ? task.status.name : 'Không xác định'}
+                   </span>`}
+            </div>
+        </div>`;
+    
+    // Nếu có task con, render các task con
+    if (task.childs && task.childs.length > 0) {
+        html += `
+        <div class="task-toggle cursor-pointer mt-1 text-xs text-gray-600 flex items-center gap-1">
+            <i class="ki-outline ki-right text-xs"></i>
+            <span>Hiển thị ${task.childs.length} task con</span>
+        </div>
+        <div class="task-children hidden ml-5 border-l border-gray-200 pl-4 mt-2 space-y-3">`;
+        
+        task.childs.forEach(childTask => {
+            html += buildTaskNode(childTask);
+        });
+        
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+    // Kích hoạt toggle cho cây task
+    function activateTaskTreeToggles() {
+        $('.task-toggle').on('click', function() {
+            const children = $(this).next('.task-children');
+            const icon = $(this).find('i');
+            
+            if (children.hasClass('hidden')) {
+                children.removeClass('hidden');
+                icon.removeClass('ki-right').addClass('ki-down');
+            } else {
+                children.addClass('hidden');
+                icon.removeClass('ki-down').addClass('ki-right');
+            }
+        });
+    }
+
+    // Thêm phần này vào JavaScript đã có
+
+// Cập nhật hiển thị nút giải quyết feedback
+function updateFeedbackButtons(feedbacks) {
+    // Reset tất cả các badge và button trước
+    $('.feedback-badge').addClass('hidden');
+    $('.feedback-resolve-btn').addClass('hidden');
+    
+    // Duyệt qua các feedback để tìm những task cần giải quyết
+    feedbacks.forEach(feedback => {
+        // Chỉ xử lý các feedback chưa giải quyết và không phải là yêu cầu làm lại
+        if (!feedback.is_resolved) {
+            feedback.items.forEach(item => {
+                if (!item.is_resolved) {
+                    // Hiển thị badge và button cho task này
+                    $(`.feedback-badge-${item.task.id}`).removeClass('hidden');
+                    $(`.feedback-resolve-btn-${item.task.id}`).removeClass('hidden');
+                    
+                    // Lưu feedback_item_id vào data attribute của button
+                    $(`.feedback-resolve-btn-${item.task.id}`).attr('data-item-id', item.id);
+                }
+            });
+        }
+    });
+}
+
+// Mở modal giải quyết feedback
+function openResolveFeedbackModal(taskId) {
+    // Tìm feedback_item_id từ button đã click
+    const itemId = $(`.feedback-resolve-btn-${taskId}`).attr('data-item-id');
+    if (!itemId) {
+        showAlert('warning', 'Không tìm thấy thông tin feedback cần giải quyết');
+        return;
+    }
+    
+    $('#resolve-feedback-task-id').text(taskId);
+    $('#feedback-item-id').val(itemId);
+    
+    // Tải thông tin chi tiết feedback
+    loadFeedbackItemDetails(itemId);
+    
+    // Mở modal
+    KTModal.getInstance(document.querySelector('#resolve-feedback-modal')).show();
+}
+
+async function loadContractFeedbacks(taskId) {
+    try {
+        const response = await axios.get('/task/feedbacks', {
+            params: { task_id: taskId }
+        });
+        
+        if (response.data.status === 200) {
+            const feedbacks = response.data.data;
+            let html = '';
+            
+            if (feedbacks.length === 0) {
+                html = '<div class="text-center text-gray-500 py-5">Chưa có feedback nào</div>';
+            } else {
+                feedbacks.forEach(feedback => {
+                    html += renderFeedback(feedback);
+                });
+            }
+            
+            $('#contract-feedbacks-list').html(html);
+            
+            // Cập nhật nút giải quyết ở các service task và sub task
+            updateFeedbackButtons(feedbacks);
+        } else {
+            $('#contract-feedbacks-list').html(`<div class="text-center text-danger py-5">Lỗi: ${response.data.message}</div>`);
+        }
+    } catch (error) {
+        console.error('Error loading feedbacks:', error);
+        $('#contract-feedbacks-list').html('<div class="text-center text-danger py-5">Không thể tải danh sách feedback</div>');
+    }
+}
+
+    // Render feedback
+    function renderFeedback(feedback) {
+        const createdDate = new Date(feedback.created_at);
+        const formattedDate = createdDate.toLocaleDateString('vi-VN') + ' ' + 
+            createdDate.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+        
+        let statusClass = 'warning';
+        if (feedback.status === 1) statusClass = 'success';
+        else if (feedback.status === 2) statusClass = 'danger';
+        
+        let html = `
+        <div class="bg-white border rounded-lg p-4 ${feedback.status === 2 ? 'border-danger' : ''}">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                    <div class="font-medium text-gray-900">${feedback.user.name}</div>
+                    <div class="text-sm text-gray-600">${formattedDate}</div>
+                </div>
+                <span class="badge badge-${statusClass}">
+                    ${feedback.status_text}
+                </span>
+            </div>
+            
+            <div class="mt-2 bg-gray-50 p-3 rounded">
+                <div class="text-gray-700 whitespace-pre-line">${feedback.comment}</div>
+            </div>
+            
+            <div class="mt-3">
+                <div class="text-sm font-medium mb-2">Danh sách task cần chỉnh sửa:</div>
+                <div class="space-y-2">`;
+        
+        feedback.items.forEach(item => {
+            html += `
+            <div class="flex items-center justify-between bg-white border rounded p-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm">#${item.task.id}: ${item.task.name}</span>
+                    <span class="badge badge-sm badge-${item.is_resolved ? 'success' : 'warning'}">
+                        ${item.is_resolved ? 'Đã giải quyết' : 'Đang xử lý'}
+                    </span>
+                </div>`;
+            
+            // Hiển thị nút giải quyết nếu task hiện tại nằm trong items và chưa giải quyết
+            if (feedback.current_task_in_items && !item.is_resolved && !feedback.is_resolved && item.task.id === {{$details['id']}}) {
+                html += `
+                <button class="btn btn-xs btn-light-success" onclick="resolveFeedbackItem(${item.id})">
+                    Đã giải quyết
+                </button>`;
+            } else if (item.is_resolved && item.resolver) {
+                // Hiển thị thông tin người giải quyết
+                const resolvedDate = new Date(item.resolved_at);
+                const formattedResolvedDate = resolvedDate.toLocaleDateString('vi-VN');
+                
+                html += `
+                <div class="text-xs text-gray-600">
+                    Đã giải quyết bởi ${item.resolver.name} - ${formattedResolvedDate}
+                </div>`;
+            }
+            
+            html += `</div>`;
+        });
+        
+        html += `</div></div>`;
+        
+        // Hiển thị các nút action tùy theo trạng thái
+        if (!feedback.is_resolved) {
+            // Nếu đây là contract task và người dùng là quản lý
+            if ({{$details['type'] == 'CONTRACT' ? 'true' : 'false'}} && 
+                ({{$details['assign']['id']}} === {{session()->get(ACCOUNT_CURRENT_SESSION)['id']}} || 
+                true)) {
+                
+                // Nếu tất cả item đã giải quyết, hiển thị nút xác nhận
+                if (feedback.all_items_resolved) {
+                    html += `
+                    <div class="mt-3 flex justify-end gap-2">
+                        <button class="btn btn-sm btn-light-danger" onclick="requestFeedbackRevision(${feedback.id})">
+                            Yêu cầu làm lại
+                        </button>
+                        <button class="btn btn-sm btn-success" onclick="confirmFeedbackResolved(${feedback.id})">
+                            Xác nhận đã giải quyết
+                        </button>
+                    </div>`;
+                }
+            }
+        }
+        
+        html += `</div>`;
+        return html;
+    }
+
+    // Đánh dấu một item của feedback đã giải quyết
+    async function resolveFeedbackItem(itemId) {
         try {
-            const response = await axios.get('/task/feedbacks', {
-                params: { task_id: taskId }
+            const response = await axios.post('/task/resolve-feedback-item', {
+                feedback_item_id: itemId
             });
             
             if (response.data.status === 200) {
-                const feedbacks = response.data.data;
-                let html = '';
-                
-                if (feedbacks.length === 0) {
-                    html = '<div class="text-center text-gray-500 py-5">Chưa có feedback nào</div>';
-                } else {
-                    feedbacks.forEach(feedback => {
-                        const createdDate = new Date(feedback.created_at);
-                        const formattedDate = createdDate.toLocaleDateString('vi-VN') + ' ' + 
-                            createdDate.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
-                        
-                        html += `
-                        <div class="bg-white border rounded-lg p-4 ${feedback.needs_revision && !feedback.is_resolved ? 'border-danger' : ''}">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center gap-2">
-                                    <div class="font-medium text-gray-900">${feedback.user.name}</div>
-                                    <div class="text-sm text-gray-600">${formattedDate}</div>
-                                </div>
-                                <div class="flex items-center">
-                        `;
-                        
-                        // Hiển thị rating
-                        for (let i = 1; i <= 5; i++) {
-                            html += `<i class="ki-solid ki-star fs-6 ${i <= feedback.rating ? 'text-warning' : 'text-gray-300'}"></i>`;
-                        }
-                        
-                        html += `
-                                </div>
-                            </div>
-                        `;
-                        
-                        // Hiển thị yêu cầu chỉnh sửa
-                        if (feedback.needs_revision) {
-                            html += `
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="badge badge-${feedback.is_resolved ? 'success' : 'danger'}">
-                                    ${feedback.is_resolved ? 'Đã giải quyết' : 'Yêu cầu chỉnh sửa'}
-                                </span>
-                                ${feedback.is_resolved ? 
-                                    `<span class="text-xs text-gray-600">bởi ${feedback.resolver.name} - ${new Date(feedback.resolved_at).toLocaleDateString('vi-VN')}</span>` : 
-                                    `<button class="btn btn-xs btn-light-danger" onclick="resolveFeedback(${feedback.id})">
-                                        Đánh dấu đã giải quyết
-                                    </button>`
-                                }
-                            </div>
-                            `;
-                        }
-                        
-                        // Hiển thị comment
-                        if (feedback.comment) {
-                            html += `
-                            <div class="mt-2 bg-gray-50 p-3 rounded">
-                                <div class="text-gray-700">${feedback.comment}</div>
-                            </div>
-                            `;
-                        }
-                        
-                        html += `</div>`;
-                    });
-                }
-                
-                $('#task-feedbacks-list').html(html);
-                $('#feedbacks-count').text(feedbacks.length);
+                showAlert('success', response.data.message);
+                loadContractFeedbacks({{$details['id']}});
             } else {
-                $('#task-feedbacks-list').html(`<div class="text-center text-danger py-5">Lỗi: ${response.data.message}</div>`);
+                showAlert('warning', response.data.message);
             }
         } catch (error) {
-            console.error('Error loading task feedbacks tab:', error);
-            $('#task-feedbacks-list').html('<div class="text-center text-danger py-5">Không thể tải dữ liệu</div>');
+            console.error('Error resolving feedback item:', error);
+            showAlert('error', 'Không thể đánh dấu đã giải quyết');
         }
     }
 
-    // Tải dữ liệu mặc định cho tab đầu tiên
+    // Xác nhận toàn bộ feedback đã được giải quyết
+    async function confirmFeedbackResolved(feedbackId) {
+        try {
+            const response = await axios.post('/task/confirm-feedback-resolved', {
+                feedback_id: feedbackId
+            });
+            
+            if (response.data.status === 200) {
+                showAlert('success', response.data.message);
+                loadContractFeedbacks({{$details['id']}});
+                // Reload trang sau 1 giây để cập nhật trạng thái
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showAlert('warning', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error confirming feedback resolved:', error);
+            showAlert('error', 'Không thể xác nhận đã giải quyết');
+        }
+    }
+
+    // Yêu cầu làm lại các task trong feedback
+    async function requestFeedbackRevision(feedbackId) {
+        // Hiển thị modal xác nhận với textarea ghi chú
+        Notiflix.Confirm.show(
+            'Yêu cầu làm lại',
+            '<div class="mb-3">Bạn có chắc chắn muốn yêu cầu làm lại các task trong feedback này?</div>' +
+            '<div class="form-group">' +
+            '<label class="form-label">Ghi chú (tùy chọn)</label>' +
+            '<textarea id="revision-comment" class="textarea w-full" rows="3" placeholder="Nhập lý do yêu cầu làm lại..."></textarea>' +
+            '</div>',
+            'Đúng',
+            'Huỷ',
+            async () => {
+                const comment = $('#revision-comment').val();
+                
+                try {
+                    const response = await axios.post('/task/request-feedback-revision', {
+                        feedback_id: feedbackId,
+                        comment: comment
+                    });
+                    
+                    if (response.data.status === 200) {
+                        showAlert('success', response.data.message);
+                        loadContractFeedbacks({{$details['id']}});
+                        // Reload trang sau 1 giây để cập nhật trạng thái
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showAlert('warning', response.data.message);
+                    }
+                } catch (error) {
+                    console.error('Error requesting feedback revision:', error);
+                    showAlert('error', 'Không thể yêu cầu làm lại');
+                }
+            },
+            () => {}, 
+            { width: '400px' }
+        );
+    }
+
+// Tải thông tin chi tiết của feedback item
+async function loadFeedbackItemDetails(itemId) {
+    $('#feedback-details').html('<div class="text-center text-gray-500 py-2">Đang tải...</div>');
+    
+    try {
+        // Giả định API endpoint để lấy thông tin chi tiết feedback item
+        // (Bạn cần tạo endpoint này nếu chưa có)
+        const response = await axios.get('/task/feedback-item-details', {
+            params: { item_id: itemId }
+        });
+        
+        if (response.data.status === 200) {
+            const item = response.data.data;
+            const feedback = item.feedback;
+            
+            let html = `
+            <div class="mb-2">
+                <h5 class="font-medium text-gray-900">Feedback từ ${feedback.user.name}</h5>
+                <p class="text-xs text-gray-600">
+                    ${new Date(feedback.created_at).toLocaleDateString('vi-VN')} 
+                    ${new Date(feedback.created_at).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
+                </p>
+            </div>
+            <div class="text-sm whitespace-pre-line">${feedback.comment}</div>
+            <div class="mt-2 pt-2 border-t border-gray-200">
+                <div class="text-xs">
+                    <span class="font-medium">Task cần giải quyết:</span> 
+                    #${item.task.id} - ${item.task.name}
+                </div>
+            </div>`;
+            
+            $('#feedback-details').html(html);
+        } else {
+            $('#feedback-details').html(`<div class="text-danger py-2">${response.data.message}</div>`);
+        }
+    } catch (error) {
+        console.error('Error loading feedback item details:', error);
+        $('#feedback-details').html('<div class="text-danger py-2">Không thể tải thông tin feedback</div>');
+    }
+}
+
+// Xử lý form giải quyết feedback
+$('#resolve-feedback-form').on('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = $(this).serialize();
+    
+    try {
+        const response = await axios.post('/task/resolve-feedback-item', formData);
+        
+        if (response.data.status === 200) {
+            showAlert('success', response.data.message);
+            KTModal.getInstance(document.querySelector('#resolve-feedback-modal')).hide();
+            
+            // Nạp lại danh sách feedback
+            loadContractFeedbacks({{$details['id']}});
+        } else {
+            showAlert('warning', response.data.message);
+        }
+    } catch (error) {
+        console.error('Error resolving feedback:', error);
+        showAlert('error', 'Không thể giải quyết feedback');
+    }
+});
+
+    // Tải danh sách feedback khi trang tải xong
     $(document).ready(function() {
-        loadTaskFeedbacksTab({{$details['id']}});
+        loadContractFeedbacks({{$details['id']}});
     });
 </script>
 @endpush

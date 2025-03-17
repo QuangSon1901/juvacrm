@@ -174,6 +174,14 @@ class Task extends Model
     }
 
     /**
+     * Lấy thông tin các công việc con
+     */
+    public function children()
+    {
+        return $this->hasMany(Task::class, 'parent_id')->where('is_active', 1);
+    }
+
+    /**
      * Lấy thông tin bình luận
      */
     public function comments()
@@ -230,6 +238,14 @@ class Task extends Model
     public function feedbacks()
     {
         return $this->hasMany(TaskFeedback::class, 'task_id');
+    }
+
+    public function assignedTasks()
+    {
+        return $this->hasMany(Task::class, 'parent_id')
+                    ->where('is_active', 1)
+                    ->where('status_id', 4) // Chỉ lấy các task đã hoàn thành
+                    ->whereDoesntHave('children'); // Không có task con nào (task mức thấp nhất)
     }
 
     /**
