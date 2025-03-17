@@ -1,9 +1,7 @@
 @extends('dashboard.layouts.layout')
 @section('dashboard_content')
-<!-- PHẦN 1: HEADER THÔNG TIN CÔNG VIỆC -->
 <div class="pb-5">
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
-        <!-- Tiêu đề công việc -->
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
                 Thông tin công việc
@@ -12,8 +10,6 @@
                 @endif
             </h1>
         </div>
-        
-        <!-- Nút hành động chính -->
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
             @if (in_array($details['type'], ['SERVICE', 'SUB']) && in_array($details['status']['id'], [1, 2]))
             <button class="btn btn-sm btn-primary" onclick="openClaimTaskModal({{$details['id']}})">
@@ -31,14 +27,10 @@
         </div>
     </div>
 </div>
-
-<!-- PHẦN 2: NỘI DUNG CHÍNH -->
 <div class="container-fixed">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <!-- CỘT TRÁI (2/3): Thông tin chi tiết công việc -->
         <div class="col-span-1 lg:col-span-2">
             <div class="grid gap-5">
-                <!-- Thẻ thông tin công việc chính -->
                 <div class="card">
                     <div class="card-header flex-wrap gap-2">
                         <h3 class="card-title flex items-center gap-2">
@@ -54,8 +46,6 @@
                             </span>
                             @endif
                         </h3>
-                        
-                        <!-- Menu dropdown cho hành động phụ -->
                         <div class="menu" data-menu="true">
                             <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
                                 <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
@@ -76,10 +66,7 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Nội dung chi tiết công việc -->
                     <div class="card-body lg:py-7.5 grid gap-5">
-                        <!-- Cảnh báo quá hạn nếu có -->
                         @php
                         use Carbon\Carbon;
                         $now = Carbon::now();
@@ -95,8 +82,6 @@
                             </div>
                         </div>
                         @endif
-
-                        <!-- Tiêu đề công việc với nút chỉnh sửa -->
                         <div class="flex items-center justify-between grow border border-gray-200 rounded-xl gap-2 p-5">
                             <div class="flex flex-col lg:flex-row items-center gap-4">
                                 @include("dashboard.layouts.icons.user")
@@ -128,12 +113,8 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Thông tin trạng thái và tiến độ -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                            <!-- Cột trái: Thông tin trạng thái -->
                             <div class="flex flex-col gap-5">
-                                <!-- Trạng thái -->
                                 <div class="flex flex-col gap-5">
                                     <div class="checkbox-group">
                                         <span class="checkbox-label text-gray-800 !font-bold">
@@ -146,8 +127,6 @@
                                         @endif
                                     </div>
                                 </div>
-                                
-                                <!-- Độ ưu tiên -->
                                 <div class="flex flex-col gap-5">
                                     <div class="checkbox-group">
                                         <span class="checkbox-label text-gray-800 !font-bold">
@@ -163,8 +142,6 @@
                                         </button>
                                     </div>
                                 </div>
-                                
-                                <!-- Người quản lý (nếu là hợp đồng) -->
                                 @if ($details['type'] == 'CONTRACT')
                                 <div class="flex flex-col gap-5">
                                     <div class="checkbox-group">
@@ -185,10 +162,7 @@
                                 </div>
                                 @endif
                             </div>
-                            
-                            <!-- Cột phải: Thông tin thời hạn và tiến độ -->
                             <div class="flex flex-col gap-5">
-                                <!-- Hạn chót -->
                                 <div class="flex flex-col gap-5">
                                     <div class="checkbox-group">
                                         <span class="checkbox-label text-gray-800 !font-bold">
@@ -206,8 +180,6 @@
                                         </button>
                                     </div>
                                 </div>
-                                
-                                <!-- Tiến độ hoàn thành -->
                                 <div class="flex flex-col gap-5">
                                     <div class="checkbox-group">
                                         <span class="checkbox-label text-gray-800 !font-bold">
@@ -222,8 +194,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- Số lượng yêu cầu và hoàn thành -->
                                 <div class="flex flex-col gap-5">
                                     <div class="checkbox-group">
                                         <span class="checkbox-label text-gray-800 !font-bold">
@@ -246,9 +216,6 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Mô tả và ghi chú -->
-                        <!-- Mô tả công việc -->
                         <div class="flex flex-col gap-2.5">
                             <div class="checkbox-group">
                                 <span class="checkbox-label text-gray-800 !font-bold">
@@ -264,8 +231,6 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Ghi chú bổ sung -->
                         <div class="flex flex-col gap-2.5">
                             <div class="checkbox-group">
                                 <span class="checkbox-label text-gray-800 !font-bold">
@@ -282,7 +247,7 @@
                             </div>
                         </div>
 
-                        <!-- PHẦN 3: DANH SÁCH FEEDBACK (nếu là công việc hợp đồng) -->
+                        <!-- Hiển thị danh sách feedback (nếu là công việc hợp đồng) -->
                         @if ($details['type'] == 'CONTRACT')
                         <div class="menu-separator simple"></div>
                         <div class="flex flex-col gap-2.5">
@@ -305,7 +270,7 @@
                         </div>
                         @endif
 
-                        <!-- PHẦN 4: DANH SÁCH CÔNG VIỆC DỊCH VỤ (nếu là công việc hợp đồng) -->
+                        <!-- Hiển thị danh sách công việc dịch vụ (nếu là công việc hợp đồng) -->
                         @if ($details['type'] == 'CONTRACT' && isset($details['service_tasks']))
                         <div class="menu-separator simple"></div>
                         <div class="flex flex-col gap-2.5">
@@ -317,8 +282,6 @@
                                     <span class="badge badge-xs badge-primary badge-outline">{{count($details['service_tasks'])}}</span>
                                 </div>
                             </div>
-                            
-                            <!-- Danh sách các service task -->
                             <div class="flex flex-col gap-3">
                                 @if (count($details['service_tasks']) == 0)
                                 <div class="text-center text-gray-500">Chưa có công việc dịch vụ nào</div>
@@ -337,7 +300,6 @@
                                         }
                                     }
                                 @endphp
-                                <!-- Service task card -->
                                 <div class="bg-white border border-gray-200 rounded-lg p-3" id="service-task-{{ $serviceTask['id'] }}">
                                     <!-- Header với tên và action buttons -->
                                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -345,10 +307,8 @@
                                             <a href="/task/{{$serviceTask['id']}}" class="text-primary hover:text-primary-active font-medium">
                                                 {{$serviceTask['name']}}
                                             </a>
-                                            <!-- Badge cho feedback nếu cần -->
-                                            <span class="feedback-badge-{{$serviceTask['id']}} hidden badge badge-xs badge-warning ml-2">
-                                                Cần giải quyết feedback
-                                            </span>
+                                            <!-- Hiển thị badge nếu task này cần giải quyết feedback -->
+                                            <span class="feedback-badge-{{$serviceTask['id']}} hidden badge badge-xs badge-warning ml-2">Cần giải quyết feedback</span>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <div class="flex items-center gap-1">
@@ -357,11 +317,10 @@
                                                     <div class="bg-blue-600 h-1.5 rounded" style="width: {{$serviceTask['progress'] ?? 0}}%"></div>
                                                 </div>
                                             </div>
-                                            <!-- Nút giải quyết feedback -->
+                                            <!-- Nút giải quyết feedback sẽ hiển thị nếu task này cần giải quyết -->
                                             <button class="btn btn-xs btn-warning feedback-resolve-btn-{{$serviceTask['id']}} hidden" onclick="openResolveFeedbackModal({{$serviceTask['id']}})">
                                                 Giải quyết
                                             </button>
-                                            <!-- Nút nhận việc hoặc báo cáo -->
                                             @if (in_array($serviceTask['status']['id'], [1, 2]))
                                             <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$serviceTask['id']}})">
                                             Nhận việc
@@ -377,7 +336,7 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Thông tin tóm tắt service task -->
+                                    <!-- Thông tin tóm tắt -->
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-xs">
                                         <div class="flex flex-col">
                                             <div class="flex items-center gap-2">
@@ -386,9 +345,7 @@
                                             </div>
                                             <div class="flex items-center gap-2">
                                                 <span class="font-semibold">Trạng thái:</span>
-                                                <span class="badge badge-sm badge-{{$serviceTask['status']['color']}}">
-                                                    {{$serviceTask['status']['name']}}
-                                                </span>
+                                                <span class="badge badge-sm badge-{{$serviceTask['status']['color']}}">{{$serviceTask['status']['name']}}</span>
                                             </div>
                                             <div class="flex items-center gap-2">
                                                 <span class="font-semibold">Số lượng:</span>
@@ -410,15 +367,13 @@
                                             @if ($serviceTask['priority']['id'] != 0)
                                             <div class="flex items-center gap-2">
                                                 <span class="font-semibold">Độ ưu tiên:</span>
-                                                <span class="text-{{$serviceTask['priority']['color']}}">
-                                                    {{$serviceTask['priority']['name']}}
-                                                </span>
+                                                <span class="text-{{$serviceTask['priority']['color']}}">{{$serviceTask['priority']['name']}}</span>
                                             </div>
                                             @endif
                                         </div>
                                     </div>
 
-                                    <!-- Danh sách công việc con của dịch vụ này -->
+                                    <!-- Hiển thị công việc con của dịch vụ này -->
                                     @if (count($serviceTask['sub_tasks']) > 0)
                                     <div class="mt-2 pt-2 border-t border-gray-100">
                                         <div class="flex items-center gap-1 mb-1">
@@ -429,7 +384,6 @@
                                             </button>
                                         </div>
                                         <div id="sub-tasks-{{$serviceTask['id']}}" class="hidden pl-3 space-y-2 mt-2">
-                                            <!-- Danh sách sub-tasks cho service task này -->
                                             @foreach ($serviceTask['sub_tasks'] as $subTask)
                                             @php
                                                 $isSubTaskOverdue = false;
@@ -452,17 +406,13 @@
                                                         <a href="/task/{{$subTask['id']}}" class="text-xs hover:text-primary font-semibold">
                                                             {{$subTask['name']}}
                                                         </a>
-                                                        <!-- Badge feedback nếu cần -->
-                                                        <span class="feedback-badge-{{$subTask['id']}} hidden badge badge-xs badge-warning">
-                                                            Cần giải quyết
-                                                        </span>
+                                                        <!-- Hiển thị badge nếu task này cần giải quyết feedback -->
+                                                        <span class="feedback-badge-{{$subTask['id']}} hidden badge badge-xs badge-warning">Cần giải quyết</span>
                                                     </div>
                                                     <div class="grid grid-cols-1 gap-1 mt-1 text-xs">
                                                         <div class="flex items-center gap-2">
                                                             <span class="font-semibold">Trạng thái:</span>
-                                                            <span class="badge badge-sm badge-{{$subTask['status']['color']}}">
-                                                                {{$subTask['status']['name']}}
-                                                            </span>
+                                                            <span class="badge badge-sm badge-{{$subTask['status']['color']}}">{{$subTask['status']['name']}}</span>
                                                         </div>
                                                         <div class="flex items-center gap-2">
                                                             <span class="font-semibold">Số lượng:</span>
@@ -489,11 +439,10 @@
                                                         </div>
                                                     </div>
                                                     <div class="flex space-x-1">
-                                                        <!-- Nút giải quyết feedback -->
+                                                        <!-- Nút giải quyết feedback sẽ hiển thị nếu task này cần giải quyết -->
                                                         <button class="btn btn-xs btn-warning feedback-resolve-btn-{{$subTask['id']}} hidden" onclick="openResolveFeedbackModal({{$subTask['id']}})">
                                                             Giải quyết
                                                         </button>
-                                                        <!-- Nút nhận việc hoặc báo cáo -->
                                                         @if (in_array($subTask['status']['id'], [1, 2]))
                                                         <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$subTask['id']}})">
                                                         Nhận việc
@@ -532,7 +481,7 @@
                         </div>
                         @endif
 
-                        <!-- PHẦN 5: DANH SÁCH CÔNG VIỆC CON (nếu là công việc dịch vụ) -->
+                        <!-- Hiển thị danh sách công việc con (nếu là công việc dịch vụ) -->
                         @if ($details['type'] == 'SERVICE' && isset($details['sub_tasks']))
                         <div class="menu-separator simple"></div>
                         <div class="flex flex-col gap-2.5">
@@ -549,7 +498,6 @@
                                 <div class="text-center text-gray-500">Chưa có công việc con nào</div>
                                 @endif
 
-                                <!-- Danh sách các sub tasks -->
                                 @foreach ($details['sub_tasks'] as $subTask)
                                 @php
                                     $isOverdue = false;
@@ -581,7 +529,6 @@
                                                     <div class="bg-blue-600 h-1.5 rounded" style="width: {{$subTaskProgress}}%"></div>
                                                 </div>
                                             </div>
-                                            <!-- Nút nhận việc hoặc báo cáo -->
                                             @if (in_array($subTask['status']['id'], [1, 2]))
                                             <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$subTask['id']}})">
                                             Nhận việc
@@ -606,9 +553,7 @@
                                             </div>
                                             <div class="flex items-center gap-2">
                                                 <span class="font-semibold">Trạng thái:</span>
-                                                <span class="badge badge-sm badge-{{$subTask['status']['color']}}">
-                                                    {{$subTask['status']['name']}}
-                                                </span>
+                                                <span class="badge badge-sm badge-{{$subTask['status']['color']}}">{{$subTask['status']['name']}}</span>
                                             </div>
                                             <div class="flex items-center gap-2">
                                                 <span class="font-semibold">Số lượng:</span>
@@ -630,9 +575,7 @@
                                             @if ($subTask['priority']['id'] != 0)
                                             <div class="flex items-center gap-2">
                                                 <span class="font-semibold">Độ ưu tiên:</span>
-                                                <span class="text-{{$subTask['priority']['color']}}">
-                                                    {{$subTask['priority']['name']}}
-                                                </span>
+                                                <span class="text-{{$subTask['priority']['color']}}">{{$subTask['priority']['name']}}</span>
                                             </div>
                                             @endif
                                             @if ($subTask['assign']['id'] != 0)
@@ -648,15 +591,100 @@
                             </div>
                         </div>
                         @endif
+
+                        {{--
+                        <!-- Hiển thị danh sách chỉ mục (cho mục cũ) -->
+                        @if (count($details['childs']) > 0)
+                        <div class="menu-separator simple"></div>
+                        <div class="flex flex-col gap-2.5">
+                            <div class="flex items-center justify-between">
+                                <div class="checkbox-group">
+                                    <span class="checkbox-label text-gray-800 !font-bold">
+                                        Chỉ mục
+                                    </span>
+                                    <span class="badge badge-xs badge-primary badge-outline">{{count($details['childs'])}}</span>
+                                </div>
+                                <button class="btn btn-light btn-xs" data-modal-toggle="#add-sub-task-modal">
+                                    <i class="ki-filled ki-plus"></i>
+                                    Thêm chỉ mục
+                                </button>
+                            </div>
+                            <div class="flex items-center flex-wrap justify-between gap-2.5">
+                                @foreach ($details['childs'] as $subtask)
+                                <div class="relative flex items-center justify-between gap-1 w-full after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[4px] after:h-[78%] after:bg-gray-200 pl-4 hover:bg-gray-50 hover:after:bg-blue-800">
+                                    <div class="flex flex-col">
+                                        <div>
+                                            <a href="/task/{{$subtask['id']}}">
+                                                <span class="checkbox-label font-normal text-primary">#{{$subtask['id']}}:</span>
+                                                <span class="checkbox-label font-semibold hover:text-primary-active">{{$subtask['name']}}</span>
+                                            </a>
+                                        </div>
+                                        <div>
+                                            <span class="checkbox-label font-normal text-gray-700">{{$subtask['qty_completed'] ?? 0}}/{{$subtask['qty_request'] ?? 0}}</span>
+                                            <span>-</span>
+                                            <span class="checkbox-label font-normal text-{{$subtask['status']['color']}}">{{$subtask['status']['name'] ?? '---'}}</span>
+                                            @if ($subtask['priority']['id'] != 0)
+                                            <span>-</span>
+                                            <span class="checkbox-label font-normal text-{{$subtask['priority']['color']}}">{{$subtask['priority']['name']}}</span>
+                                            @endif
+                                            @if ($subtask['due_date'])
+                                            <span>-</span>
+                                            <span class="checkbox-label font-normal">Hạn chót: <span class="font-medium">{{formatDateTime($subtask['due_date'], 'd-m-Y')}}</span></span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="menu" data-menu="true">
+                                        <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                                            <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                                <i class="ki-filled ki-dots-vertical"></i>
+                                            </button>
+                                            <div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true">
+                                                <div class="menu-item">
+                                                    <a class="menu-link" href="/task/{{$subtask['id']}}">
+                                                        <span class="menu-icon">
+                                                            <i class="ki-filled ki-search-list"></i>
+                                                        </span>
+                                                        <span class="menu-title">
+                                                            Xem
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                                <div class="menu-separator"></div>
+                                                <div class="menu-item">
+                                                    <a class="menu-link" href="/task/{{$subtask['id']}}">
+                                                        <span class="menu-icon">
+                                                            <i class="ki-filled ki-pencil"></i>
+                                                        </span>
+                                                        <span class="menu-title">
+                                                            Chỉnh sửa
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                                <div class="menu-item">
+                                                    <button class="menu-link" onclick="postRemoveSubTask({{$subtask['id']}})">
+                                                        <span class="menu-icon">
+                                                            <i class="ki-filled ki-trash"></i>
+                                                        </span>
+                                                        <span class="menu-title">
+                                                            Gỡ
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+                        --}}
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- CỘT PHẢI (1/3): Thông tin bổ sung, đính kèm và bình luận -->
         <div class="col-span-1">
             <div class="grid gap-5">
-                <!-- Thẻ tổng quan -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -666,7 +694,6 @@
                     <div class="card-body">
                         <div class="grid grid-cols-1 gap-5">
                             <div class="flex flex-col gap-5">
-                                <!-- Thông tin hợp đồng -->
                                 <div class="checkbox-group">
                                     <span class="checkbox-label text-gray-800 !font-bold">
                                         Hợp đồng:
@@ -674,17 +701,13 @@
                                     <span class="checkbox-label text-gray-800">
                                         @if ($details['contract']['id'] != 0)
                                         <a href="/contract/{{$details['contract']['id']}}">
-                                            <span class="checkbox-label font-semibold hover:text-primary-active">
-                                                {{$details['contract']['name']}}
-                                            </span>
+                                            <span class="checkbox-label font-semibold hover:text-primary-active">{{$details['contract']['name']}}</span>
                                         </a>
                                         @else
                                         ---
                                         @endif
                                     </span>
                                 </div>
-                                
-                                <!-- Thông tin dịch vụ -->
                                 <div class="checkbox-group">
                                     <span class="checkbox-label text-gray-800 !font-bold">
                                         Dịch vụ:
@@ -700,6 +723,28 @@
                                         @endif
                                     </ul>
                                 </div>
+                                {{--<div class="checkbox-group">
+                                    <span class="checkbox-label text-gray-800 !font-bold">
+                                        Tiền thưởng hoàn thành:
+                                    </span>
+                                    <span class="checkbox-label text-gray-800">
+                                        {{formatCurrency($details['bonus_amount'] ?? 0)}}đ
+                                    </span>
+                                    <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="bonus_amount">
+                                        <i class="ki-filled ki-notepad-edit"></i>
+                                    </button>
+                                </div>
+                                <div class="checkbox-group">
+                                    <span class="checkbox-label text-gray-800 !font-bold">
+                                        Tiền phạt trễ hạn:
+                                    </span>
+                                    <span class="checkbox-label text-gray-800">
+                                        {{formatCurrency($details['deduction_amount'] ?? 0)}}đ
+                                    </span>
+                                    <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="deduction_amount">
+                                        <i class="ki-filled ki-notepad-edit"></i>
+                                    </button>
+                                </div>--}}
                             </div>
                         </div>
                     </div>
@@ -745,7 +790,6 @@
                 </div>
                 @endif
 
-                <!-- Danh sách file đính kèm -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -813,7 +857,6 @@
                     </div>
                 </div>
 
-                <!-- Bình luận -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -848,7 +891,6 @@
                     </div>
                 </div>
 
-                <!-- Lịch sử -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -892,7 +934,6 @@
     </div>
 </div>
 
-<!-- PHẦN 6: MODALS -->
 <!-- Modal cập nhật thông tin -->
 <div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="update-task-modal" style="z-index: 90;">
     <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
@@ -1250,549 +1291,577 @@
 </div>
 @endsection
 
-<!-- PHẦN 7: JAVASCRIPT -->
 @push('scripts')
 <script>
-// PHẦN 1: KHỞI TẠO VÀ THIẾT LẬP CHUNG
-let _descriptionQuill;
+    let _descriptionQuill;
 
-$(function() {
-    // Khởi tạo các modal và thiết lập sự kiện
-    let modalUploadFileTask = document.querySelector('#upload-file-task-modal');
-    let instanceUploadFileTask = KTModal.getInstance(modalUploadFileTask);
+    $(function() {
+        let modalUploadFileTask = document.querySelector('#upload-file-task-modal');
+        let instanceUploadFileTask = KTModal.getInstance(modalUploadFileTask);
 
-    // Xử lý nút cập nhật thông tin
-    $('button[data-modal-toggle="#update-task-modal"][data-name]').on('click', function() {
-        let _this = $(this);
-        let _modal = $('#update-task-modal');
-        _modal.find('input[name], select[name], textarea[name]').val('').addClass('hidden');
-        _modal.find(`input[name=${_this.attr('data-name')}], select[name=${_this.attr('data-name')}], textarea[name=${_this.attr('data-name')}]`).removeClass('hidden');
-    });
+        $('button[data-modal-toggle="#update-task-modal"][data-name]').on('click', function() {
+            let _this = $(this);
+            let _modal = $('#update-task-modal');
+            _modal.find('input[name], select[name], textarea[name]').val('').addClass('hidden');
 
-    // Xử lý nút cập nhật mô tả
-    $('button[data-modal-toggle="#update-description-task-modal"]').on('click', function() {
-        _descriptionQuill.clipboard.dangerouslyPasteHTML("{!! $details['description'] !!}");
-    });
+            _modal.find(`input[name=${_this.attr('data-name')}], select[name=${_this.attr('data-name')}], textarea[name=${_this.attr('data-name')}]`).removeClass('hidden');
+        })
 
-    // Reset form tải file khi đóng modal
-    instanceUploadFileTask.on('hidden', () => {
-        $('#upload-file-task-modal input[name=file]').val('');
-    });
+        $('button[data-modal-toggle="#update-description-task-modal"]').on('click', function() {
+            _descriptionQuill.clipboard.dangerouslyPasteHTML("{!! $details['description'] !!}");
+        })
 
-    // Thiết lập các form submit handlers
-    $('#update-task-modal form').on('submit', function(e) {
-        e.preventDefault();
-        postUpdateTask();
-    });
-
-    $('#comment-task-form').on('submit', function(e) {
-        e.preventDefault();
-        postCommentTask($(this));
-    });
-
-    $('#add-sub-task-modal form').on('submit', function(e) {
-        e.preventDefault();
-        postAddSubTask($(this));
-    });
-
-    $('#upload-file-task-modal form').on('submit', function(e) {
-        e.preventDefault();
-        postUploadFileTask(this);
-    });
-
-    $('#update-description-task-modal form').on('submit', function(e) {
-        e.preventDefault();
-        postUpdateDescriptionTask($(this));
-    });
-
-    $('#report-completion-form').on('submit', function(e) {
-        e.preventDefault();
-        postReportCompletion($(this));
-    });
-
-    // Xử lý form nhận việc
-    $('#claim-task-form').on('submit', async function(e) {
-        e.preventDefault();
-        
-        // Kiểm tra chọn ít nhất một nhiệm vụ
-        if ($('input[name="mission_ids[]"]:checked').length === 0) {
-            showAlert('warning', 'Vui lòng chọn ít nhất một nhiệm vụ');
-            return;
-        }
-        
-        const formData = $(this).serialize();
-        
-        try {
-            const response = await axios.post('/task/claim', formData);
-            if (response.data.status === 200) {
-                showAlert('success', response.data.message);
-                KTModal.getInstance(document.querySelector('#claim-task-modal')).hide();
-                window.location.reload();
-            } else {
-                showAlert('warning', response.data.message);
-            }
-        } catch (error) {
-            console.error('Error claiming task:', error);
-            showAlert('error', 'Không thể nhận việc');
-        }
-    });
-
-    // Xử lý form báo cáo nhiệm vụ
-    $('#report-missions-form').on('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = $(this).serialize();
-        
-        try {
-            const response = await axios.post('/task/report-mission', formData);
-            if (response.data.status === 200) {
-                showAlert('success', response.data.message);
-                KTModal.getInstance(document.querySelector('#report-missions-modal')).hide();
-                window.location.reload();
-            } else {
-                showAlert('warning', response.data.message);
-            }
-        } catch (error) {
-            console.error('Error reporting missions:', error);
-            showAlert('error', 'Không thể báo cáo nhiệm vụ');
-        }
-    });
-
-    // Xử lý form thêm feedback
-    $('#add-contract-feedback-form').on('submit', async function(e) {
-        e.preventDefault();
-        
-        // Kiểm tra chọn ít nhất một task
-        if ($('input[name="revision_tasks[]"]:checked').length === 0) {
-            showAlert('warning', 'Vui lòng chọn ít nhất một task đã hoàn thành cần chỉnh sửa');
-            return;
-        }
-        
-        // Kiểm tra nội dung feedback
-        if ($('textarea[name="comment"]').val().trim() === '') {
-            showAlert('warning', 'Vui lòng nhập nội dung feedback');
-            return;
-        }
-        
-        const formData = $(this).serialize();
-        
-        try {
-            const response = await axios.post('/task/add-feedback', formData);
-            
-            if (response.data.status === 200) {
-                showAlert('success', response.data.message);
-                KTModal.getInstance(document.querySelector('#add-contract-feedback-modal')).hide();
-                loadContractFeedbacks({{$details['id']}});
-            } else {
-                showAlert('warning', response.data.message);
-            }
-        } catch (error) {
-            console.error('Error adding feedback:', error);
-            showAlert('error', 'Không thể thêm feedback');
-        }
-    });
-
-    // Xử lý form giải quyết feedback
-    $('#resolve-feedback-form').on('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = $(this).serialize();
-        
-        try {
-            const response = await axios.post('/task/resolve-feedback-item', formData);
-            
-            if (response.data.status === 200) {
-                showAlert('success', response.data.message);
-                KTModal.getInstance(document.querySelector('#resolve-feedback-modal')).hide();
-                
-                // Nạp lại danh sách feedback
-                loadContractFeedbacks({{$details['id']}});
-            } else {
-                showAlert('warning', response.data.message);
-            }
-        } catch (error) {
-            console.error('Error resolving feedback:', error);
-            showAlert('error', 'Không thể giải quyết feedback');
-        }
-    });
-
-    // Khởi tạo datepicker và editor
-    flatpickrMake($("input[name=due_date]"), 'datetime');
-    _descriptionQuill = quillTemplate("#description_editor", "350px");
-    
-    // Tải danh sách feedback khi trang tải xong
-    loadContractFeedbacks({{$details['id']}});
-});
-
-// PHẦN 2: AJAX POST ACTIONS - CÁC CHỨC NĂNG CẬP NHẬT DỮ LIỆU
-// Cập nhật thông tin task
-async function postUpdateTask() {
-    let field = $('#update-task-modal form').find('input:not(.hidden),select:not(.hidden),textarea:not(.hidden)');
-    let method = "post",
-        url = "/task/update",
-        params = null,
-        data = {
-            id: "{{$details['id']}}",
-            [field.attr('name')]: field.val()
-        };
-    let res = await axiosTemplate(method, url, params, data);
-    switch (res.data.status) {
-        case 200:
-            showAlert('success', res.data.message);
-            window.location.reload();
-            break;
-        default:
-            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-            break;
-    }
-}
-
-// Thêm bình luận task
-async function postCommentTask(_this) {
-    let method = "post",
-        url = "/task/add-comment",
-        params = null,
-        data = _this.serialize() + "&id={{$details['id']}}";
-    let res = await axiosTemplate(method, url, params, data);
-    switch (res.data.status) {
-        case 200:
-            showAlert('success', res.data.message);
-            window.location.reload();
-            break;
-        default:
-            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-            break;
-    }
-}
-
-// Thêm subtask
-async function postAddSubTask(_this) {
-    let method = "post",
-        url = "/task/update-sub-task",
-        params = null,
-        data = _this.serialize() + "&id={{$details['id']}}&type={{ADD_ENUM_TYPE}}";
-    let res = await axiosTemplate(method, url, params, data);
-    switch (res.data.status) {
-        case 200:
-            showAlert('success', res.data.message);
-            window.location.reload();
-            break;
-        default:
-            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-            break;
-    }
-}
-
-// Upload file
-async function postUploadFileTask(_this) {
-    let method = "post",
-        url = "/task/upload-file-task",
-        params = null,
-        data = new FormData(_this);
-    let res = await axiosTemplate(method, url, params, data);
-    switch (res.data.status) {
-        case 200:
-            showAlert('success', res.data.message);
-            window.location.reload();
-            break;
-        default:
-            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-            break;
-    }
-}
-
-// Xóa tệp đính kèm
-async function postRemoveAttachmentTask(attach_id) {
-    Notiflix.Confirm.show(
-        'Xoá tệp đính kèm',
-        'Bạn có chắc chắn muốn xoá tệp đính kèm này?',
-        'Đúng',
-        'Huỷ',
-        async () => {
-                let method = "post",
-                    url = "/task/remove-attachment-task",
-                    params = null,
-                    data = {
-                        id: attach_id,
-                    };
-                let res = await axiosTemplate(method, url, params, data);
-                switch (res.data.status) {
-                    case 200:
-                        showAlert('success', res.data.message);
-                        window.location.reload();
-                        break;
-                    default:
-                        showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-                        break;
-                }
-            },
-            () => {}, {},
-    );
-}
-
-// Xóa subtask
-async function postRemoveSubTask(sub_task) {
-    Notiflix.Confirm.show(
-        'Xoá chỉ mục',
-        'Bạn có chắc chắn muốn xoá chỉ mục này?',
-        'Đúng',
-        'Huỷ',
-        async () => {
-                let method = "post",
-                    url = "/task/update-sub-task",
-                    params = null,
-                    data = {
-                        id: "{{$details['id']}}",
-                        sub_task,
-                        type: "{{REMOVE_ENUM_TYPE}}"
-                    };
-                let res = await axiosTemplate(method, url, params, data);
-                switch (res.data.status) {
-                    case 200:
-                        showAlert('success', res.data.message);
-                        window.location.reload();
-                        break;
-                    default:
-                        showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-                        break;
-                }
-            },
-            () => {}, {},
-    );
-}
-
-// Cập nhật mô tả
-async function postUpdateDescriptionTask() {
-    let method = "post",
-        url = "/task/update",
-        params = null,
-        data = {
-            id: "{{$details['id']}}",
-            description: _descriptionQuill.root.innerHTML,
-        };
-    let res = await axiosTemplate(method, url, params, data);
-    switch (res.data.status) {
-        case 200:
-            showAlert('success', res.data.message);
-            window.location.reload();
-            break;
-        default:
-            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-            break;
-    }
-}
-
-// Báo cáo hoàn thành
-async function postReportCompletion(_this) {
-    let method = "post",
-        url = "/task/add-contribution",
-        params = null,
-        data = _this.serialize();
-    let res = await axiosTemplate(method, url, params, data);
-    switch (res.data.status) {
-        case 200:
-            showAlert('success', res.data.message);
-            window.location.reload();
-            break;
-        default:
-            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-            break;
-    }
-}
-
-// Xóa báo cáo đóng góp
-async function deleteContribution(contributionId) {
-    Notiflix.Confirm.show(
-        'Xóa báo cáo',
-        'Bạn có chắc chắn muốn xóa báo cáo hoàn thành này?',
-        'Đúng',
-        'Huỷ',
-        async () => {
-                let method = "post",
-                    url = "/task/delete-contribution",
-                    params = null,
-                    data = {
-                        contribution_id: contributionId
-                    };
-                let res = await axiosTemplate(method, url, params, data);
-                switch (res.data.status) {
-                    case 200:
-                        showAlert('success', res.data.message);
-                        window.location.reload();
-                        break;
-                    default:
-                        showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-                        break;
-                }
-            },
-            () => {}, {},
-    );
-}
-
-// PHẦN 3: MODAL HANDLERS - XỬ LÝ HIỂN THỊ VÀ DỮ LIỆU CHO CÁC MODAL
-// Mở modal báo cáo hoàn thành
-function openReportCompletionModal(taskId, taskName, totalQty, completedQty) {
-    // Cập nhật thông tin task vào modal
-    $('#report-task-name').text(taskName);
-    $('#report-task-id').val(taskId);
-
-    // Cập nhật số lượng tối đa có thể báo cáo
-    let maxQty = totalQty - completedQty;
-    $('input[name="quantity"]').attr('max', maxQty);
-
-    // Mở modal
-    KTModal.getInstance(document.querySelector('#report-completion-modal')).show();
-}
-
-// Mở modal nhận việc
-function openClaimTaskModal(taskId) {
-    $('#claim-task-id').val(taskId);
-    loadMissions();
-    KTModal.getInstance(document.querySelector('#claim-task-modal')).show();
-}
-
-// Tải danh sách nhiệm vụ
-async function loadMissions() {
-    try {
-        const response = await axios.get('/task/missions');
-        if (response.data.status === 200) {
-            const missions = response.data.data;
-            let html = '';
-            
-            missions.forEach(mission => {
-                html += `
-                <label for="mission-${mission.id}" class="form-label flex items-center gap-2.5">
-                    <input checked class="checkbox" name="mission_ids[]" type="checkbox" value="${mission.id}" id="mission-${mission.id}"/>
-                    ${mission.name} <span class="text-gray-600">(${mission.salary}đ)</span>
-                </label>
-                `;
-            });
-            
-            $('#mission-list').html(html);
-        } else {
-            showAlert('warning', response.data.message);
-        }
-    } catch (error) {
-        console.error('Error loading missions:', error);
-        showAlert('error', 'Không thể tải danh sách nhiệm vụ');
-    }
-}
-
-// Mở modal báo cáo nhiệm vụ
-function openReportMissionsModal(taskId, taskName) {
-    $('#report-task-name').text(taskName);
-    loadTaskMissions(taskId);
-    KTModal.getInstance(document.querySelector('#report-missions-modal')).show();
-}
-
-// Tải danh sách nhiệm vụ của task
-async function loadTaskMissions(taskId) {
-    try {
-        const response = await axios.get('/task/task-missions', {
-            params: { task_id: taskId }
+        instanceUploadFileTask.on('hidden', () => {
+            $('#upload-file-task-modal input[name=file]').val('');
         });
-        
-        if (response.data.status === 200) {
-            const data = response.data.data;
-            let html = '';
+
+        $('#update-task-modal form').on('submit', function(e) {
+            e.preventDefault();
+            postUpdateTask();
+        })
+
+        $('#comment-task-form').on('submit', function(e) {
+            e.preventDefault();
+            postCommentTask($(this));
+        })
+
+        $('#add-sub-task-modal form').on('submit', function(e) {
+            e.preventDefault();
+            postAddSubTask($(this));
+        })
+
+        $('#upload-file-task-modal form').on('submit', function(e) {
+            e.preventDefault();
+            postUploadFileTask(this);
+        })
+
+        $('#update-description-task-modal form').on('submit', function(e) {
+            e.preventDefault();
+            postUpdateDescriptionTask($(this));
+        })
+
+        $('#report-completion-form').on('submit', function(e) {
+            e.preventDefault();
+            postReportCompletion($(this));
+        })
+
+        // Xử lý form nhận việc
+        $('#claim-task-form').on('submit', async function(e) {
+            e.preventDefault();
             
-            data.assignments.forEach(assignment => {
-                const remaining = assignment.quantity_required - assignment.quantity_completed;
-                if (remaining <= 0) return; // Bỏ qua nếu đã hoàn thành
-                
-                html += `
-                <div class="bg-white p-3 border rounded-lg">
-                    <div class="font-medium text-gray-900 mb-2">${assignment.mission.name}</div>
-                    <div class="text-sm text-gray-600 mb-2">Hoàn thành: ${assignment.quantity_completed}/${assignment.quantity_required}</div>
-                    <div class="grid grid-cols-1 gap-2">
-                        <div class="form-group">
-                            <label class="form-label text-sm">Số lượng báo cáo (tối đa: ${remaining})</label>
-                            <input type="number" name="quantities[${assignment.id}]" class="input" min="1" max="${remaining}" value="1">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label text-sm">Ghi chú (nếu có)</label>
-                            <textarea name="notes[${assignment.id}]" class="textarea" rows="2"></textarea>
-                        </div>
-                    </div>
-                </div>
-                `;
-            });
-            
-            if (html === '') {
-                html = '<div class="text-center text-gray-500">Không có nhiệm vụ nào cần báo cáo</div>';
+            // Kiểm tra chọn ít nhất một nhiệm vụ
+            if ($('input[name="mission_ids[]"]:checked').length === 0) {
+                showAlert('warning', 'Vui lòng chọn ít nhất một nhiệm vụ');
+                return;
             }
             
-            $('#mission-reports').html(html);
-        } else {
-            showAlert('warning', response.data.message);
-        }
-    } catch (error) {
-        console.error('Error loading task missions:', error);
-        showAlert('error', 'Không thể tải danh sách nhiệm vụ của task');
-    }
-}
-
-// Hàm xóa báo cáo nhiệm vụ
-async function deleteMissionReport(reportId) {
-    Notiflix.Confirm.show(
-        'Xóa báo cáo',
-        'Bạn có chắc chắn muốn xóa báo cáo này?',
-        'Đúng',
-        'Hủy',
-        async () => {
+            const formData = $(this).serialize();
+            
             try {
-                const response = await axios.post('/task/delete-mission-report', {
-                    report_id: reportId
-                });
-                
+                const response = await axios.post('/task/claim', formData);
                 if (response.data.status === 200) {
                     showAlert('success', response.data.message);
+                    KTModal.getInstance(document.querySelector('#claim-task-modal')).hide();
                     window.location.reload();
                 } else {
                     showAlert('warning', response.data.message);
                 }
             } catch (error) {
-                console.error('Error deleting report:', error);
-                showAlert('error', 'Không thể xóa báo cáo');
+                console.error('Error claiming task:', error);
+                showAlert('error', 'Không thể nhận việc');
             }
-        },
-        () => {},
-        {}
-    );
-}
-
-// PHẦN 4: FEEDBACK MANAGEMENT - QUẢN LÝ FEEDBACK
-// Mở modal thêm feedback
-function openAddContractFeedbackModal(taskId) {
-    $('#contract-task-id').val(taskId);
-    loadTasksForFeedback(taskId);
-    KTModal.getInstance(document.querySelector('#add-contract-feedback-modal')).show();
-}
-
-// Tải danh sách task cho feedback
-async function loadTasksForFeedback(taskId) {
-    try {
-        const response = await axios.get('/task/show-feedback-form', {
-            params: { task_id: taskId }
         });
-        
-        if (response.data.status === 200) {
-            const contractTask = response.data.data.contract_task;
-            let html = buildTaskTree(contractTask);
-            $('#tasks-tree').html(html);
-            
-            // Kích hoạt toggle cho các nút mở rộng
-            activateTaskTreeToggles();
-        } else {
-            $('#tasks-tree').html(`<div class="text-center text-danger py-3">${response.data.message}</div>`);
-        }
-    } catch (error) {
-        console.error('Error loading tasks for feedback:', error);
-        $('#tasks-tree').html('<div class="text-center text-danger py-3">Không thể tải danh sách task</div>');
-    }
-}
 
-// Xây dựng cây task
+        // Xử lý form báo cáo nhiệm vụ
+        $('#report-missions-form').on('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = $(this).serialize();
+            
+            try {
+                const response = await axios.post('/task/report-mission', formData);
+                if (response.data.status === 200) {
+                    showAlert('success', response.data.message);
+                    KTModal.getInstance(document.querySelector('#report-missions-modal')).hide();
+                    window.location.reload();
+                } else {
+                    showAlert('warning', response.data.message);
+                }
+            } catch (error) {
+                console.error('Error reporting missions:', error);
+                showAlert('error', 'Không thể báo cáo nhiệm vụ');
+            }
+        });
+
+        // Xử lý đánh giá sao
+        $('#rating-stars i').on('click', function() {
+            const rating = $(this).data('rating');
+            $('#rating-value').val(rating);
+            
+            $('#rating-stars i').each(function() {
+                const starRating = $(this).data('rating');
+                if (starRating <= rating) {
+                    $(this).removeClass('text-gray-300').addClass('text-warning');
+                } else {
+                    $(this).removeClass('text-warning').addClass('text-gray-300');
+                }
+            });
+        });
+
+        // Xử lý form thêm feedback
+        $('#add-feedback-form').on('submit', async function(e) {
+            e.preventDefault();
+            
+            const rating = $('#rating-value').val();
+            if (rating < 1) {
+                showAlert('warning', 'Vui lòng chọn đánh giá sao');
+                return;
+            }
+            
+            const formData = $(this).serialize();
+            
+            try {
+                const response = await axios.post('/task/add-feedback', formData);
+                if (response.data.status === 200) {
+                    showAlert('success', response.data.message);
+                    KTModal.getInstance(document.querySelector('#add-feedback-modal')).hide();
+                    window.location.reload();
+                } else {
+                    showAlert('warning', response.data.message);
+                }
+            } catch (error) {
+                console.error('Error adding feedback:', error);
+                showAlert('error', 'Không thể thêm feedback');
+            }
+        });
+
+        flatpickrMake($("input[name=due_date]"), 'datetime');
+
+        _descriptionQuill = quillTemplate("#description_editor", "350px");
+    })
+
+    async function postUpdateTask() {
+        let field = $('#update-task-modal form').find('input:not(.hidden),select:not(.hidden),textarea:not(.hidden)');
+        let method = "post",
+            url = "/task/update",
+            params = null,
+            data = {
+                id: "{{$details['id']}}",
+                [field.attr('name')]: field.val()
+            };
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                break;
+        }
+    }
+
+    async function postCommentTask(_this) {
+        let method = "post",
+            url = "/task/add-comment",
+            params = null,
+            data = _this.serialize() + "&id={{$details['id']}}";
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                break;
+        }
+    }
+
+    async function postAddSubTask(_this) {
+        let method = "post",
+            url = "/task/update-sub-task",
+            params = null,
+            data = _this.serialize() + "&id={{$details['id']}}&type={{ADD_ENUM_TYPE}}";
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                break;
+        }
+    }
+
+    async function postUploadFileTask(_this) {
+        let method = "post",
+            url = "/task/upload-file-task",
+            params = null,
+            data = new FormData(_this);
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                break;
+        }
+    }
+
+    async function postRemoveAttachmentTask(attach_id) {
+        Notiflix.Confirm.show(
+            'Xoá tệp đính kèm',
+            'Bạn có chắc chắn muốn xoá tệp đính kèm này?',
+            'Đúng',
+            'Huỷ',
+            async () => {
+                    let method = "post",
+                        url = "/task/remove-attachment-task",
+                        params = null,
+                        data = {
+                            id: attach_id,
+                        };
+                    let res = await axiosTemplate(method, url, params, data);
+                    switch (res.data.status) {
+                        case 200:
+                            showAlert('success', res.data.message);
+                            window.location.reload();
+                            break;
+                        default:
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                            break;
+                    }
+                },
+                () => {}, {},
+        );
+    }
+
+    async function postRemoveSubTask(sub_task) {
+        Notiflix.Confirm.show(
+            'Xoá chỉ mục',
+            'Bạn có chắc chắn muốn xoá chỉ mục này?',
+            'Đúng',
+            'Huỷ',
+            async () => {
+                    let method = "post",
+                        url = "/task/update-sub-task",
+                        params = null,
+                        data = {
+                            id: "{{$details['id']}}",
+                            sub_task,
+                            type: "{{REMOVE_ENUM_TYPE}}"
+                        };
+                    let res = await axiosTemplate(method, url, params, data);
+                    switch (res.data.status) {
+                        case 200:
+                            showAlert('success', res.data.message);
+                            window.location.reload();
+                            break;
+                        default:
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                            break;
+                    }
+                },
+                () => {}, {},
+        );
+    }
+
+    async function postUpdateDescriptionTask() {
+        let method = "post",
+            url = "/task/update",
+            params = null,
+            data = {
+                id: "{{$details['id']}}",
+                description: _descriptionQuill.root.innerHTML,
+            };
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                break;
+        }
+    }
+
+    async function claimTask(taskId) {
+        Notiflix.Confirm.show(
+            'Nhận công việc',
+            'Bạn có chắc chắn muốn nhận công việc này?',
+            'Đúng',
+            'Huỷ',
+            async () => {
+                    let method = "post",
+                        url = "/task/claim",
+                        params = null,
+                        data = {
+                            task_id: taskId
+                        };
+                    let res = await axiosTemplate(method, url, params, data);
+                    switch (res.data.status) {
+                        case 200:
+                            showAlert('success', res.data.message);
+                            window.location.reload();
+                            break;
+                        default:
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                            break;
+                    }
+                },
+                () => {}, {},
+        );
+    }
+
+    async function postReportCompletion(_this) {
+        let method = "post",
+            url = "/task/add-contribution",
+            params = null,
+            data = _this.serialize();
+        let res = await axiosTemplate(method, url, params, data);
+        switch (res.data.status) {
+            case 200:
+                showAlert('success', res.data.message);
+                window.location.reload();
+                break;
+            default:
+                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                break;
+        }
+    }
+
+    async function deleteContribution(contributionId) {
+        Notiflix.Confirm.show(
+            'Xóa báo cáo',
+            'Bạn có chắc chắn muốn xóa báo cáo hoàn thành này?',
+            'Đúng',
+            'Huỷ',
+            async () => {
+                    let method = "post",
+                        url = "/task/delete-contribution",
+                        params = null,
+                        data = {
+                            contribution_id: contributionId
+                        };
+                    let res = await axiosTemplate(method, url, params, data);
+                    switch (res.data.status) {
+                        case 200:
+                            showAlert('success', res.data.message);
+                            window.location.reload();
+                            break;
+                        default:
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                            break;
+                    }
+                },
+                () => {}, {},
+        );
+    }
+
+    // Hàm mở modal báo cáo hoàn thành với thông tin của task cụ thể
+    function openReportCompletionModal(taskId, taskName, totalQty, completedQty) {
+        // Cập nhật thông tin task vào modal
+        $('#report-task-name').text(taskName);
+        $('#report-task-id').val(taskId);
+
+        // Cập nhật số lượng tối đa có thể báo cáo
+        let maxQty = totalQty - completedQty;
+        $('input[name="quantity"]').attr('max', maxQty);
+
+        // Mở modal
+        KTModal.getInstance(document.querySelector('#report-completion-modal')).show();
+    }
+
+    // Xử lý modal nhận việc
+    function openClaimTaskModal(taskId) {
+        $('#claim-task-id').val(taskId);
+        loadMissions();
+        KTModal.getInstance(document.querySelector('#claim-task-modal')).show();
+    }
+
+    // Tải danh sách nhiệm vụ
+    async function loadMissions() {
+        try {
+            const response = await axios.get('/task/missions');
+            if (response.data.status === 200) {
+                const missions = response.data.data;
+                let html = '';
+                
+                missions.forEach(mission => {
+                    html += `
+                    <label for="mission-${mission.id}" class="form-label flex items-center gap-2.5">
+                        <input checked class="checkbox" name="mission_ids[]" type="checkbox" value="${mission.id}" id="mission-${mission.id}"/>
+                        ${mission.name} <span class="text-gray-600">(${mission.salary}đ)</span>
+                    </label>
+                    `;
+                });
+                
+                $('#mission-list').html(html);
+            } else {
+                showAlert('warning', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error loading missions:', error);
+            showAlert('error', 'Không thể tải danh sách nhiệm vụ');
+        }
+    }
+
+
+    // Xử lý modal báo cáo nhiệm vụ
+    function openReportMissionsModal(taskId, taskName) {
+        $('#report-task-name').text(taskName);
+        loadTaskMissions(taskId);
+        KTModal.getInstance(document.querySelector('#report-missions-modal')).show();
+    }
+
+    // Tải danh sách nhiệm vụ của task
+    async function loadTaskMissions(taskId) {
+        try {
+            const response = await axios.get('/task/task-missions', {
+                params: { task_id: taskId }
+            });
+            
+            if (response.data.status === 200) {
+                const data = response.data.data;
+                let html = '';
+                
+                data.assignments.forEach(assignment => {
+                    const remaining = assignment.quantity_required - assignment.quantity_completed;
+                    if (remaining <= 0) return; // Bỏ qua nếu đã hoàn thành
+                    
+                    html += `
+                    <div class="bg-white p-3 border rounded-lg">
+                        <div class="font-medium text-gray-900 mb-2">${assignment.mission.name}</div>
+                        <div class="text-sm text-gray-600 mb-2">Hoàn thành: ${assignment.quantity_completed}/${assignment.quantity_required}</div>
+                        <div class="grid grid-cols-1 gap-2">
+                            <div class="form-group">
+                                <label class="form-label text-sm">Số lượng báo cáo (tối đa: ${remaining})</label>
+                                <input type="number" name="quantities[${assignment.id}]" class="input" min="1" max="${remaining}" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label text-sm">Ghi chú (nếu có)</label>
+                                <textarea name="notes[${assignment.id}]" class="textarea" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                });
+                
+                if (html === '') {
+                    html = '<div class="text-center text-gray-500">Không có nhiệm vụ nào cần báo cáo</div>';
+                }
+                
+                $('#mission-reports').html(html);
+            } else {
+                showAlert('warning', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error loading task missions:', error);
+            showAlert('error', 'Không thể tải danh sách nhiệm vụ của task');
+        }
+    }
+
+    // Hàm xóa báo cáo nhiệm vụ
+    async function deleteMissionReport(reportId) {
+        Notiflix.Confirm.show(
+            'Xóa báo cáo',
+            'Bạn có chắc chắn muốn xóa báo cáo này?',
+            'Đúng',
+            'Hủy',
+            async () => {
+                try {
+                    const response = await axios.post('/task/delete-mission-report', {
+                        report_id: reportId
+                    });
+                    
+                    if (response.data.status === 200) {
+                        showAlert('success', response.data.message);
+                        window.location.reload();
+                    } else {
+                        showAlert('warning', response.data.message);
+                    }
+                } catch (error) {
+                    console.error('Error deleting report:', error);
+                    showAlert('error', 'Không thể xóa báo cáo');
+                }
+            },
+            () => {},
+            {}
+        );
+    }
+</script>
+<script>
+    $(function() {
+        // Xử lý form thêm feedback
+        $('#add-contract-feedback-form').on('submit', async function(e) {
+            e.preventDefault();
+            
+            // Kiểm tra chọn ít nhất một task
+            if ($('input[name="revision_tasks[]"]:checked').length === 0) {
+                showAlert('warning', 'Vui lòng chọn ít nhất một task đã hoàn thành cần chỉnh sửa');
+                return;
+            }
+            
+            // Kiểm tra nội dung feedback
+            if ($('textarea[name="comment"]').val().trim() === '') {
+                showAlert('warning', 'Vui lòng nhập nội dung feedback');
+                return;
+            }
+            
+            const formData = $(this).serialize();
+            
+            try {
+                const response = await axios.post('/task/add-feedback', formData);
+                
+                if (response.data.status === 200) {
+                    showAlert('success', response.data.message);
+                    KTModal.getInstance(document.querySelector('#add-contract-feedback-modal')).hide();
+                    loadContractFeedbacks({{$details['id']}});
+                } else {
+                    showAlert('warning', response.data.message);
+                }
+            } catch (error) {
+                console.error('Error adding feedback:', error);
+                showAlert('error', 'Không thể thêm feedback');
+            }
+        });
+    })
+
+    function openAddContractFeedbackModal(taskId) {
+        $('#contract-task-id').val(taskId);
+        loadTasksForFeedback(taskId);
+        KTModal.getInstance(document.querySelector('#add-contract-feedback-modal')).show();
+    }
+
+    // Tải danh sách task cho feedback
+    async function loadTasksForFeedback(taskId) {
+        try {
+            const response = await axios.get('/task/show-feedback-form', {
+                params: { task_id: taskId }
+            });
+            
+            if (response.data.status === 200) {
+                const contractTask = response.data.data.contract_task;
+                let html = buildTaskTree(contractTask);
+                $('#tasks-tree').html(html);
+                
+                // Kích hoạt toggle cho các nút mở rộng
+                activateTaskTreeToggles();
+            } else {
+                $('#tasks-tree').html(`<div class="text-center text-danger py-3">${response.data.message}</div>`);
+            }
+        } catch (error) {
+            console.error('Error loading tasks for feedback:', error);
+            $('#tasks-tree').html('<div class="text-center text-danger py-3">Không thể tải danh sách task</div>');
+        }
+    }
+
+    // Sửa lại hàm buildTaskTree để sử dụng đúng cấu trúc dữ liệu
 function buildTaskTree(contractTask) {
     let html = `
     <div class="mb-3">
@@ -1834,7 +1903,7 @@ function buildTaskTree(contractTask) {
     return html;
 }
 
-// Tạo node cho từng task
+    // Tạo node cho từng task
 function buildTaskNode(task) {
     // Xác định xem có hiển thị checkbox hay không
     // Chỉ hiển thị checkbox cho task lá (không có task con) và đã hoàn thành
@@ -1876,21 +1945,23 @@ function buildTaskNode(task) {
     return html;
 }
 
-// Kích hoạt toggle cho cây task
-function activateTaskTreeToggles() {
-    $('.task-toggle').on('click', function() {
-        const children = $(this).next('.task-children');
-        const icon = $(this).find('i');
-        
-        if (children.hasClass('hidden')) {
-            children.removeClass('hidden');
-            icon.removeClass('ki-right').addClass('ki-down');
-        } else {
-            children.addClass('hidden');
-            icon.removeClass('ki-down').addClass('ki-right');
-        }
-    });
-}
+    // Kích hoạt toggle cho cây task
+    function activateTaskTreeToggles() {
+        $('.task-toggle').on('click', function() {
+            const children = $(this).next('.task-children');
+            const icon = $(this).find('i');
+            
+            if (children.hasClass('hidden')) {
+                children.removeClass('hidden');
+                icon.removeClass('ki-right').addClass('ki-down');
+            } else {
+                children.addClass('hidden');
+                icon.removeClass('ki-down').addClass('ki-right');
+            }
+        });
+    }
+
+    // Thêm phần này vào JavaScript đã có
 
 // Cập nhật hiển thị nút giải quyết feedback
 function updateFeedbackButtons(feedbacks) {
@@ -1935,46 +2006,8 @@ function openResolveFeedbackModal(taskId) {
     KTModal.getInstance(document.querySelector('#resolve-feedback-modal')).show();
 }
 
-// Tải thông tin chi tiết của feedback item
-async function loadFeedbackItemDetails(itemId) {
-    $('#feedback-details').html('<div class="text-center text-gray-500 py-2">Đang tải...</div>');
-    
-    try {
-        const response = await axios.get('/task/feedback-item-details', {
-            params: { item_id: itemId }
-        });
-        
-        if (response.data.status === 200) {
-            const item = response.data.data;
-            const feedback = item.feedback;
-            
-            let html = `
-            <div class="mb-2">
-                <h5 class="font-medium text-gray-900">Feedback từ ${feedback.user.name}</h5>
-                <p class="text-xs text-gray-600">
-                    ${new Date(feedback.created_at).toLocaleDateString('vi-VN')} 
-                    ${new Date(feedback.created_at).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
-                </p>
-            </div>
-            <div class="text-sm whitespace-pre-line">${feedback.comment}</div>
-            <div class="mt-2 pt-2 border-t border-gray-200">
-                <div class="text-xs">
-                    <span class="font-medium">Task cần giải quyết:</span> 
-                    #${item.task.id} - ${item.task.name}
-                </div>
-            </div>`;
-            
-            $('#feedback-details').html(html);
-        } else {
-            $('#feedback-details').html(`<div class="text-danger py-2">${response.data.message}</div>`);
-        }
-    } catch (error) {
-        console.error('Error loading feedback item details:', error);
-        $('#feedback-details').html('<div class="text-danger py-2">Không thể tải thông tin feedback</div>');
-    }
-}
 
-// Tải danh sách feedback
+// Cập nhật phương thức tải danh sách feedback
 async function loadContractFeedbacks(taskId) {
     try {
         const response = await axios.get('/task/feedbacks', {
@@ -2009,227 +2042,298 @@ async function loadContractFeedbacks(taskId) {
     }
 }
 
-// Render feedback item
-function renderFeedback(feedback) {
-    const createdDate = new Date(feedback.created_at);
-    const formattedDate = createdDate.toLocaleDateString('vi-VN') + ' ' + 
-        createdDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    // Hàm render feedback trong file Blade PHP
+    function renderFeedback(feedback) {
+        const createdDate = new Date(feedback.created_at);
+        const formattedDate = createdDate.toLocaleDateString('vi-VN') + ' ' + 
+            createdDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
-    let statusClass = 'warning';
-    let statusIcon = 'ki-flag';
+        let statusClass = 'warning';
+        let statusIcon = 'ki-flag';
 
-    if (feedback.status === 1) {
-        statusClass = 'success';
-        statusIcon = 'ki-check-circle';
-    } else if (feedback.status === 2) {
-        statusClass = 'danger';
-        statusIcon = 'ki-cross-circle';
-    }
+        if (feedback.status === 1) {
+            statusClass = 'success';
+            statusIcon = 'ki-check-circle';
+        } else if (feedback.status === 2) {
+            statusClass = 'danger';
+            statusIcon = 'ki-cross-circle';
+        }
 
-    // Lấy dữ liệu từ Blade PHP
-    let idTask = @json($details['id']);
-    let type = @json($details['type'] === 'CONTRACT');
-    let assignSale = @json($details['assign']['id']) === @json(session()->get(ACCOUNT_CURRENT_SESSION)['id']);
+        // Lấy dữ liệu từ Blade PHP
+        let idTask = @json($details['id']);
+        let type = @json($details['type'] === 'CONTRACT');
+        let assignSale = @json($details['assign']['id']) === @json(session()->get(ACCOUNT_CURRENT_SESSION)['id']);
 
-    let confirmFeedback = (!feedback.is_resolved && feedback.all_items_resolved &&
-        (type && (assignSale || true))) ?
-        `<div class="flex items-center gap-1">
-            <button class="btn btn-xs btn-danger request-revision" data-id="${feedback.id}">
-                Yêu cầu làm lại
-            </button>
-            <button class="btn btn-xs btn-success confirm-resolved" data-id="${feedback.id}">
-                Xác nhận
-            </button>
-        </div>` : '';
+        let confirmFeedback = (!feedback.is_resolved && feedback.all_items_resolved &&
+            (type && (assignSale || true))) ?
+            `<div class="flex items-center gap-1">
+                <button class="btn btn-xs btn-danger request-revision" data-id="${feedback.id}">
+                    Yêu cầu làm lại
+                </button>
+                <button class="btn btn-xs btn-success confirm-resolved" data-id="${feedback.id}">
+                    Xác nhận
+                </button>
+            </div>` : '';
 
-    let feedbackItems = feedback.items.map(item => `
-        <div class="flex items-center justify-between bg-gray-50 p-2 rounded">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-medium">#${item.task.id}:</span>
-                <a href="/task/${item.task.id}" class="text-xs hover:text-primary truncate max-w-xs">
-                    ${item.task.name}
-                </a>
-                <span class="badge badge-xs badge-${item.is_resolved ? 'success' : 'warning'}">
-                    ${item.is_resolved ? 'Đã giải quyết' : 'Đang xử lý'}
-                </span>
-            </div>
-            ${!item.is_resolved && !feedback.is_resolved && item.task.id === idTask ? 
-            `<button class="btn btn-xs btn-success resolve-item" data-id="${item.id}">
-                <i class="ki-outline ki-check text-xs me-1"></i>Đánh dấu đã xong
-            </button>` : ''}
-            ${item.is_resolved && item.resolver ? 
-            `<div class="text-xs text-gray-600">
-                <i class="ki-outline ki-user text-xs me-1"></i>${item.resolver.name}
-            </div>` : ''}
-        </div>
-    `).join('');
-
-    let html = `
-    <div class="bg-white border border-gray-200 rounded-lg p-3" id="feedback-${feedback.id}">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-semibold text-xs text-gray-800">${feedback.user.name}</span>
-                        <span class="text-xs text-gray-600">${formattedDate}</span>
-                    </div>
-                    <span class="badge badge-sm badge-${statusClass}">
-                        <i class="ki-outline ${statusIcon} me-1"></i>
-                        ${feedback.status_text}
+        let feedbackItems = feedback.items.map(item => `
+            <div class="flex items-center justify-between bg-gray-50 p-2 rounded">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-medium">#${item.task.id}:</span>
+                    <a href="/task/${item.task.id}" class="text-xs hover:text-primary truncate max-w-xs">
+                        ${item.task.name}
+                    </a>
+                    <span class="badge badge-xs badge-${item.is_resolved ? 'success' : 'warning'}">
+                        ${item.is_resolved ? 'Đã giải quyết' : 'Đang xử lý'}
                     </span>
                 </div>
+                ${!item.is_resolved && !feedback.is_resolved && item.task.id === idTask ? 
+                `<button class="btn btn-xs btn-success resolve-item" data-id="${item.id}">
+                    <i class="ki-outline ki-check text-xs me-1"></i>Đánh dấu đã xong
+                </button>` : ''}
+                ${item.is_resolved && item.resolver ? 
+                `<div class="text-xs text-gray-600">
+                    <i class="ki-outline ki-user text-xs me-1"></i>${item.resolver.name}
+                </div>` : ''}
             </div>
-            <div class="flex items-center gap-2">
-                ${confirmFeedback}
-                <button class="btn btn-xs btn-icon btn-light toggle-feedback" data-id="${feedback.id}">
-                    <i class="ki-outline ki-right" id="feedback-toggle-icon-${feedback.id}"></i>
-                </button>
-            </div>
-        </div>
-        
-        <div id="feedback-details-${feedback.id}" class="hidden pt-3 border-t border-gray-100">
-            <div class="mt-3">
-                <div class="text-sm font-medium mb-2 flex items-center gap-2">
-                    <span>Nội dung</span>
+        `).join('');
+
+        let html = `
+        <div class="bg-white border border-gray-200 rounded-lg p-3" id="feedback-${feedback.id}">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold text-xs text-gray-800">${feedback.user.name}</span>
+                            <span class="text-xs text-gray-600">${formattedDate}</span>
+                        </div>
+                        <span class="badge badge-sm badge-${statusClass}">
+                            <i class="ki-outline ${statusIcon} me-1"></i>
+                            ${feedback.status_text}
+                        </span>
+                    </div>
                 </div>
-                
-                <div class="bg-gray-50 p-3 rounded-md mb-3">
-                    <div class="text-gray-800 whitespace-pre-line leading-3 text-sm pl-2">${feedback.comment}</div>
+                <div class="flex items-center gap-2">
+                    ${confirmFeedback}
+                    <button class="btn btn-xs btn-icon btn-light toggle-feedback" data-id="${feedback.id}">
+                        <i class="ki-outline ki-right" id="feedback-toggle-icon-${feedback.id}"></i>
+                    </button>
                 </div>
             </div>
             
-            <div class="mt-3">
-                <div class="text-sm font-medium mb-2 flex items-center gap-2">
-                    <span>Tasks cần chỉnh sửa</span>
-                    <span class="badge badge-xs badge-${statusClass} badge-outline">${feedback.items.length}</span>
+            <div id="feedback-details-${feedback.id}" class="hidden mt-3 pt-3 border-t border-gray-100">
+                <div class="mt-3">
+                    <div class="text-sm font-medium mb-2 flex items-center gap-2">
+                        <span>Nội dung</span>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-3 rounded-md mb-3">
+                        <div class="text-gray-800 whitespace-pre-line leading-3 text-sm pl-2">${feedback.comment}</div>
+                    </div>
                 </div>
                 
-                <div class="space-y-2 pl-2">
-                    ${feedbackItems}
+                <div class="mt-3">
+                    <div class="text-sm font-medium mb-2 flex items-center gap-2">
+                        <span>Tasks cần chỉnh sửa</span>
+                        <span class="badge badge-xs badge-${statusClass} badge-outline">${feedback.items.length}</span>
+                    </div>
+                    
+                    <div class="space-y-2 pl-2">
+                        ${feedbackItems}
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>`;
+        </div>`;
 
-    return html;
+        return html;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.addEventListener('click', function(event) {
+            // Toggle feedback details
+            if (event.target.closest('.toggle-feedback')) {
+                const id = event.target.closest('.toggle-feedback').dataset.id;
+                const content = document.getElementById(`feedback-details-${id}`);
+                const icon = document.getElementById(`feedback-toggle-icon-${id}`);
+
+                content.classList.toggle('hidden');
+                icon.classList.toggle('ki-right');
+                icon.classList.toggle('ki-down');
+            }
+
+            // Xác nhận đã xử lý feedback
+            if (event.target.closest('.confirm-resolved')) {
+                const id = event.target.closest('.confirm-resolved').dataset.id;
+                confirmFeedbackResolved(id);
+            }
+
+            // Yêu cầu làm lại feedback
+            if (event.target.closest('.request-revision')) {
+                const id = event.target.closest('.request-revision').dataset.id;
+                requestFeedbackRevision(id);
+            }
+
+            // Đánh dấu task đã xong
+            if (event.target.closest('.resolve-item')) {
+                const id = event.target.closest('.resolve-item').dataset.id;
+                resolveFeedbackItem(id);
+            }
+        });
+    });
+
+
+
+
+    // Đánh dấu một item của feedback đã giải quyết
+    async function resolveFeedbackItem(itemId) {
+        try {
+            const response = await axios.post('/task/resolve-feedback-item', {
+                feedback_item_id: itemId
+            });
+            
+            if (response.data.status === 200) {
+                showAlert('success', response.data.message);
+                loadContractFeedbacks({{$details['id']}});
+            } else {
+                showAlert('warning', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error resolving feedback item:', error);
+            showAlert('error', 'Không thể đánh dấu đã giải quyết');
+        }
+    }
+
+    // Xác nhận toàn bộ feedback đã được giải quyết
+    async function confirmFeedbackResolved(feedbackId) {
+        try {
+            const response = await axios.post('/task/confirm-feedback-resolved', {
+                feedback_id: feedbackId
+            });
+            
+            if (response.data.status === 200) {
+                showAlert('success', response.data.message);
+                loadContractFeedbacks({{$details['id']}});
+                // Reload trang sau 1 giây để cập nhật trạng thái
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showAlert('warning', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error confirming feedback resolved:', error);
+            showAlert('error', 'Không thể xác nhận đã giải quyết');
+        }
+    }
+
+    // Yêu cầu làm lại các task trong feedback
+    async function requestFeedbackRevision(feedbackId) {
+        // Hiển thị modal xác nhận với textarea ghi chú
+        Notiflix.Confirm.show(
+            'Yêu cầu làm lại',
+            '<div class="mb-3">Bạn có chắc chắn muốn yêu cầu làm lại các task trong feedback này?</div>' +
+            '<div class="form-group">' +
+            '<label class="form-label">Ghi chú (tùy chọn)</label>' +
+            '<textarea id="revision-comment" class="textarea w-full" rows="3" placeholder="Nhập lý do yêu cầu làm lại..."></textarea>' +
+            '</div>',
+            'Đúng',
+            'Huỷ',
+            async () => {
+                const comment = $('#revision-comment').val();
+                
+                try {
+                    const response = await axios.post('/task/request-feedback-revision', {
+                        feedback_id: feedbackId,
+                        comment: comment
+                    });
+                    
+                    if (response.data.status === 200) {
+                        showAlert('success', response.data.message);
+                        loadContractFeedbacks({{$details['id']}});
+                        // Reload trang sau 1 giây để cập nhật trạng thái
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showAlert('warning', response.data.message);
+                    }
+                } catch (error) {
+                    console.error('Error requesting feedback revision:', error);
+                    showAlert('error', 'Không thể yêu cầu làm lại');
+                }
+            },
+            () => {}, 
+            { width: '400px' }
+        );
+    }
+
+// Tải thông tin chi tiết của feedback item
+async function loadFeedbackItemDetails(itemId) {
+    $('#feedback-details').html('<div class="text-center text-gray-500 py-2">Đang tải...</div>');
+    
+    try {
+        // Giả định API endpoint để lấy thông tin chi tiết feedback item
+        // (Bạn cần tạo endpoint này nếu chưa có)
+        const response = await axios.get('/task/feedback-item-details', {
+            params: { item_id: itemId }
+        });
+        
+        if (response.data.status === 200) {
+            const item = response.data.data;
+            const feedback = item.feedback;
+            
+            let html = `
+            <div class="mb-2">
+                <h5 class="font-medium text-gray-900">Feedback từ ${feedback.user.name}</h5>
+                <p class="text-xs text-gray-600">
+                    ${new Date(feedback.created_at).toLocaleDateString('vi-VN')} 
+                    ${new Date(feedback.created_at).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
+                </p>
+            </div>
+            <div class="text-sm whitespace-pre-line">${feedback.comment}</div>
+            <div class="mt-2 pt-2 border-t border-gray-200">
+                <div class="text-xs">
+                    <span class="font-medium">Task cần giải quyết:</span> 
+                    #${item.task.id} - ${item.task.name}
+                </div>
+            </div>`;
+            
+            $('#feedback-details').html(html);
+        } else {
+            $('#feedback-details').html(`<div class="text-danger py-2">${response.data.message}</div>`);
+        }
+    } catch (error) {
+        console.error('Error loading feedback item details:', error);
+        $('#feedback-details').html('<div class="text-danger py-2">Không thể tải thông tin feedback</div>');
+    }
 }
 
-// PHẦN 5: EVENT HANDLERS - XỬ LÝ SỰ KIỆN DOM
-document.addEventListener('DOMContentLoaded', function() {
-    // Xử lý các event nằm ngoài các handler đã khai báo trước đó
-    document.body.addEventListener('click', function(event) {
-        // Toggle feedback details
-        if (event.target.closest('.toggle-feedback')) {
-            const id = event.target.closest('.toggle-feedback').dataset.id;
-            const content = document.getElementById(`feedback-details-${id}`);
-            const icon = document.getElementById(`feedback-toggle-icon-${id}`);
-
-            content.classList.toggle('hidden');
-            icon.classList.toggle('ki-right');
-            icon.classList.toggle('ki-down');
+// Xử lý form giải quyết feedback
+$('#resolve-feedback-form').on('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = $(this).serialize();
+    
+    try {
+        const response = await axios.post('/task/resolve-feedback-item', formData);
+        
+        if (response.data.status === 200) {
+            showAlert('success', response.data.message);
+            KTModal.getInstance(document.querySelector('#resolve-feedback-modal')).hide();
+            
+            // Nạp lại danh sách feedback
+            loadContractFeedbacks({{$details['id']}});
+        } else {
+            showAlert('warning', response.data.message);
         }
-
-        // Xác nhận đã xử lý feedback
-        if (event.target.closest('.confirm-resolved')) {
-            const id = event.target.closest('.confirm-resolved').dataset.id;
-            confirmFeedbackResolved(id);
-        }
-
-        // Yêu cầu làm lại feedback
-        if (event.target.closest('.request-revision')) {
-            const id = event.target.closest('.request-revision').dataset.id;
-            requestFeedbackRevision(id);
-        }
-
-        // Đánh dấu task đã xong
-        if (event.target.closest('.resolve-item')) {
-            const id = event.target.closest('.resolve-item').dataset.id;
-            resolveFeedbackItem(id);
-        }
-    });
+    } catch (error) {
+        console.error('Error resolving feedback:', error);
+        showAlert('error', 'Không thể giải quyết feedback');
+    }
 });
 
-// Đánh dấu một item của feedback đã giải quyết
-async function resolveFeedbackItem(itemId) {
-    try {
-        const response = await axios.post('/task/resolve-feedback-item', {
-            feedback_item_id: itemId
-        });
-        
-        if (response.data.status === 200) {
-            showAlert('success', response.data.message);
-            loadContractFeedbacks({{$details['id']}});
-        } else {
-            showAlert('warning', response.data.message);
-        }
-    } catch (error) {
-        console.error('Error resolving feedback item:', error);
-        showAlert('error', 'Không thể đánh dấu đã giải quyết');
-    }
-}
-
-// Xác nhận toàn bộ feedback đã được giải quyết
-async function confirmFeedbackResolved(feedbackId) {
-    try {
-        const response = await axios.post('/task/confirm-feedback-resolved', {
-            feedback_id: feedbackId
-        });
-        
-        if (response.data.status === 200) {
-            showAlert('success', response.data.message);
-            loadContractFeedbacks({{$details['id']}});
-            // Reload trang sau 1 giây để cập nhật trạng thái
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        } else {
-            showAlert('warning', response.data.message);
-        }
-    } catch (error) {
-        console.error('Error confirming feedback resolved:', error);
-        showAlert('error', 'Không thể xác nhận đã giải quyết');
-    }
-}
-
-// Yêu cầu làm lại các task trong feedback
-async function requestFeedbackRevision(feedbackId) {
-    // Hiển thị modal xác nhận với textarea ghi chú
-    Notiflix.Confirm.show(
-        'Yêu cầu làm lại',
-        '<div class="mb-3">Bạn có chắc chắn muốn yêu cầu làm lại các task trong feedback này?</div>' +
-        '<div class="form-group">' +
-        '<label class="form-label">Ghi chú (tùy chọn)</label>' +
-        '<textarea id="revision-comment" class="textarea w-full" rows="3" placeholder="Nhập lý do yêu cầu làm lại..."></textarea>' +
-        '</div>',
-        'Đúng',
-        'Huỷ',
-        async () => {
-            const comment = $('#revision-comment').val();
-            
-            try {
-                const response = await axios.post('/task/request-feedback-revision', {
-                    feedback_id: feedbackId,
-                    comment: comment
-                });
-                
-                if (response.data.status === 200) {
-                    showAlert('success', response.data.message);
-                    loadContractFeedbacks({{$details['id']}});
-                    // Reload trang sau 1 giây để cập nhật trạng thái
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    showAlert('warning', response.data.message);
-                }
-            } catch (error) {
-                console.error('Error requesting feedback revision:', error);
-                showAlert('error', 'Không thể yêu cầu làm lại');
-            }
-        },
-        () => {}, 
-        { width: '400px' }
-    );
-}
+    // Tải danh sách feedback khi trang tải xong
+    $(document).ready(function() {
+        loadContractFeedbacks({{$details['id']}});
+    });
 </script>
 @endpush
