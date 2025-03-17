@@ -217,7 +217,6 @@ Route::group(
                         Route::get('/config-task', [TaskController::class, "config"])->name("config");
                         Route::post('/config-task/post', [TaskController::class, "configPost"])->name("config-post");
                         Route::post('/config-task/change-status', [TaskController::class, "configChangeStatus"])->name("config-change-status");
-                        Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
                         Route::post('/task/claim', [TaskController::class, "claimTask"])->name("claimTask");
                         Route::post('/task/add-contribution', [TaskController::class, "addContribution"])->name("add-contribution");
                         Route::post('/task/delete-contribution', [TaskController::class, 'deleteContribution'])->name('delete-contribution');
@@ -225,6 +224,16 @@ Route::group(
                         Route::get('/task/contributions', [TaskController::class, 'getUserContributions'])->name('user-contributions');
                         Route::get('/task/dashboard/project/{id}', [TaskController::class, 'projectDashboard'])->name('project-dashboard');
                         Route::get('/task/dashboard/user', [TaskController::class, 'userDashboard'])->name('user-dashboard');
+
+                        Route::get('/task/missions', [TaskController::class, 'getMissions'])->name('get-missions');
+                        Route::get('/task/task-missions', [TaskController::class, 'getTaskMissions'])->name('get-task-missions');
+                        Route::post('/task/report-mission', [TaskController::class, 'reportMission'])->name('report-mission');
+                        Route::post('/task/delete-mission-report', [TaskController::class, 'deleteMissionReport'])->name('delete-mission-report');
+                        Route::get('/task/feedbacks', [TaskController::class, 'getFeedbacks'])->name('get-feedbacks');
+                        Route::post('/task/add-feedback', [TaskController::class, 'addFeedback'])->name('add-feedback');
+                        Route::post('/task/resolve-feedback', [TaskController::class, 'resolveFeedback'])->name('resolve-feedback');
+                        
+                        Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
                     }
                 );
 

@@ -12,7 +12,7 @@
         </div>
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
             @if (in_array($details['type'], ['SERVICE', 'SUB']) && in_array($details['status']['id'], [1, 2]))
-            <button class="btn btn-sm btn-primary" onclick="claimTask({{$details['id']}})">
+            <button class="btn btn-sm btn-primary" onclick="openClaimTaskModal({{$details['id']}})">
                 <i class="ki-outline ki-check-square me-1"></i>
                 Nhận việc
             </button>
@@ -247,6 +247,32 @@
                             </div>
                         </div>
 
+                        <div class="menu-separator simple"></div>
+                        <div class="flex flex-col gap-2.5">
+                            <div class="rounded-lg p-0">
+                                <div class="tab-content">
+                                    <!-- Tab feedback -->
+                                    <div class="tab-pane" id="task-feedbacks-tab" role="tabpanel">
+                                        <div class="p-3">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <h3 class="font-medium">Feedback từ người quản lý</h3>
+                                                @if ($details['assign']['id'] == session()->get(ACCOUNT_CURRENT_SESSION)['id'] || session()->get(ACCOUNT_CURRENT_SESSION)['is_admin'])
+                                                <button class="btn btn-sm btn-primary" onclick="openAddFeedbackModal({{$details['id']}})">
+                                                    <i class="ki-outline ki-message-star me-1"></i> Thêm feedback
+                                                </button>
+                                                @endif
+                                            </div>
+                                            
+                                            <div id="task-feedbacks-list" class="space-y-3">
+                                                <!-- Danh sách feedback sẽ được render từ JavaScript -->
+                                                <div class="text-center text-gray-500 py-5">Đang tải...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Hiển thị danh sách công việc dịch vụ (nếu là công việc hợp đồng) -->
                         @if ($details['type'] == 'CONTRACT' && isset($details['service_tasks']))
                         <div class="menu-separator simple"></div>
@@ -293,11 +319,11 @@
                                                 </div>
                                             </div>
                                             @if (in_array($serviceTask['status']['id'], [1, 2]))
-                                            <button class="btn btn-xs btn-primary" onclick="claimTask({{$serviceTask['id']}})">
+                                            <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$serviceTask['id']}})">
                                             Nhận việc
                                             </button>
                                             @elseif (in_array($serviceTask['status']['id'], [3]) && count($serviceTask['sub_tasks']) == 0)
-                                            <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$serviceTask['id']}}, '{{$serviceTask['name']}}', {{$serviceTask['qty_request']}}, {{$serviceTask['qty_completed']}})">
+                                            <button class="btn btn-xs btn-success" onclick="openReportMissionsModal({{$serviceTask['id']}}, '{{$serviceTask['name']}}')">
                                                 Báo cáo
                                             </button>
                                             @endif
@@ -407,11 +433,11 @@
                                                     </div>
                                                     <div class="flex space-x-1">
                                                         @if (in_array($subTask['status']['id'], [1, 2]))
-                                                        <button class="btn btn-xs btn-primary" onclick="claimTask({{$subTask['id']}})">
+                                                        <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$subTask['id']}})">
                                                         Nhận việc
                                                         </button>
                                                         @elseif (in_array($subTask['status']['id'], [3]))
-                                                        <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$subTask['id']}}, '{{$subTask['name']}}', {{$subTask['qty_request']}}, {{$subTask['qty_completed']}})">
+                                                        <button class="btn btn-xs btn-success" onclick="openReportMissionsModal({{$subTask['id']}}, '{{$subTask['name']}}')">
                                                             Báo cáo
                                                         </button>
                                                         @endif
@@ -493,11 +519,11 @@
                                                 </div>
                                             </div>
                                             @if (in_array($subTask['status']['id'], [1, 2]))
-                                            <button class="btn btn-xs btn-primary" onclick="claimTask({{$subTask['id']}})">
+                                            <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$subTask['id']}})">
                                             Nhận việc
                                             </button>
                                             @elseif (in_array($subTask['status']['id'], [3]))
-                                            <button class="btn btn-xs btn-success" onclick="openReportCompletionModal({{$subTask['id']}}, '{{$subTask['name']}}', {{$subTask['qty_request']}}, {{$subTask['qty_completed']}})">
+                                            <button class="btn btn-xs btn-success" onclick="openReportMissionsModal({{$subTask['id']}}, '{{$subTask['name']}}')">
                                                 Báo cáo
                                             </button>
                                             @endif
@@ -1112,6 +1138,122 @@
         </div>
     </div>
 </div>
+
+<!-- Modal nhận việc -->
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="claim-task-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[600px] top-5 lg:top-[10%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Nhận công việc
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="claim-task-form" class="grid gap-5 px-0 py-5">
+                <input type="hidden" name="task_id" id="claim-task-id" value="">
+                
+                <div class="flex flex-col gap-2.5">
+                    <div class="form-group">
+                        <label class="form-label required">Chọn nhiệm vụ cần thực hiện cho công việc này</label>
+                        <div class="flex flex-col items-start gap-4 py-4" id="mission-list">
+                            <!-- Danh sách nhiệm vụ sẽ được render từ JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col">
+                    <button type="submit" class="btn btn-primary justify-center">
+                        Nhận việc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal báo cáo nhiệm vụ -->
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="report-missions-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[600px] top-5 lg:top-[10%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Báo cáo hoàn thành nhiệm vụ: <span id="report-task-name"></span>
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="report-missions-form" class="grid gap-5 px-0 py-5">
+                <div class="flex flex-col gap-2.5">
+                    <div class="grid gap-3" id="mission-reports">
+                        <!-- Danh sách nhiệm vụ sẽ được render từ JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="flex flex-col">
+                    <button type="submit" class="btn btn-primary justify-center">
+                        Báo cáo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm feedback -->
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="add-feedback-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Thêm feedback cho công việc
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="add-feedback-form" class="grid gap-5 px-0 py-5">
+                <input type="hidden" name="task_id" id="feedback-task-id" value="">
+                
+                <div class="flex flex-col gap-2.5">
+                    <div class="form-group">
+                        <label class="form-label required">Đánh giá</label>
+                        <div class="flex items-center gap-2" id="rating-stars">
+                            <i class="ki-solid ki-star fs-2 cursor-pointer text-gray-300" data-rating="1"></i>
+                            <i class="ki-solid ki-star fs-2 cursor-pointer text-gray-300" data-rating="2"></i>
+                            <i class="ki-solid ki-star fs-2 cursor-pointer text-gray-300" data-rating="3"></i>
+                            <i class="ki-solid ki-star fs-2 cursor-pointer text-gray-300" data-rating="4"></i>
+                            <i class="ki-solid ki-star fs-2 cursor-pointer text-gray-300" data-rating="5"></i>
+                        </div>
+                        <input type="hidden" name="rating" id="rating-value" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="needs_revision" id="needs-revision">
+                            <label class="form-check-label" for="needs-revision">
+                                Yêu cầu chỉnh sửa
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Bình luận</label>
+                        <textarea name="comment" class="textarea" rows="3" placeholder="Nhập bình luận về công việc"></textarea>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col">
+                    <button type="submit" class="btn btn-primary justify-center">
+                        Gửi feedback
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1167,6 +1309,96 @@
             e.preventDefault();
             postReportCompletion($(this));
         })
+
+        // Xử lý form nhận việc
+        $('#claim-task-form').on('submit', async function(e) {
+            e.preventDefault();
+            
+            // Kiểm tra chọn ít nhất một nhiệm vụ
+            if ($('input[name="mission_ids[]"]:checked').length === 0) {
+                showAlert('warning', 'Vui lòng chọn ít nhất một nhiệm vụ');
+                return;
+            }
+            
+            const formData = $(this).serialize();
+            
+            try {
+                const response = await axios.post('/task/claim', formData);
+                if (response.data.status === 200) {
+                    showAlert('success', response.data.message);
+                    KTModal.getInstance(document.querySelector('#claim-task-modal')).hide();
+                    window.location.reload();
+                } else {
+                    showAlert('warning', response.data.message);
+                }
+            } catch (error) {
+                console.error('Error claiming task:', error);
+                showAlert('error', 'Không thể nhận việc');
+            }
+        });
+
+        // Xử lý form báo cáo nhiệm vụ
+        $('#report-missions-form').on('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = $(this).serialize();
+            
+            try {
+                const response = await axios.post('/task/report-mission', formData);
+                if (response.data.status === 200) {
+                    showAlert('success', response.data.message);
+                    KTModal.getInstance(document.querySelector('#report-missions-modal')).hide();
+                    window.location.reload();
+                } else {
+                    showAlert('warning', response.data.message);
+                }
+            } catch (error) {
+                console.error('Error reporting missions:', error);
+                showAlert('error', 'Không thể báo cáo nhiệm vụ');
+            }
+        });
+
+        // Xử lý đánh giá sao
+        $('#rating-stars i').on('click', function() {
+            const rating = $(this).data('rating');
+            $('#rating-value').val(rating);
+            
+            $('#rating-stars i').each(function() {
+                const starRating = $(this).data('rating');
+                if (starRating <= rating) {
+                    $(this).removeClass('text-gray-300').addClass('text-warning');
+                } else {
+                    $(this).removeClass('text-warning').addClass('text-gray-300');
+                }
+            });
+        });
+
+        // Xử lý form thêm feedback
+        $('#add-feedback-form').on('submit', async function(e) {
+            e.preventDefault();
+            
+            const rating = $('#rating-value').val();
+            if (rating < 1) {
+                showAlert('warning', 'Vui lòng chọn đánh giá sao');
+                return;
+            }
+            
+            const formData = $(this).serialize();
+            
+            try {
+                const response = await axios.post('/task/add-feedback', formData);
+                if (response.data.status === 200) {
+                    showAlert('success', response.data.message);
+                    KTModal.getInstance(document.querySelector('#add-feedback-modal')).hide();
+                    window.location.reload();
+                } else {
+                    showAlert('warning', response.data.message);
+                }
+            } catch (error) {
+                console.error('Error adding feedback:', error);
+                showAlert('error', 'Không thể thêm feedback');
+            }
+        });
 
         flatpickrMake($("input[name=due_date]"), 'datetime');
 
@@ -1409,5 +1641,313 @@
         // Mở modal
         KTModal.getInstance(document.querySelector('#report-completion-modal')).show();
     }
+
+    // Xử lý modal nhận việc
+    function openClaimTaskModal(taskId) {
+        $('#claim-task-id').val(taskId);
+        loadMissions();
+        KTModal.getInstance(document.querySelector('#claim-task-modal')).show();
+    }
+
+    // Tải danh sách nhiệm vụ
+    async function loadMissions() {
+        try {
+            const response = await axios.get('/task/missions');
+            if (response.data.status === 200) {
+                const missions = response.data.data;
+                let html = '';
+                
+                missions.forEach(mission => {
+                    html += `
+                    <label for="mission-${mission.id}" class="form-label flex items-center gap-2.5">
+                        <input checked class="checkbox" name="mission_ids[]" type="checkbox" value="${mission.id}" id="mission-${mission.id}"/>
+                        ${mission.name} <span class="text-gray-600">(${mission.salary}đ)</span>
+                    </label>
+                    `;
+                });
+                
+                $('#mission-list').html(html);
+            } else {
+                showAlert('warning', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error loading missions:', error);
+            showAlert('error', 'Không thể tải danh sách nhiệm vụ');
+        }
+    }
+
+
+    // Xử lý modal báo cáo nhiệm vụ
+    function openReportMissionsModal(taskId, taskName) {
+        $('#report-task-name').text(taskName);
+        loadTaskMissions(taskId);
+        KTModal.getInstance(document.querySelector('#report-missions-modal')).show();
+    }
+
+    // Tải danh sách nhiệm vụ của task
+    async function loadTaskMissions(taskId) {
+        try {
+            const response = await axios.get('/task/task-missions', {
+                params: { task_id: taskId }
+            });
+            
+            if (response.data.status === 200) {
+                const data = response.data.data;
+                let html = '';
+                
+                data.assignments.forEach(assignment => {
+                    const remaining = assignment.quantity_required - assignment.quantity_completed;
+                    if (remaining <= 0) return; // Bỏ qua nếu đã hoàn thành
+                    
+                    html += `
+                    <div class="bg-white p-3 border rounded-lg">
+                        <div class="font-medium text-gray-900 mb-2">${assignment.mission.name}</div>
+                        <div class="text-sm text-gray-600 mb-2">Hoàn thành: ${assignment.quantity_completed}/${assignment.quantity_required}</div>
+                        <div class="grid grid-cols-1 gap-2">
+                            <div class="form-group">
+                                <label class="form-label text-sm">Số lượng báo cáo (tối đa: ${remaining})</label>
+                                <input type="number" name="quantities[${assignment.id}]" class="input" min="1" max="${remaining}" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label text-sm">Ghi chú (nếu có)</label>
+                                <textarea name="notes[${assignment.id}]" class="textarea" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                });
+                
+                if (html === '') {
+                    html = '<div class="text-center text-gray-500">Không có nhiệm vụ nào cần báo cáo</div>';
+                }
+                
+                $('#mission-reports').html(html);
+            } else {
+                showAlert('warning', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error loading task missions:', error);
+            showAlert('error', 'Không thể tải danh sách nhiệm vụ của task');
+        }
+    }
+
+    // Xử lý modal thêm feedback
+    function openAddFeedbackModal(taskId) {
+        $('#feedback-task-id').val(taskId);
+        $('#rating-value').val(0);
+        $('#rating-stars i').removeClass('text-warning').addClass('text-gray-300');
+        $('#needs-revision').prop('checked', false);
+        $('textarea[name="comment"]').val('');
+        
+        KTModal.getInstance(document.querySelector('#add-feedback-modal')).show();
+    }
+
+    // Hàm đánh dấu đã giải quyết feedback
+    async function resolveFeedback(feedbackId) {
+        try {
+            const response = await axios.post('/task/resolve-feedback', {
+                feedback_id: feedbackId
+            });
+            
+            if (response.data.status === 200) {
+                showAlert('success', response.data.message);
+                window.location.reload();
+            } else {
+                showAlert('warning', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error resolving feedback:', error);
+            showAlert('error', 'Không thể đánh dấu đã giải quyết feedback');
+        }
+    }
+
+    // Hàm xóa báo cáo nhiệm vụ
+    async function deleteMissionReport(reportId) {
+        Notiflix.Confirm.show(
+            'Xóa báo cáo',
+            'Bạn có chắc chắn muốn xóa báo cáo này?',
+            'Đúng',
+            'Hủy',
+            async () => {
+                try {
+                    const response = await axios.post('/task/delete-mission-report', {
+                        report_id: reportId
+                    });
+                    
+                    if (response.data.status === 200) {
+                        showAlert('success', response.data.message);
+                        window.location.reload();
+                    } else {
+                        showAlert('warning', response.data.message);
+                    }
+                } catch (error) {
+                    console.error('Error deleting report:', error);
+                    showAlert('error', 'Không thể xóa báo cáo');
+                }
+            },
+            () => {},
+            {}
+        );
+    }
+
+    // Tải dữ liệu tab nhiệm vụ
+    async function loadTaskMissionsTab(taskId) {
+        try {
+            const response = await axios.get('/task/task-missions', {
+                params: { task_id: taskId }
+            });
+            
+            if (response.data.status === 200) {
+                const data = response.data.data;
+                let html = '';
+                
+                if (data.assignments.length === 0) {
+                    html = '<div class="text-center text-gray-500 py-5">Chưa có nhiệm vụ nào được nhận</div>';
+                } else {
+                    data.assignments.forEach(assignment => {
+                        const progress = assignment.quantity_required > 0 
+                            ? Math.round((assignment.quantity_completed / assignment.quantity_required) * 100) 
+                            : 0;
+                        
+                        html += `
+                        <div class="bg-white border rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="font-medium text-gray-900">${assignment.mission.name}</div>
+                                <div class="text-sm text-gray-600">
+                                    ${assignment.quantity_completed}/${assignment.quantity_required} 
+                                    (${progress}%)
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: ${progress}%"></div>
+                            </div>
+                            `;
+                        
+                        if (assignment.reports.length > 0) {
+                            html += `<div class="mt-2">
+                                <div class="text-sm font-medium mb-1">Lịch sử báo cáo:</div>
+                                <div class="space-y-2">`;
+                            
+                            assignment.reports.forEach(report => {
+                                const reportDate = new Date(report.date_completed);
+                                const formattedDate = reportDate.toLocaleDateString('vi-VN') + ' ' + 
+                                    reportDate.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+                                
+                                html += `
+                                <div class="flex items-center justify-between bg-gray-50 p-2 rounded text-sm">
+                                    <div>
+                                        <div class="font-medium">${report.quantity} đơn vị</div>
+                                        <div class="text-gray-600 text-xs">${formattedDate}</div>
+                                        ${report.note ? `<div class="text-gray-700 mt-1">${report.note}</div>` : ''}
+                                    </div>
+                                    <button class="btn btn-xs btn-icon btn-light" onclick="deleteMissionReport(${report.id})">
+                                        <i class="ki-outline ki-trash text-danger"></i>
+                                    </button>
+                                </div>
+                                `;
+                            });
+                            
+                            html += `</div></div>`;
+                        }
+                        
+                        html += `</div>`;
+                    });
+                }
+                
+                $('#task-missions-list').html(html);
+                $('#missions-count').text(data.assignments.length);
+            } else {
+                $('#task-missions-list').html(`<div class="text-center text-danger py-5">Lỗi: ${response.data.message}</div>`);
+            }
+        } catch (error) {
+            console.error('Error loading task missions tab:', error);
+            $('#task-missions-list').html('<div class="text-center text-danger py-5">Không thể tải dữ liệu</div>');
+        }
+    }
+
+    // Tải dữ liệu tab feedback
+    async function loadTaskFeedbacksTab(taskId) {
+        try {
+            const response = await axios.get('/task/feedbacks', {
+                params: { task_id: taskId }
+            });
+            
+            if (response.data.status === 200) {
+                const feedbacks = response.data.data;
+                let html = '';
+                
+                if (feedbacks.length === 0) {
+                    html = '<div class="text-center text-gray-500 py-5">Chưa có feedback nào</div>';
+                } else {
+                    feedbacks.forEach(feedback => {
+                        const createdDate = new Date(feedback.created_at);
+                        const formattedDate = createdDate.toLocaleDateString('vi-VN') + ' ' + 
+                            createdDate.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+                        
+                        html += `
+                        <div class="bg-white border rounded-lg p-4 ${feedback.needs_revision && !feedback.is_resolved ? 'border-danger' : ''}">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="font-medium text-gray-900">${feedback.user.name}</div>
+                                    <div class="text-sm text-gray-600">${formattedDate}</div>
+                                </div>
+                                <div class="flex items-center">
+                        `;
+                        
+                        // Hiển thị rating
+                        for (let i = 1; i <= 5; i++) {
+                            html += `<i class="ki-solid ki-star fs-6 ${i <= feedback.rating ? 'text-warning' : 'text-gray-300'}"></i>`;
+                        }
+                        
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Hiển thị yêu cầu chỉnh sửa
+                        if (feedback.needs_revision) {
+                            html += `
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="badge badge-${feedback.is_resolved ? 'success' : 'danger'}">
+                                    ${feedback.is_resolved ? 'Đã giải quyết' : 'Yêu cầu chỉnh sửa'}
+                                </span>
+                                ${feedback.is_resolved ? 
+                                    `<span class="text-xs text-gray-600">bởi ${feedback.resolver.name} - ${new Date(feedback.resolved_at).toLocaleDateString('vi-VN')}</span>` : 
+                                    `<button class="btn btn-xs btn-light-danger" onclick="resolveFeedback(${feedback.id})">
+                                        Đánh dấu đã giải quyết
+                                    </button>`
+                                }
+                            </div>
+                            `;
+                        }
+                        
+                        // Hiển thị comment
+                        if (feedback.comment) {
+                            html += `
+                            <div class="mt-2 bg-gray-50 p-3 rounded">
+                                <div class="text-gray-700">${feedback.comment}</div>
+                            </div>
+                            `;
+                        }
+                        
+                        html += `</div>`;
+                    });
+                }
+                
+                $('#task-feedbacks-list').html(html);
+                $('#feedbacks-count').text(feedbacks.length);
+            } else {
+                $('#task-feedbacks-list').html(`<div class="text-center text-danger py-5">Lỗi: ${response.data.message}</div>`);
+            }
+        } catch (error) {
+            console.error('Error loading task feedbacks tab:', error);
+            $('#task-feedbacks-list').html('<div class="text-center text-danger py-5">Không thể tải dữ liệu</div>');
+        }
+    }
+
+    // Tải dữ liệu mặc định cho tab đầu tiên
+    $(document).ready(function() {
+        loadTaskFeedbacksTab({{$details['id']}});
+    });
 </script>
 @endpush

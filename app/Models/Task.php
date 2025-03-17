@@ -28,6 +28,7 @@ class Task extends Model
         'is_updated', 
         'contract_service_id',
         'parent_id', 
+        'original_task_id',
         'assign_id', 
         'sub_name',
         'created_id', 
@@ -213,5 +214,77 @@ class Task extends Model
         }
         
         return $totalCompleted;
+    }
+
+    /**
+     * Get all mission assignments for this task
+     */
+    public function missionAssignments()
+    {
+        return $this->hasMany(TaskMissionAssignment::class, 'task_id');
+    }
+
+    /**
+     * Get all feedbacks for this task
+     */
+    public function feedbacks()
+    {
+        return $this->hasMany(TaskFeedback::class, 'task_id');
+    }
+
+    /**
+     * Check if task needs revision based on feedback
+     */
+    public function needsRevision()
+    {
+        return $this->feedbacks()
+            ->where('needs_revision', true)
+            ->where('is_resolved', false)
+            ->exists();
+    }
+
+    /**
+     * Get the completion percentage of all mission assignments
+     */
+    public function getMissionCompletionPercentage()
+    {
+        $assignments = $this->missionAssignments;
+        
+        if ($assignments->isEmpty()) {
+            return 0;
+        }
+        
+        $totalRequired = $assignments->sum('quantity_required');
+        $totalCompleted = $assignments->sum('quantity_completed');
+        
+        if ($totalRequired == 0) {
+            return 0;
+        }
+        
+        return min(100, round(($totalCompleted / $totalRequired) * 100));
+    }
+
+     /**
+     * Lấy task gốc
+     */
+    public function originalTask()
+    {
+        return $this->belongsTo(Task::class, 'original_task_id');
+    }
+    
+    /**
+     * Lấy các task bổ sung
+     */
+    public function supplementaryTasks()
+    {
+        return $this->hasMany(Task::class, 'original_task_id');
+    }
+    
+    /**
+     * Kiểm tra xem task có phải là task bổ sung không
+     */
+    public function isSupplementary()
+    {
+        return $this->original_task_id !== null;
     }
 }

@@ -1883,9 +1883,9 @@ class ContractController extends Controller
                             $processedServiceIds[] = $currentService->id;
 
                             // Kiểm tra task liên quan nếu hợp đồng đang triển khai
-                            if ($contract->status == 1) {
-                                $this->updateRelatedServiceTask($currentService, $servicePrice, $serviceQuantity);
-                            }
+                            // if ($contract->status == 1) {
+                            //     $this->updateRelatedServiceTask($currentService, $servicePrice, $serviceQuantity);
+                            // }
                         } else {
                             // Tạo mới dịch vụ
                             $newService = ContractService::create([
@@ -1954,9 +1954,9 @@ class ContractController extends Controller
                                     $processedSubServiceIds[] = $currentSubService->id;
 
                                     // Kiểm tra task liên quan nếu hợp đồng đang triển khai
-                                    if ($contract->status == 1) {
-                                        $this->updateRelatedSubServiceTask($currentSubService, $subServicePrice, $subServiceQuantity);
-                                    }
+                                    // if ($contract->status == 1) {
+                                    //     $this->updateRelatedSubServiceTask($currentSubService, $subServicePrice, $subServiceQuantity);
+                                    // }
                                 } else {
                                     // Tạo mới dịch vụ con
                                     $newSubService = ContractService::create([
@@ -1995,9 +1995,9 @@ class ContractController extends Controller
                             foreach ($currentSubServices as $existingSubService) {
                                 if (!in_array($existingSubService->id, $processedSubServiceIds)) {
                                     // Kiểm tra và xử lý task liên quan
-                                    if ($contract->status == 1) {
-                                        $this->deactivateServiceTask($existingSubService->id);
-                                    }
+                                    // if ($contract->status == 1) {
+                                    //     $this->deactivateServiceTask($existingSubService->id);
+                                    // }
 
                                     // Vô hiệu hóa dịch vụ con
                                     $existingSubService->update(['is_active' => 0]);
@@ -2041,9 +2041,9 @@ class ContractController extends Controller
                         $processedServiceIds[] = $currentCustomItem->id;
 
                         // Kiểm tra task liên quan nếu hợp đồng đang triển khai
-                        if ($contract->status == 1 && $customItemType !== 'discount') {
-                            $this->updateRelatedServiceTask($currentCustomItem, $itemPrice, 1);
-                        }
+                        // if ($contract->status == 1 && $customItemType !== 'discount') {
+                        //     $this->updateRelatedServiceTask($currentCustomItem, $itemPrice, 1);
+                        // }
                     } else {
                         // Tạo mới mục tùy chỉnh
                         $newCustomItem = ContractService::create([
@@ -2078,9 +2078,9 @@ class ContractController extends Controller
             foreach ($currentServices as $existingService) {
                 if (!in_array($existingService->id, $processedServiceIds)) {
                     // Kiểm tra và xử lý task liên quan
-                    if ($contract->status == 1) {
-                        $this->deactivateServiceTask($existingService->id);
-                    }
+                    // if ($contract->status == 1) {
+                    //     $this->deactivateServiceTask($existingService->id);
+                    // }
 
                     // Vô hiệu hóa dịch vụ
                     $existingService->update(['is_active' => 0]);
@@ -2090,9 +2090,9 @@ class ContractController extends Controller
             // Cập nhật tổng giá trị hợp đồng
             $this->updateContractTotalValue($contract);
             // Tạo các task mới nếu cần
-            if (!empty($newTasksToCreate)) {
-                $this->createNewTasksForServices($newTasksToCreate, $contract);
-            }
+            // if (!empty($newTasksToCreate)) {
+            //     $this->createNewTasksForServices($newTasksToCreate, $contract);
+            // }
 
             // Đồng bộ lại toàn bộ task sau các thay đổi - thêm dòng này
             if ($contract->status == 1) {
@@ -2811,13 +2811,13 @@ class ContractController extends Controller
             $responseData = json_decode($response->getContent(), true);
             return $responseData['status'] == 200;
         } catch (\Exception $e) {
-            // Log lỗi nếu cần
+            // Log lỗi
             \Illuminate\Support\Facades\Log::error('Không thể đồng bộ công việc cho hợp đồng ' . $contractId . ': ' . $e->getMessage());
             return false;
         }
     }
 
-    /**
+   /**
      * Gọi đồng bộ task từ controller hợp đồng
      * 
      * @param Request $request
