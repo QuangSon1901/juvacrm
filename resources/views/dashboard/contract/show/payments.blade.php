@@ -79,6 +79,12 @@
                                     <td class="!px-1 ">
                                         <div class="menu" data-menu="true">
                                             @if ($payment['status'] == 0)
+                                            <button class="btn btn-sm btn-icon btn-light btn-clear" onclick="paymentAccept({{$payment['id']}})" data-tooltip="#tooltip_payment" data-tooltip-trigger="hover"> 
+                                                <i class="ki-filled ki-dollar"></i>
+                                            </button>
+                                            <div class="tooltip" id="tooltip_payment">
+                                                Xác nhận đã thanh toán
+                                            </div>
                                             <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
                                                 <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
                                                     <i class="ki-filled ki-dots-vertical"></i>
@@ -92,6 +98,17 @@
                                                             <span class="menu-title">Chỉnh sửa</span>
                                                         </button>
                                                     </div>
+                                                    <div class="menu-separator"></div>
+                                                    <div class="menu-item">
+                                                        <a class="menu-link" href="{{ route('dashboard.accounting.deposit-receipt.export-pdf', $details['id']) }}">
+                                                            <span class="menu-icon">
+                                                                <i class="ki-filled ki-file-down"></i>
+                                                            </span>
+                                                            <span class="menu-title">
+                                                                Xuất PDF
+                                                            </span>
+                                                        </a>
+                                                    </div>
                                                     <div class="menu-item">
                                                         <button class="menu-link" onclick="cancelPayment({{$payment['id']}})">
                                                             <span class="menu-icon">
@@ -99,6 +116,24 @@
                                                             </span>
                                                             <span class="menu-title">Hủy</span>
                                                         </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @else
+                                            <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                                                <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                                    <i class="ki-filled ki-dots-vertical"></i>
+                                                </button>
+                                                <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
+                                                    <div class="menu-item">
+                                                        <a class="menu-link" href="{{ route('dashboard.accounting.deposit-receipt.export-pdf', $payment['id']) }}">
+                                                            <span class="menu-icon">
+                                                                <i class="ki-filled ki-file-down"></i>
+                                                            </span>
+                                                            <span class="menu-title">
+                                                                Xuất PDF
+                                                            </span>
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -215,6 +250,41 @@
             showAlert('error', "Đã có lỗi xảy ra khi gửi yêu cầu!");
             console.error(error);
         }
+    }
+
+    async function paymentAccept(paymentId) {
+        Notiflix.Confirm.show(
+            'Xác nhận thanh toán',
+            'Bạn có chắc chắn muốn xác nhận đã thanh toán biên nhận này?',
+            'Đúng',
+            'Hủy',
+            async () => {
+                let method = "post",
+                    url = "/contract/update-payment",
+                    params = null,
+                    data = {
+                        id: paymentId, 
+                        status: 1
+                    };
+
+                try {
+                    let res = await axiosTemplate(method, url, params, data);
+                    switch (res.data.status) {
+                        case 200:
+                            showAlert('success', 'Xác nhận thanh toán thành công');
+                            window.location.reload();
+                            break;
+                        default:
+                            showAlert('warning', res?.data?.message || "Đã có lỗi xảy ra!");
+                            break;
+                    }
+                } catch (error) {
+                    showAlert('error', "Đã có lỗi xảy ra khi gửi yêu cầu!");
+                    console.error(error);
+                }
+                },
+                () => {}, {}
+        );
     }
 
     // Hủy biên nhận

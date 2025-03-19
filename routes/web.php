@@ -283,6 +283,7 @@ Route::group(
                     ['namespace' => 'DepositReceipt', 'as' => 'deposit-receipt.', 'middleware' => []],
                     function () {
                         Route::get('/deposit-receipt', [DepositReceiptController::class, "index"])->name("deposit-receipt");
+                        Route::get('/deposit-receipt/{id}/export-pdf', [DepositReceiptController::class, "exportPaymentReceipt"])->name("export-pdf");
                     }
                 );
             }

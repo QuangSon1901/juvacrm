@@ -146,10 +146,16 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
                                 Dịch vụ
                             </span>
                         </div>
-                        <div class="tab cursor-pointer" data-tab-toggle="#tab-payments">
+                        <div class="tab relative cursor-pointer" data-tab-toggle="#tab-payments">
                             <span class="text-nowrap text-sm">
                                 Thanh toán
                             </span>
+                            @if ($details['payment_summary']['total_remaining'] > 0)
+                            <span class="flex absolute h-2 w-2 top-4 right-0 -mt-1 -mr-1">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                            </span>
+                            @endif
                         </div>
                         <div class="tab cursor-pointer" data-tab-toggle="#tab-tasks">
                             <span class="text-nowrap text-sm">
