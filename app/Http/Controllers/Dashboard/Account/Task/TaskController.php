@@ -34,7 +34,10 @@ class TaskController extends Controller
         $priorities = TaskConfig::select('id', 'name', 'color')->where('type', 0)->where('is_active', 1)->orderBy('sort')->get()->toArray();
         $statuses = TaskConfig::select('id', 'name', 'color')->where('type', 1)->where('is_active', 1)->orderBy('sort')->get()->toArray();
 
-        return view("dashboard.account.task.index", ['priorities' => $priorities, 'statuses' => $statuses]);
+        $task_remake = Task::where('status_id', 7)->count();
+        $task_overdue = Task::where('status_id', 6)->count();
+
+        return view("dashboard.account.task.index", ['priorities' => $priorities, 'statuses' => $statuses, 'task_remake' => $task_remake, 'task_overdue' => $task_overdue]);
     }
 
     public function createView(Request $request)
@@ -54,7 +57,7 @@ class TaskController extends Controller
         $currentPage = $request->input('page', 1);
 
         $query = Task::query()
-            ->myTask($request['filter']['my_task'] ?? 0)
+            ->taskNoCompleted($request['filter']['task_no_completed'] ?? 0)
             ->levelTask($request['filter']['level_task'] ?? 'CONTRACT')
             ->priorityTask($request['filter']['priority_task'] ?? '')
             ->statusTask($request['filter']['status_task'] ?? '')

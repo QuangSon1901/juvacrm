@@ -42,6 +42,17 @@ class Task extends Model
     /**
      * Scope query để lấy công việc của tôi
      */
+    public function scopeTaskNoCompleted($query, $my_task)
+    {
+        if ($my_task == 1) {
+            $query->where('status_id', '<' , 4);
+        }
+        return $query;
+    }
+
+    /**
+     * Scope query để lấy công việc của tôi
+     */
     public function scopeMyTask($query, $my_task)
     {
         if ($my_task == 1) {
@@ -49,6 +60,7 @@ class Task extends Model
         }
         return $query;
     }
+
 
     /**
      * Scope query để lọc theo cấp độ công việc

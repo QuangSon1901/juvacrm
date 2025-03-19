@@ -1370,7 +1370,7 @@ $(function() {
             if (response.data.status === 200) {
                 showAlert('success', response.data.message);
                 KTModal.getInstance(document.querySelector('#add-contract-feedback-modal')).hide();
-                loadContractFeedbacks({{$details['id']}});
+                window.location.reload();
             } else {
                 showAlert('warning', response.data.message);
             }
@@ -1392,9 +1392,8 @@ $(function() {
             if (response.data.status === 200) {
                 showAlert('success', response.data.message);
                 KTModal.getInstance(document.querySelector('#resolve-feedback-modal')).hide();
-                
-                // Nạp lại danh sách feedback
-                loadContractFeedbacks({{$details['id']}});
+                window.location.reload();
+
             } else {
                 showAlert('warning', response.data.message);
             }
@@ -2191,7 +2190,8 @@ async function resolveFeedbackItem(itemId) {
         
         if (response.data.status === 200) {
             showAlert('success', response.data.message);
-            loadContractFeedbacks({{$details['id']}});
+            window.location.reload();
+
         } else {
             showAlert('warning', response.data.message);
         }
@@ -2210,11 +2210,8 @@ async function confirmFeedbackResolved(feedbackId) {
         
         if (response.data.status === 200) {
             showAlert('success', response.data.message);
-            loadContractFeedbacks({{$details['id']}});
-            // Reload trang sau 1 giây để cập nhật trạng thái
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+            window.location.reload();
+
         } else {
             showAlert('warning', response.data.message);
         }
@@ -2248,10 +2245,8 @@ async function requestFeedbackRevision(feedbackId) {
                 if (response.data.status === 200) {
                     showAlert('success', response.data.message);
                     loadContractFeedbacks({{$details['id']}});
-                    // Reload trang sau 1 giây để cập nhật trạng thái
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
+                    window.location.reload();
+
                 } else {
                     showAlert('warning', response.data.message);
                 }

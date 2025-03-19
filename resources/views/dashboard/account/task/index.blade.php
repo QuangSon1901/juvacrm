@@ -15,6 +15,32 @@
         </div>
     </div>
 </div>
+@if ($task_remake > 0 || $task_overdue > 0)
+    <div class="flex flex-wrap gap-2 px-6 py-2">
+        @if ($task_overdue > 0)
+        <div class="badge badge-outline badge-danger px-3">
+            <div class="relative w-full text-sm flex items-center gap-2">
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+                CẢNH BÁO: Có công việc QUÁ HẠN nghiêm trọng <span class="underline cursor-pointer" onclick="$('select[data-filter=status_task]').val('6').trigger('change');document.getElementById('tasks-table').scrollIntoView({ behavior: 'smooth' });">Xem ngay</span>
+            </div>
+        </div>
+        @endif
+        @if ($task_remake > 0)
+        <div class="badge badge-outline badge-info px-3">
+            <div class="relative w-full text-sm flex items-center gap-2">
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
+                </span>
+                CHÚ Ý: Có công việc bị từ chối, yêu cầu xử lý ngay <span class="underline cursor-pointer" onclick="$('select[data-filter=status_task]').val('7').trigger('change');document.getElementById('tasks-table').scrollIntoView({ behavior: 'smooth' });">Xem ngay</span>
+            </div>
+        </div>
+        @endif
+    </div>
+@endif
 <div class="container-fixed">
     <div class="grid gap-5 lg:gap-7.5">
         <div class="card card-grid min-w-full">
@@ -59,9 +85,9 @@
                                 <div class="flex">
                                     <label class="switch switch-sm">
                                         <span class="switch-label">
-                                            Công việc của tôi
+                                            Công việc chưa hoàn thành
                                         </span>
-                                        <input name="check" data-filter="my_task" type="checkbox" value="1">
+                                        <input name="check" data-filter="task_no_completed" type="checkbox" value="1">
                                     </label>
                                 </div>
                                 <div class="relative">
@@ -87,7 +113,7 @@
             <div class="card-body">
                 <div data-datatable="false" id="current_sessions_table" class="datatable-initialized">
                     <div class="scrollable-x-auto">
-                        <table class="table table-border" data-datatable-table="true">
+                        <table id="tasks-table" class="table table-border" data-datatable-table="true">
                             <thead>
                                 <tr>
                                     <th class="w-[200px]">
@@ -166,7 +192,7 @@
 </div>
 
 <div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="bulk-action-modal" style="z-index: 90;">
-    <div class="modal-content modal-overlay">
+    <div class="modal-content modal-center-y lg:max-w-[1100px] max-h-[95%]">
         <div class="modal-header pr-2.5">
             <h3 class="modal-title">
                 Thao tác nhanh
@@ -175,7 +201,7 @@
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
-        <div class="modal-body scrollable-y-auto">
+        <div class="modal-body scrollable-y">
             <div id="bulk-tasks-container" class="space-y-4">
                 <!-- Task cards will be rendered here dynamically -->
             </div>
@@ -246,7 +272,7 @@
 </div>
 
 <template id="task-card-template">
-    <div class="task-card bg-white border border-gray-200 rounded-lg p-4 shadow-sm" data-task-id="">
+    <div class="task-card bg-white border border-gray-500 rounded-lg p-4 shadow-sm" data-task-id="">
         <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <!-- Task info -->
             <div class="flex-1">
@@ -317,7 +343,7 @@
 
 <!-- Template for subtask item -->
 <template id="subtask-item-template">
-    <div class="subtask-item bg-gray-50 rounded-lg p-3 border border-gray-100" data-task-id="">
+    <div class="subtask-item bg-gray-50 rounded-lg p-3 border border-gray-500" data-task-id="">
         <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
             <!-- Subtask info -->
             <div class="flex-1">
@@ -393,6 +419,35 @@
         KTModal.getInstance(document.querySelector('#report-missions-modal')).on('hide', (detail) => {
             $('#bulk-action-btn').trigger('click');
         });
+
+        $(document).off('click').on('click', '.pagination button', async function() {
+            let _updater = $(this).closest('.card').find('.updater');
+            let page = $(this).attr('data-page');
+
+            $(this).closest('.card').find('.currentpage').val(page);
+            Notiflix.Loading.circle('Đang tải dữ liệu...');
+            await callAjaxDataTable(_updater);
+            Notiflix.Loading.remove();
+            callAPIAfterAjaxLoad()
+        })
+
+        $(document).off('change').on('change', 'input[type=checkbox][data-filter], select[data-filter]', async function() {
+            let _updater = $(this).closest('.card').find('.updater');
+            Notiflix.Loading.circle('Đang tải dữ liệu...');
+            await callAjaxDataTable(_updater);
+            Notiflix.Loading.remove();
+            callAPIAfterAjaxLoad()
+        })
+
+        $(document).off('keyup').on('keyup', 'input[type=text][data-filter], input[type=password][data-filter]', async function() {
+            if (event.keyCode === 13) {
+                let _updater = $(this).closest('.card').find('.updater');
+                Notiflix.Loading.circle('Đang tải dữ liệu...');
+                await callAjaxDataTable(_updater);
+                Notiflix.Loading.remove();
+                callAPIAfterAjaxLoad()
+            }
+        })
     
         // Check/uncheck tasks
         $(document).on('change', '.task-checkbox', function() {
@@ -1062,38 +1117,45 @@
         if (_updater.length == 0) return;
 
         $.each(_updater, async (_, _this) => {
+            Notiflix.Loading.circle('Đang tải dữ liệu...');
             await callAjaxDataTable($(_this));
+            Notiflix.Loading.remove();
+            callAPIAfterAjaxLoad()
+        })
+    }
 
-            let taskIDs = []
-            $('.task-checkbox').each(function() {
-                const $checkbox = $(this);
-                const taskId = $checkbox.data('task-id');
-                taskIDs.push($checkbox.data('task-id'));
+    async function callAPIAfterAjaxLoad() {
+        selectedTasks.clear();
+        $('#bulk-action-btn').addClass('hidden');
+        let taskIDs = []
+        $('.task-checkbox').each(function() {
+            const $checkbox = $(this);
+            const taskId = $checkbox.data('task-id');
+            taskIDs.push($checkbox.data('task-id'));
 
-                tasksData.set(taskId.toString(), {
-                    id: taskId,
-                    name: $checkbox.data('task-name'),
-                    type: $checkbox.data('task-type'),
-                    parentId: $checkbox.data('parent-id'),
-                    hasChildren: $checkbox.data('has-children'),
-                    statusId: $checkbox.data('status-id'),
-                    qtyCompleted: $checkbox.data('qty-completed'),
-                    qtyRequest: $checkbox.data('qty-request'),
-                    sampleImage: $checkbox.data('sample-image'),
-                    resultImage: $checkbox.data('result-image')
-                });
-
-                if ($checkbox.data('parent-id')) {
-                    const parentId = $checkbox.data('parent-id').toString();
-                    if (!parentChildMap.has(parentId)) {
-                        parentChildMap.set(parentId, []);
-                    }
-                    parentChildMap.get(parentId).push(taskId.toString());
-                }
+            tasksData.set(taskId.toString(), {
+                id: taskId,
+                name: $checkbox.data('task-name'),
+                type: $checkbox.data('task-type'),
+                parentId: $checkbox.data('parent-id'),
+                hasChildren: $checkbox.data('has-children'),
+                statusId: $checkbox.data('status-id'),
+                qtyCompleted: $checkbox.data('qty-completed'),
+                qtyRequest: $checkbox.data('qty-request'),
+                sampleImage: $checkbox.data('sample-image'),
+                resultImage: $checkbox.data('result-image')
             });
 
-            await getTaskByIDs(taskIDs);
-        })
+            if ($checkbox.data('parent-id')) {
+                const parentId = $checkbox.data('parent-id').toString();
+                if (!parentChildMap.has(parentId)) {
+                    parentChildMap.set(parentId, []);
+                }
+                parentChildMap.get(parentId).push(taskId.toString());
+            }
+        });
+
+        await getTaskByIDs(taskIDs);
     }
 
     async function getTaskByIDs(taskIDs) {
@@ -1103,9 +1165,7 @@
                 ids: taskIDs.join(',')
             },
             data = null;
-        Notiflix.Loading.circle('Đang xử lý...');
         let res = await axiosTemplate(method, url, params, data);
-        Notiflix.Loading.remove();
 
         if (res.data.status === 200) {
             $(res.data.data).each((_, item) => {

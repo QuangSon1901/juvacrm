@@ -4,7 +4,7 @@
 const NAME_COMPANY = "Juva Media";
 
 // PAGINATION
-const TABLE_PERPAGE_NUM = 25;
+const TABLE_PERPAGE_NUM = 50;
 const CARD_PERPAGE_NUM = 50;
 
 // SESSION
