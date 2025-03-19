@@ -242,6 +242,9 @@ Route::group(
                         Route::post('/task/request-feedback-revision', [TaskController::class, 'requestFeedbackRevision']);
                         Route::get('/task/feedback-item-details', [TaskController::class, 'getFeedbackItemDetails']);
 
+                        Route::get('/task/get-status/{id}', [TaskController::class, 'getTaskStatus']);
+                        Route::get('/task/get-list-by-ids', [TaskController::class, 'getTaskByIDs']);
+
                         Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
                     }
                 );

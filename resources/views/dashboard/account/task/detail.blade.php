@@ -17,15 +17,15 @@
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
             @if (in_array($details['type'], ['SERVICE', 'SUB']) && in_array($details['status']['id'], [1, 2]))
             <button class="btn btn-sm btn-primary" onclick="openClaimTaskModal({{$details['id']}})">
-                <i class="ki-outline ki-check-square me-1"></i>
+                <i class="ki-outline ki-check me-1"></i>
                 Nhận việc
             </button>
             @endif
 
             @if (in_array($details['type'], ['SERVICE', 'SUB']) && in_array($details['status']['id'], [3]) && (!isset($details['sub_tasks']) || count($details['sub_tasks']) == 0))
-            <button class="btn btn-sm btn-success" data-modal-toggle="#report-completion-modal">
+            <button class="btn btn-sm btn-warning" onclick="openReportMissionsModal({{$details['id']}}, '{{$details['name']}}')">
                 <i class="ki-outline ki-flag me-1"></i>
-                Báo cáo hoàn thành
+                Báo cáo
             </button>
             @endif
         </div>
@@ -178,9 +178,6 @@
                                             {{$details['assign']['name']}}
                                         </a>
                                         @endif
-                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="assign_id">
-                                            <i class="ki-filled ki-notepad-edit"></i>
-                                        </button>
                                     </div>
                                 </div>
                                 @endif
@@ -201,9 +198,6 @@
                                         @else
                                         ---
                                         @endif
-                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-task-modal" data-name="due_date">
-                                            <i class="ki-filled ki-notepad-edit"></i>
-                                        </button>
                                     </div>
                                 </div>
                                 
@@ -357,17 +351,15 @@
                                                     <div class="bg-blue-600 h-1.5 rounded" style="width: {{$serviceTask['progress'] ?? 0}}%"></div>
                                                 </div>
                                             </div>
-                                            <!-- Nút giải quyết feedback -->
                                             <button class="btn btn-xs btn-warning feedback-resolve-btn-{{$serviceTask['id']}} hidden" onclick="openResolveFeedbackModal({{$serviceTask['id']}})">
                                                 Giải quyết
                                             </button>
-                                            <!-- Nút nhận việc hoặc báo cáo -->
                                             @if (in_array($serviceTask['status']['id'], [1, 2]))
                                             <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$serviceTask['id']}})">
                                             Nhận việc
                                             </button>
                                             @elseif (in_array($serviceTask['status']['id'], [3]) && count($serviceTask['sub_tasks']) == 0)
-                                            <button class="btn btn-xs btn-success" onclick="openReportMissionsModal({{$serviceTask['id']}}, '{{$serviceTask['name']}}')">
+                                            <button class="btn btn-xs btn-warning" onclick="openReportMissionsModal({{$serviceTask['id']}}, '{{$serviceTask['name']}}')">
                                                 Báo cáo
                                             </button>
                                             @endif
@@ -489,17 +481,15 @@
                                                         </div>
                                                     </div>
                                                     <div class="flex space-x-1">
-                                                        <!-- Nút giải quyết feedback -->
                                                         <button class="btn btn-xs btn-warning feedback-resolve-btn-{{$subTask['id']}} hidden" onclick="openResolveFeedbackModal({{$subTask['id']}})">
                                                             Giải quyết
                                                         </button>
-                                                        <!-- Nút nhận việc hoặc báo cáo -->
                                                         @if (in_array($subTask['status']['id'], [1, 2]))
                                                         <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$subTask['id']}})">
                                                         Nhận việc
                                                         </button>
                                                         @elseif (in_array($subTask['status']['id'], [3]))
-                                                        <button class="btn btn-xs btn-success" onclick="openReportMissionsModal({{$subTask['id']}}, '{{$subTask['name']}}')">
+                                                        <button class="btn btn-xs btn-warning" onclick="openReportMissionsModal({{$subTask['id']}}, '{{$subTask['name']}}')">
                                                             Báo cáo
                                                         </button>
                                                         @endif
@@ -581,13 +571,12 @@
                                                     <div class="bg-blue-600 h-1.5 rounded" style="width: {{$subTaskProgress}}%"></div>
                                                 </div>
                                             </div>
-                                            <!-- Nút nhận việc hoặc báo cáo -->
                                             @if (in_array($subTask['status']['id'], [1, 2]))
                                             <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$subTask['id']}})">
                                             Nhận việc
                                             </button>
                                             @elseif (in_array($subTask['status']['id'], [3]))
-                                            <button class="btn btn-xs btn-success" onclick="openReportMissionsModal({{$subTask['id']}}, '{{$subTask['name']}}')">
+                                            <button class="btn btn-xs btn-warning" onclick="openReportMissionsModal({{$subTask['id']}}, '{{$subTask['name']}}')">
                                                 Báo cáo
                                             </button>
                                             @endif
@@ -1109,7 +1098,6 @@
     </div>
 </div>
 
-<!-- Modal nhận việc -->
 <div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="claim-task-modal" style="z-index: 90;">
     <div class="modal-content max-w-[600px] top-5 lg:top-[10%]">
         <div class="modal-header pr-2.5">
@@ -1644,7 +1632,6 @@ function openReportCompletionModal(taskId, taskName, totalQty, completedQty) {
     KTModal.getInstance(document.querySelector('#report-completion-modal')).show();
 }
 
-// Mở modal nhận việc
 function openClaimTaskModal(taskId) {
     $('#claim-task-id').val(taskId);
     loadMissions();

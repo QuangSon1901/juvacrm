@@ -36,8 +36,7 @@ class Task extends Model
         'service_other',
         'bonus_amount', 
         'deduction_amount',
-        'sample_image_id',
-            'result_image_id',
+        'sample_image_id', 'result_image_id',
     ];
 
     /**

@@ -23,8 +23,8 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
                     </span>
                     @break
                     @case(2)
-                    <span class="badge badge-sm badge-outline badge-success">
-                        Đã hoàn thành
+                    <span class="badge badge-sm badge-outline badge-neutral">
+                        Đã kết thúc
                     </span>
                     @break
                     @case(3)
@@ -53,7 +53,7 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
             @push("actions")
             <div class="flex flex-wrap items-center gap-3">
                 @if ($details['status'] == 0)
-                <button type="button" class="btn btn-outline btn-success px-5 py-2 flex items-center gap-2" onclick="saveCreateTaskContract({{$details['id']}})">
+                <button type="button" class="btn btn-primary px-5 py-2 flex items-center gap-2" onclick="saveCreateTaskContract({{$details['id']}})">
                     <i class="ki-filled ki-plus text-white"></i>
                     <span>Tạo công việc</span>
                 </button>
@@ -66,30 +66,66 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
                 </button>
                 @endif
 
-                @if ($details['status'] == 1)
-                <button type="button" class="btn btn-outline btn-success px-5 py-2 flex items-center gap-2" onclick="saveCompleteContract({{$details['id']}})">
-                    <i class="ki-filled ki-check text-white"></i>
-                    <span>Hoàn tất hợp đồng</span>
-                </button>
-                @endif
-
-                @if ($details['status'] != 3)
-                <a href="{{ route('dashboard.contract.export-pdf', $details['id']) }}" class="btn btn-light px-5 py-2 flex items-center gap-2">
-                    <i class="ki-filled ki-file-down text-gray-700"></i>
-                    <span>Xuất PDF</span>
-                </a>
-                <a href="{{ route('dashboard.contract.export-excel', $details['id']) }}" class="btn btn-light px-5 py-2 flex items-center gap-2">
-                    <i class="ki-filled ki-file-down text-gray-700"></i>
-                    <span>Xuất Excel</span>
-                </a>
-                @endif
-
-                @if ($details['status'] < 2) 
-                    <button type="button" class="btn btn-outline btn-danger px-5 py-2 flex items-center gap-2" onclick="saveCancelContract({{$details['id']}})">
-                    <i class="ki-filled ki-cross text-white"></i>
-                    <span>Huỷ hợp đồng</span>
-                </button>
-                @endif
+                <div class="dropdown" data-dropdown="true" data-dropdown-trigger="click">
+                    <button class="dropdown-toggle btn btn-light btn-icon-xs">
+                        <i class="ki-filled ki-setting-2 text-gray-700 !text-md"></i>
+                        Thao tác khác
+                        <i class="ki-outline ki-down dropdown-open:hidden"></i>
+                        <i class="ki-outline ki-up hidden dropdown-open:block"></i>
+                    </button>
+                    <div class="dropdown-content w-full max-w-56 py-2">
+                        <div class="menu menu-default flex flex-col w-full">
+                            @if ($details['status'] == 1)
+                            <div class="menu-item">
+                                <button class="menu-link" type="button" onclick="saveCompleteContract({{$details['id']}})">
+                                    <span class="menu-icon">
+                                        <i class="ki-filled ki-check !text-success"></i>
+                                    </span>
+                                    <span class="menu-title !text-success">
+                                        Kết thúc hợp đồng
+                                    </span>
+                                </button>
+                            </div>
+                            @endif
+                            @if ($details['status'] != 3)
+                            <div class="menu-separator"></div>
+                            <div class="menu-item">
+                                <a class="menu-link" href="{{ route('dashboard.contract.export-pdf', $details['id']) }}">
+                                    <span class="menu-icon">
+                                        <i class="ki-filled ki-file-down"></i>
+                                    </span>
+                                    <span class="menu-title">
+                                        Xuất PDF
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link" href="{{ route('dashboard.contract.export-excel', $details['id']) }}">
+                                    <span class="menu-icon">
+                                        <i class="ki-filled ki-file-down"></i>
+                                    </span>
+                                    <span class="menu-title">
+                                        Xuất Excel
+                                    </span>
+                                </a>
+                            </div>
+                            @endif
+                            @if ($details['status'] < 2) 
+                            <div class="menu-separator"></div>
+                            <div class="menu-item">
+                                <button class="menu-link" type="button" onclick="saveCancelContract({{$details['id']}})">
+                                    <span class="menu-icon">
+                                        <i class="ki-filled ki-cross !text-red-500"></i>
+                                    </span>
+                                    <span class="menu-title !text-red-500">
+                                        Huỷ hợp đồng
+                                    </span>
+                                </button>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
             </div>
             @endpush
         </div>
@@ -211,7 +247,7 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
                         <option value="" selected>Chọn trạng thái</option>
                         <option value="0">Chờ duyệt</option>
                         <option value="1">Đang triển khai</option>
-                        <option value="2">Đã hoàn thành</option>
+                        <option value="2">Đã kết thúc</option>
                     </select>
                     <select name="user_id" class="select hidden">
                         <option value="" selected>Chọn nhân viên</option>
@@ -332,22 +368,31 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
     }
 
     async function saveCompleteContract(id) {
-        let method = "post",
-            url = "/contract/complete",
-            params = null,
-            data = {
-                id
-            };
-        let res = await axiosTemplate(method, url, params, data);
-        switch (res.data.status) {
-            case 200:
-                showAlert('success', res.data.message);
-                window.location.reload();
-                break;
-            default:
-                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-                break;
-        }
+        Notiflix.Confirm.show(
+            'Kết thúc hợp đồng',
+            'Bạn có chắc chắn muốn kết thúc hợp đồng này? Sau khi kết thúc sẽ không thể sửa đổi',
+            'Đúng',
+            'Hủy',
+            async () => {
+                let method = "post",
+                    url = "/contract/complete",
+                    params = null,
+                    data = {
+                        id
+                    };
+                let res = await axiosTemplate(method, url, params, data);
+                switch (res.data.status) {
+                    case 200:
+                        showAlert('success', res.data.message);
+                        window.location.reload();
+                        break;
+                    default:
+                        showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                        break;
+                }
+                },
+                () => {}, {}
+        );
     }
 
     async function saveCreateTaskContract(id) {

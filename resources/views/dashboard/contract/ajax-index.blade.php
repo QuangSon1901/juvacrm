@@ -11,7 +11,7 @@
         @elseif ($item['status'] == 1)
             <span class="badge badge-sm badge-outline badge-primary">Đang triển khai</span>
         @elseif ($item['status'] == 2)
-            <span class="badge badge-sm badge-outline badge-success">Đã hoàn tất</span>
+            <span class="badge badge-sm badge-outline badge-neutral">Đã kết thúc</span>
         @elseif ($item['status'] == 3)
             <span class="badge badge-sm badge-outline badge-danger">Đã hủy</span>
         @endif

@@ -37,14 +37,16 @@ class ContractController extends Controller
             $contract = Contract::findOrFail($request['id']);
             $contract->update(['status' => 2]);
 
+            Task::where('contract_id', $request['id'])->update(['status_id' => 8]);
+
             return response()->json([
                 'status' => 200,
-                'message' => 'Hợp đồng đã hoàn tất.',
+                'message' => 'Hợp đồng đã kết thúc.',
             ]);
         }  catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
-                'message' => $e->getMessage() ?? 'Đã xảy ra lỗi khi hoàn tất hợp đồng.',
+                'message' => $e->getMessage() ?? 'Đã xảy ra lỗi khi kết thúc hợp đồng.',
             ]);
         }
     }

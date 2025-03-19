@@ -37,7 +37,7 @@
                             </option>
                             <option value="0">Chờ duyệt</option>
                             <option value="1">Đang triển khai</option>
-                            <option value="2">Đã hoàn thành</option>
+                            <option value="2">Đã kết thúc</option>
                             <option value="3">Đã huỷ</option>
                         </select>
                         <a href="/contract/create-view" class="btn btn-primary btn-sm">

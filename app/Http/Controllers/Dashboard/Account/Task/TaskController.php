@@ -138,7 +138,7 @@ class TaskController extends Controller
                 'has_children' => $totalChilds > 0,
                 'children_count' => $totalChilds,
                 'created_at' => $item->created_at,
-                'updated_at' => $item->updated_at,
+                'updated_at' => $item->updated_at
             ];
         });
 
@@ -146,6 +146,28 @@ class TaskController extends Controller
             'status' => 200,
             'content' => view('dashboard.account.task.ajax-index', ['data' => $result])->render(),
             'sorter' => $paginationResult['sorter'],
+        ]);
+    }
+
+    public function getTaskByIDs(Request $request) {
+        $ids = explode(',', $request['ids']); // Chuyển chuỗi thành mảng
+        $query = Task::whereIn('parent_id', $ids)->get(); // Lấy danh sách tasks
+
+        return response()->json([
+            'status' => 200,
+            'data' => $query->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'type' => $item->type,
+                    'status_id' => $item->status_id,
+                    'parent_id' => $item->parent_id,
+                    'qty_completed' => $item->qty_completed,
+                    'qty_request' => $item->qty_request,
+                    'sample_image_id' => $item->sample_image_id,
+                    'result_image_id' => $item->result_image_id,
+                ];
+            })
         ]);
     }
 
@@ -1201,8 +1223,10 @@ class TaskController extends Controller
                 'status_id' => $inProgressStatusId,
             ]);
 
+            $hasChild = $task->childs->count();
+
             // Nếu task là task cha, thêm các task con vào danh sách
-            if ($task->type == 'SERVICE') {
+            if ($task->type == 'SERVICE' && $hasChild != 0) {
                 $childTasks = Task::where('parent_id', $task->id)
                     ->where('is_active', 1)
                     ->pluck('id')
@@ -3623,6 +3647,75 @@ public function getFeedbackItemDetails(Request $request)
         return response()->json([
             'status' => 500,
             'message' => 'Đã xảy ra lỗi khi lấy thông tin feedback item: ' . $e->getMessage()
+        ]);
+    }
+}
+
+/**
+ * Lấy trạng thái hiện tại của task
+ */
+public function getTaskStatus($id)
+{
+    try {
+        $task = Task::with(['status', 'parent'])->find($id);
+        
+        if (!$task) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Task không tồn tại'
+            ]);
+        }
+        
+        // Tính toán tiến độ dựa trên QtyCompleted/QtyRequest
+        $progress = $task->qty_request > 0 ? min(100, round(($task->qty_completed / $task->qty_request) * 100)) : 0;
+        
+        // Kiểm tra xem có cần cập nhật task cha không
+        $parentUpdated = false;
+        if ($task->parent_id) {
+            $parent = $task->parent;
+            // Tính toán tiến độ của task cha dựa trên các task con
+            $childTasks = Task::where('parent_id', $parent->id)
+                ->where('is_active', 1)
+                ->get();
+                
+            if ($childTasks->isNotEmpty()) {
+                $totalProgress = 0;
+                foreach ($childTasks as $childTask) {
+                    $childProgress = $childTask->qty_request > 0 ? 
+                        min(100, round(($childTask->qty_completed / $childTask->qty_request) * 100)) : 0;
+                    $totalProgress += $childProgress;
+                }
+                
+                $parentProgress = round($totalProgress / $childTasks->count());
+                
+                // Kiểm tra xem có sự thay đổi về tiến độ không
+                if ($parentProgress != $parent->progress) {
+                    $parent->progress = $parentProgress;
+                    $parent->save();
+                    $parentUpdated = true;
+                }
+            }
+        }
+        
+        return response()->json([
+            'status' => 200,
+            'data' => [
+                'id' => $task->id,
+                'name' => $task->name,
+                'status_id' => $task->status_id,
+                'status_name' => $task->status->name ?? '',
+                'status_color' => $task->status->color ?? '',
+                'parent_id' => $task->parent_id,
+                'qty_completed' => $task->qty_completed,
+                'qty_request' => $task->qty_request,
+                'progress' => $progress,
+                'parent_updated' => $parentUpdated
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 500,
+            'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()
         ]);
     }
 }

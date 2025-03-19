@@ -1,9 +1,20 @@
 @foreach ($data as $item)
-<tr>
+<tr data-task-id="{{$item['id']}}" data-task-name="{{$item['name']}}" data-task-type="{{$item['type']}}" data-parent-id="{{$item['parent_id']}}" data-has-children="{{$item['has_children'] ? 'true' : 'false'}}">
     <td class="text-gray-800 font-normal text-center">
-        <span class="leading-none">
-            {{$item['index']}}
-        </span>
+        <div class="flex items-center gap-2">
+            <input type="checkbox" class="task-checkbox checkbox checkbox-sm" 
+                data-task-id="{{$item['id']}}"
+                data-task-name="{{$item['name']}}" 
+                data-task-type="{{$item['type']}}"
+                data-parent-id="{{$item['parent_id']}}"
+                data-has-children="{{$item['has_children']}}"
+                data-status-id="{{$item['status']['id']}}"
+                data-qty-completed="{{$item['qty_completed']}}"
+                data-qty-request="{{$item['qty_request']}}"
+                data-sample-image="{{$item['sample_image_id']}}"
+                data-result-image="{{$item['result_image_id']}}"
+            >
+        </div>
     </td>
     <td class="text-gray-800 font-normal">
         <div class="flex flex-col gap-1">
@@ -166,21 +177,6 @@
                             </span>
                         </a>
                     </div>
-                    <div class="menu-separator">
-                    </div>
-                    @if (in_array($item['type'], ['SERVICE', 'SUB']) && in_array($item['status']['id'], [1, 2]))
-                    <div class="menu-item">
-                        <button class="menu-link" onclick="claimTask({{$item['id']}})">
-                            <span class="menu-icon">
-                                <i class="ki-filled ki-check-square">
-                                </i>
-                            </span>
-                            <span class="menu-title">
-                                Nhận việc
-                            </span>
-                        </button>
-                    </div>
-                    @endif
                     <div class="menu-item">
                         <a class="menu-link" href="/task/{{$item['id']}}">
                             <span class="menu-icon">
