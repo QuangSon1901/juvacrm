@@ -133,6 +133,8 @@ class TaskController extends Controller
                 'spend_time' => $item->spend_time,
                 'qty_request' => $item->qty_request,
                 'qty_completed' => $item->qty_completed,
+                'sample_image_id' => $item->sample_image_id,
+                'result_image_id' => $item->result_image_id,
                 'has_children' => $totalChilds > 0,
                 'children_count' => $totalChilds,
                 'created_at' => $item->created_at,
@@ -739,6 +741,8 @@ class TaskController extends Controller
             'service_other' => $task->service_other,
             'bonus_amount' => $task->bonus_amount,
             'deduction_amount' => $task->deduction_amount,
+            'sample_image_id' => $task->sample_image_id,
+            'result_image_id' => $task->result_image_id,
             'type' => $task->type,
             'childs' => $task->childs->map(function ($child) {
                 return [
@@ -761,6 +765,8 @@ class TaskController extends Controller
                     'due_date' => $child->due_date,
                     'qty_request' => $child->qty_request,
                     'qty_completed' => $child->qty_completed,
+                    'sample_image_id' => $child->sample_image_id,
+                    'result_image_id' => $child->result_image_id,
                     'progress' => $child->progress,
                     'type' => $child->type,
                 ];
@@ -819,6 +825,8 @@ class TaskController extends Controller
                     'due_date' => $serviceTask->due_date,
                     'qty_request' => $serviceTask->qty_request,
                     'qty_completed' => $serviceTask->qty_completed,
+                    'sample_image_id' => $serviceTask->sample_image_id,
+                    'result_image_id' => $serviceTask->result_image_id,
                     'progress' => $serviceTask->progress,
                     'sub_tasks' => $serviceTask->childs->map(function ($subTask) {
                         return [
@@ -841,6 +849,8 @@ class TaskController extends Controller
                             'due_date' => $subTask->due_date,
                             'qty_request' => $subTask->qty_request,
                             'qty_completed' => $subTask->qty_completed,
+                            'sample_image_id' => $subTask->sample_image_id,
+                            'result_image_id' => $subTask->result_image_id,
                             'progress' => $subTask->progress,
                         ];
                     })
@@ -881,6 +891,8 @@ class TaskController extends Controller
                     'due_date' => $subTask->due_date,
                     'qty_request' => $subTask->qty_request,
                     'qty_completed' => $subTask->qty_completed,
+                    'sample_image_id' => $subTask->sample_image_id,
+                    'result_image_id' => $subTask->result_image_id,
                     'progress' => $subTask->progress,
                 ];
             });
@@ -1440,6 +1452,8 @@ private function updateTaskStatus($taskId, $statusId)
                     'due_date' => $task->due_date,
                     'qty_request' => $task->qty_request,
                     'qty_completed' => $task->qty_completed,
+                    'sample_image_id' => $task->sample_image_id,
+                    'result_image_id' => $task->result_image_id,
                     'created_at' => $task->created_at,
                 ];
             });
@@ -1675,6 +1689,8 @@ private function updateTaskStatus($taskId, $statusId)
                     // Cập nhật thông tin task dịch vụ hiện có
                     $existingServiceTask->update([
                         'name' => $service->name,
+                        'sample_image_id' => $service->sample_image_id,
+                        'result_image_id' => $service->result_image_id,
                         'due_date' => $contract->expiry_date,
                         // Không cập nhật số lượng cho task cha
                     ]);
@@ -1758,6 +1774,8 @@ private function updateTaskStatus($taskId, $statusId)
                                             'original_task_id' => $originalTaskId, // Liên kết với task gốc
                                             'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
                                             'is_active' => 1,
+                                            'sample_image_id' => $childTask->sample_image_id,
+                                            'result_image_id' => $childTask->result_image_id,
                                         ];
 
                                         $newTask = Task::create($newTaskData);
@@ -1798,6 +1816,8 @@ private function updateTaskStatus($taskId, $statusId)
                             // Cập nhật các thông tin khác của task con
                             $childTask->update([
                                 'name' => $childService->name,
+                                'sample_image_id' => $childService->sample_image_id,
+                                'result_image_id' => $childService->result_image_id,
                                 'due_date' => $contract->expiry_date,
                             ]);
                         } else {
@@ -1819,6 +1839,8 @@ private function updateTaskStatus($taskId, $statusId)
                                 'parent_id' => $existingServiceTask->id,
                                 'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
                                 'is_active' => 1,
+                                'sample_image_id' => $childService->sample_image_id,
+                                'result_image_id' => $childService->result_image_id,
                             ];
 
                             $newChildTask = Task::create($childTaskData);
@@ -1869,6 +1891,8 @@ private function updateTaskStatus($taskId, $statusId)
                         'parent_id' => $contractTask->id,
                         'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
                         'is_active' => 1,
+                        'sample_image_id' => $service->sample_image_id,
+                        'result_image_id' => $service->result_image_id,
                     ];
 
                     $newServiceTask = Task::create($serviceTaskData);
@@ -1903,6 +1927,8 @@ private function updateTaskStatus($taskId, $statusId)
                             'parent_id' => $newServiceTask->id,
                             'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
                             'is_active' => 1,
+                            'sample_image_id' => $childService->sample_image_id,
+                            'result_image_id' => $childService->result_image_id,
                         ];
 
                         $newChildTask = Task::create($childTaskData);
@@ -2166,6 +2192,8 @@ private function updateTaskStatus($taskId, $statusId)
             'assign_id' => $originalTask->assign_id,
             'created_id' => $originalTask->created_id,
             'start_date' => date('Y-m-d H:i:s'),
+            'sample_image_id' => $originalTask->sample_image_id,
+            'result_image_id' => $originalTask->result_image_id,
         ]);
 
         LogService::saveLog([
@@ -2809,6 +2837,8 @@ private function updateTaskStatus($taskId, $statusId)
                         'name' => $task->name,
                         'qty_request' => $task->qty_request,
                         'qty_completed' => $task->qty_completed,
+                        'result_image_id' => $task->result_image_id,
+                        'sample_image_id' => $task->sample_image_id,
                         'progress' => $task->progress
                     ],
                     'assignments' => $formattedAssignments

@@ -765,9 +765,9 @@
                             <div class="flex items-center gap-3">
                                 <a href="https://drive.google.com/file/d/{{ $attachment['driver_id'] }}/view" target="_blank" class="flex items-center grow gap-2.5">
                                     @if (Str::startsWith($attachment['type'], 'image/') && $attachment['extension'] != 'svg')
-                                    <img class="w-[30px]" alt="{{$attachment['extension']}}.svg" src="https://drive.google.com/thumbnail?id={{ $attachment['driver_id'] }}&sz=w56">
+                                    <img onerror="this.src='/assets/images/default.svg'" class="w-[30px]" alt="{{$attachment['extension']}}.svg" src="https://drive.google.com/thumbnail?id={{ $attachment['driver_id'] }}&sz=w56">
                                     @else
-                                    <img class="w-[30px]" alt="{{$attachment['extension']}}.svg" src="{{asset('assets/images/file-types/' . $attachment['extension'] . '.svg')}}">
+                                    <img onerror="this.src='/assets/images/default.svg'" class="w-[30px]" alt="{{$attachment['extension']}}.svg" src="{{asset('assets/images/file-types/' . $attachment['extension'] . '.svg')}}">
                                     @endif
                                     <div class="flex flex-col">
                                         <span style="overflow-wrap: anywhere;" class="text-sm font-medium text-gray-900 cursor-pointer hover:text-primary mb-px">
@@ -904,7 +904,7 @@
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body scrollable-y max-h-[95%]">
             <form class="grid gap-5 px-0 py-5">
                 <div class="flex flex-col gap-2.5">
                     <select name="status_id" class="select hidden">
@@ -981,7 +981,7 @@
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body scrollable-y max-h-[95%]">
             <form class="grid gap-5 px-0 py-5">
                 <div class="flex flex-col gap-2.5">
                     <div id="description_editor"></div>
@@ -1007,7 +1007,7 @@
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body scrollable-y max-h-[95%]">
             <form class="grid gap-5 px-0 py-5">
                 <div class="flex flex-col gap-2.5">
                     @php
@@ -1054,7 +1054,7 @@
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body scrollable-y max-h-[95%]">
             <form class="grid gap-5 px-0 py-5" enctype="multipart/form-data">
                 <div class="flex flex-col gap-2.5">
                     <div class="checkbox-group">
@@ -1086,7 +1086,7 @@
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body scrollable-y max-h-[95%]">
             <form id="report-completion-form" class="grid gap-5 px-0 py-5">
                 <div class="flex flex-col gap-2.5">
                     <div class="form-group">
@@ -1120,7 +1120,7 @@
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body scrollable-y max-h-[95%]">
             <form id="claim-task-form" class="grid gap-5 px-0 py-5">
                 <input type="hidden" name="task_id" id="claim-task-id" value="">
                 
@@ -1154,7 +1154,7 @@
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body scrollable-y max-h-[95%]">
             <form id="report-missions-form" class="grid gap-5 px-0 py-5">
                 <div class="flex flex-col gap-2.5">
                     <div class="grid gap-3" id="mission-reports">
@@ -1183,7 +1183,7 @@
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body scrollable-y max-h-[95%]">
             <form id="add-contract-feedback-form" class="grid gap-5 px-0 py-5">
                 <input type="hidden" name="task_id" id="contract-task-id" value="{{$details['id']}}">
                 
@@ -1223,7 +1223,7 @@
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body scrollable-y max-h-[95%]">
             <form id="resolve-feedback-form" class="grid gap-5 px-0 py-5">
                 <input type="hidden" name="feedback_item_id" id="feedback-item-id" value="">
                 
@@ -1720,6 +1720,52 @@ async function loadTaskMissions(taskId) {
             
             if (html === '') {
                 html = '<div class="text-center text-gray-500">Không có nhiệm vụ nào cần báo cáo</div>';
+            } else {
+                let cloudName = "https://res.cloudinary.com/{{env(CLOUDINARY_CLOUD_NAME)}}/image/upload/w_119,h_94,q_auto,f_auto/uploads/";
+                info = `<div class="bg-gray-50 rounded-lg p-4 border border-gray-100" bis_skin_checked="1">
+                    <div class="flex items-center justify-between mb-3" bis_skin_checked="1">
+                        <h4 class="font-semibold text-blue-800">Thông tin nhiệm vụ</h4>
+                        <span class="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded-full">ID: #${data.task.id}</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4" bis_skin_checked="1">
+                        <div class="space-y-2" bis_skin_checked="1">
+                            <div class="flex flex-col" bis_skin_checked="1">
+                                <span class="text-xs text-gray-500">Tên nhiệm vụ</span>
+                                <span class="font-medium text-gray-900">${data.task.name}</span>
+                            </div>
+                            <div class="flex flex-col" bis_skin_checked="1">
+                                <span class="text-xs text-gray-500">Tiến độ</span>
+                                <div class="flex items-center space-x-2" bis_skin_checked="1">
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5" bis_skin_checked="1">
+                                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${data.task.progress}%" bis_skin_checked="1"></div>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-700">${data.task.progress}%</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col" bis_skin_checked="1">
+                                <span class="text-xs text-gray-500">Hoàn thành</span>
+                                <span class="font-medium text-gray-900">${data.task.qty_completed}/${data.task.qty_request}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2" bis_skin_checked="1">
+                            <div class="flex flex-col" bis_skin_checked="1">
+                                <span class="text-xs text-gray-500 mb-1">Mẫu</span>
+                                <div class="h-24 bg-gray-100 rounded-lg overflow-hidden border border-gray-200" bis_skin_checked="1">
+                                    <img onerror="this.src='/assets/images/default.svg'" src="${cloudName}${data.task.result_image_id}" alt="Ảnh mẫu" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+                            <div class="flex flex-col" bis_skin_checked="1">
+                                <span class="text-xs text-gray-500 mb-1">Kết quả</span>
+                                <div class="h-24 bg-gray-100 rounded-lg overflow-hidden border border-gray-200" bis_skin_checked="1">
+                                    <img onerror="this.src='/assets/images/default.svg'" src="${cloudName}${data.task.sample_image_id}" alt="Ảnh mẫu" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                html = info + html;
             }
             
             $('#mission-reports').html(html);

@@ -268,6 +268,8 @@ class ContractController extends Controller
                             'price' => (float) $service['price'],
                             'quantity' => 1, // Mặc định là 1 nếu không có quantity
                             'note' => $service['note'] ?? null,
+                            'sample_image_id' => $service['sample_image_id'] ?? null,
+                            'result_image_id' => $service['result_image_id'] ?? null,
                         ];
 
                         if ($service['id'] === 'custom') {
@@ -302,6 +304,8 @@ class ContractController extends Controller
                                     'price' => $subServicePrice,
                                     'note' => $subService['content'] ?? null,
                                     'parent_id' => $contractService->id,
+                                    'sample_image_id' => $subService['sample_image_id'] ?? null,
+                                    'result_image_id' => $subService['result_image_id'] ?? null,
                                 ];
 
                                 ContractService::create($subServiceData);
@@ -490,6 +494,8 @@ class ContractController extends Controller
                 $serviceTaskData = [
                     'name' => $service->name,
                     'type' => 'SERVICE',
+                    'sample_image_id' => $service->sample_image_id,
+                    'result_image_id' => $service->result_image_id,
                     'status_id' => 1,
                     'priority_id' => 1,
                     'assign_id' => $contract->user_id,
@@ -526,6 +532,8 @@ class ContractController extends Controller
                     $subTaskData = [
                         'name' => $subService->name,
                         'type' => 'SUB',
+                        'sample_image_id' => $subService->sample_image_id,
+                        'result_image_id' => $subService->result_image_id,
                         'status_id' => 1,
                         'priority_id' => 1,
                         'assign_id' => $contract->user_id,
@@ -626,6 +634,8 @@ class ContractController extends Controller
                                 'price' => $subService->price,
                                 'total' => $subService->price * $service->quantity,
                                 'content' => $subService->note,
+                                'sample_image_id' => $subService->sample_image_id,
+                                'result_image_id' => $subService->result_image_id,
                             ];
                         })->toArray();
 
@@ -635,7 +645,9 @@ class ContractController extends Controller
                         'custom_name' => $service->type === 'custom' ? $service->name : null,
                         'price' => $service->price,
                         'note' => $service->note,
-                        'sub_services' => $subServices
+                        'sub_services' => $subServices,
+                        'sample_image_id' => $service->sample_image_id,
+                        'result_image_id' => $service->result_image_id,
                     ];
 
                     $productServices[$service->product_id]['services'][] = $serviceItem;
@@ -888,6 +900,7 @@ class ContractController extends Controller
             'currencies' => $currencies,
             'customers' => $customers,
         ];
+
         return view('dashboard.contract.show.detail', compact(
             'details',
             'data_init'
@@ -1197,7 +1210,10 @@ class ContractController extends Controller
             $serviceType = $request->type ?? $service->type;
 
             // Chuẩn bị dữ liệu cập nhật
-            $updateData = array_filter($request->only(['quantity', 'price', 'note']), fn($value) => !is_null($value));
+            $updateData = array_filter($request->only([
+                'quantity', 'price', 'note', 
+                'sample_image_id', 'result_image_id' // Thêm các trường hình ảnh
+            ]), function($value) {return !is_null($value);});
 
             // Nếu cập nhật tên hoặc loại dịch vụ
             if ($request->filled('type')) {
@@ -1670,6 +1686,8 @@ class ContractController extends Controller
                         'note' => $service->note,
                         'has_sub_services' => $subServices->count() > 0,
                         'product_id' => $service->product_id,
+                        'sample_image_id' => $service->sample_image_id,
+                        'result_image_id' => $service->result_image_id,
                         'sub_services' => []
                     ];
 
@@ -1682,7 +1700,9 @@ class ContractController extends Controller
                                 'quantity' => $subService->quantity,
                                 'price' => $subService->price,
                                 'total' => $subService->quantity * $subService->price,
-                                'note' => $subService->note
+                                'note' => $subService->note,
+                                'sample_image_id' => $subService->sample_image_id,
+                                'result_image_id' => $subService->result_image_id
                             ];
                         }
                     }
@@ -1747,6 +1767,490 @@ class ContractController extends Controller
             ]);
         }
     }
+
+/**
+ * Xuất hợp đồng dưới dạng Excel với ảnh nhúng trực tiếp
+ * 
+ * @param int $id ID của hợp đồng
+ * @return \Illuminate\Http\Response
+ */
+public function exportExcel($id)
+{
+    try {
+        // Kiểm tra nếu thư viện PhpSpreadsheet chưa được cài đặt thì báo lỗi
+        if (!class_exists('\PhpOffice\PhpSpreadsheet\Spreadsheet')) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Thư viện PhpSpreadsheet chưa được cài đặt. Vui lòng chạy: composer require phpoffice/phpspreadsheet',
+            ]);
+        }
+
+        // Lấy hợp đồng với tất cả quan hệ cần thiết
+        $contract = Contract::with([
+            'user',
+            'provider',
+            'creator',
+            'services' => function ($query) {
+                // Sắp xếp để lấy dịch vụ cha trước
+                $query->orderBy('parent_id', 'asc');
+            },
+            'payments',
+            'payments.currency',
+            'payments.method'
+        ])->findOrFail($id);
+
+        // Tổ chức dịch vụ thành cấu trúc cha-con
+        $services = $contract->services->where('parent_id', null)->where('is_active', 1)->values();
+
+        // Lấy thông tin sản phẩm
+        $productIds = $services->pluck('product_id')->filter()->unique()->toArray();
+        $products = Product::whereIn('id', $productIds)->get();
+        $productNames = [];
+        foreach ($products as $product) {
+            $productNames[$product->id] = $product->name;
+        }
+
+        // Khởi tạo Spreadsheet
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        // Thiết lập thông tin cơ bản
+        $sheet->setTitle('Bảng báo giá');
+        
+        // Merge cells và đặt tiêu đề
+        $sheet->mergeCells('A1:H1');
+        $sheet->setCellValue('A1', 'BÁO GIÁ DỊCH VỤ - ' . $contract->contract_number);
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        
+        // Thông tin công ty và khách hàng
+        $sheet->mergeCells('A2:H2');
+        $sheet->setCellValue('A2', 'Công ty: ' . $contract->company_name . ' - Khách hàng: ' . $contract->provider->name);
+        $sheet->getStyle('A2')->getFont()->setBold(true);
+        
+        // Thiết lập ngày báo giá
+        $sheet->mergeCells('A3:H3');
+        $sheet->setCellValue('A3', 'Ngày báo giá: ' . date('d/m/Y'));
+        
+        // Header của bảng
+        $sheet->setCellValue('A5', 'STT');
+        $sheet->setCellValue('B5', 'TÊN SẢN PHẨM/DỊCH VỤ');
+        $sheet->setCellValue('C5', 'MÔ TẢ');
+        $sheet->setCellValue('D5', 'ẢNH MẪU');
+        $sheet->setCellValue('E5', 'ẢNH KẾT QUẢ');
+        $sheet->setCellValue('F5', 'SỐ LƯỢNG');
+        $sheet->setCellValue('G5', 'ĐƠN GIÁ');
+        $sheet->setCellValue('H5', 'THÀNH TIỀN');
+        
+        // Định dạng header
+        $headerStyle = [
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => [
+                    'rgb' => '1A3D66',
+                ],
+            ],
+            'font' => [
+                'color' => ['rgb' => 'FFFFFF'],
+                'bold' => true,
+            ],
+        ];
+        $sheet->getStyle('A5:H5')->applyFromArray($headerStyle);
+        
+        // Thiết lập độ rộng cột
+        $sheet->getColumnDimension('A')->setWidth(5);
+        $sheet->getColumnDimension('B')->setWidth(30);
+        $sheet->getColumnDimension('C')->setWidth(40);
+        $sheet->getColumnDimension('D')->setWidth(20);
+        $sheet->getColumnDimension('E')->setWidth(20);
+        $sheet->getColumnDimension('F')->setWidth(10);
+        $sheet->getColumnDimension('G')->setWidth(15);
+        $sheet->getColumnDimension('H')->setWidth(15);
+        
+        // Tạo thư mục tạm để lưu ảnh
+        $tempDir = sys_get_temp_dir() . '/excel_images_' . time();
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0777, true);
+        }
+        
+        // Biến để theo dõi số thứ tự và dòng hiện tại
+        $currentRow = 6;
+        $index = 1;
+        $totalValue = 0;
+        $imageIndex = 1;
+        
+        // Phân nhóm dịch vụ theo sản phẩm
+        $servicesByProduct = [];
+        foreach ($services as $service) {
+            if ($service->product_id) {
+                if (!isset($servicesByProduct[$service->product_id])) {
+                    $servicesByProduct[$service->product_id] = [];
+                }
+                $servicesByProduct[$service->product_id][] = $service;
+            } else {
+                // Dịch vụ không thuộc sản phẩm nào
+                if (!isset($servicesByProduct['no_product'])) {
+                    $servicesByProduct['no_product'] = [];
+                }
+                $servicesByProduct['no_product'][] = $service;
+            }
+        }
+        
+        // Duyệt qua từng sản phẩm
+        foreach ($servicesByProduct as $productId => $productServices) {
+            // Thêm tiêu đề cho sản phẩm nếu có
+            if ($productId !== 'no_product') {
+                $sheet->mergeCells('A' . $currentRow . ':H' . $currentRow);
+                $sheet->setCellValue('A' . $currentRow, 'Sản phẩm: ' . ($productNames[$productId] ?? 'Sản phẩm #'.$productId));
+                $sheet->getStyle('A' . $currentRow)->getFont()->setBold(true);
+                $sheet->getStyle('A' . $currentRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+                $sheet->getStyle('A' . $currentRow)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+                $sheet->getStyle('A' . $currentRow)->getFill()->getStartColor()->setRGB('E8F5E9');
+                $currentRow++;
+            } else if (count($servicesByProduct) > 1) {
+                $sheet->mergeCells('A' . $currentRow . ':H' . $currentRow);
+                $sheet->setCellValue('A' . $currentRow, 'Dịch vụ bổ sung');
+                $sheet->getStyle('A' . $currentRow)->getFont()->setBold(true);
+                $sheet->getStyle('A' . $currentRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+                $sheet->getStyle('A' . $currentRow)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+                $sheet->getStyle('A' . $currentRow)->getFill()->getStartColor()->setRGB('E8F5E9');
+                $currentRow++;
+            }
+            
+            // Duyệt qua từng dịch vụ của sản phẩm
+            foreach ($productServices as $service) {
+                // Bỏ qua nếu dịch vụ không active
+                if ($service->is_active != 1) {
+                    continue;
+                }
+                
+                // Kiểm tra loại dịch vụ
+                $serviceClass = '';
+                if ($service->type === 'discount') {
+                    $serviceClass = 'discount';
+                } else if ($service->type === 'custom') {
+                    $serviceClass = 'custom';
+                }
+                
+                // Lấy các dịch vụ con
+                $subServices = $contract->services
+                    ->where('parent_id', $service->id)
+                    ->where('is_active', 1);
+                
+                // Có dịch vụ con hay không
+                $hasSubServices = ($subServices->count() > 0);
+                
+                // Thêm dịch vụ chính
+                $sheet->setCellValue('A' . $currentRow, $index);
+                $sheet->setCellValue('B' . $currentRow, $service->name);
+                $sheet->setCellValue('C' . $currentRow, $service->note ?? '');
+                
+                $rowHeight = 90; // Chiều cao mặc định khi có ảnh
+                // Nếu có dịch vụ con, không hiển thị số lượng, đơn giá, thành tiền
+                if (!$hasSubServices) {
+                    // Thiết lập chiều cao dòng phù hợp cho ảnh
+                    $sheet->getRowDimension($currentRow)->setRowHeight($rowHeight);
+                    
+                    // Thêm ảnh mẫu nếu có
+                    if ($service->sample_image_id) {
+                        $sampleImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $service->sample_image_id;
+                        $this->addImageToCell($sheet, $sampleImageUrl, 'D', $currentRow, $imageIndex, $tempDir);
+                        $imageIndex++;
+                    } else {
+                        $sheet->setCellValue('D' . $currentRow, 'Không có ảnh');
+                    }
+                    
+                    // Thêm ảnh kết quả nếu có
+                    if ($service->result_image_id) {
+                        $resultImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $service->result_image_id;
+                        $this->addImageToCell($sheet, $resultImageUrl, 'E', $currentRow, $imageIndex, $tempDir);
+                        $imageIndex++;
+                    } else {
+                        $sheet->setCellValue('E' . $currentRow, 'Không có ảnh');
+                    }
+
+                    $sheet->setCellValue('F' . $currentRow, $service->quantity);
+                    $sheet->setCellValue('G' . $currentRow, number_format($service->price, 0, ',', '.'));
+                    $sheet->setCellValue('H' . $currentRow, number_format($service->price * $service->quantity, 0, ',', '.'));
+                    $totalValue += ($service->price * $service->quantity);
+                }
+                
+                // Định dạng theo loại dịch vụ
+                if ($serviceClass === 'discount') {
+                    $sheet->getStyle('A' . $currentRow . ':H' . $currentRow)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+                    $sheet->getStyle('A' . $currentRow . ':H' . $currentRow)->getFill()->getStartColor()->setRGB('FFEEEE');
+                    $sheet->getStyle('A' . $currentRow . ':H' . $currentRow)->getFont()->getColor()->setRGB('D32F2F');
+                } else if ($serviceClass === 'custom') {
+                    $sheet->getStyle('A' . $currentRow . ':H' . $currentRow)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+                    $sheet->getStyle('A' . $currentRow . ':H' . $currentRow)->getFill()->getStartColor()->setRGB('E8F5E9');
+                }
+                
+                $index++;
+                $currentRow++;
+                
+                // Thêm các dịch vụ con nếu có
+                if ($hasSubServices) {
+                    foreach ($subServices as $subService) {
+                        $sheet->setCellValue('A' . $currentRow, '');
+                        $sheet->setCellValue('B' . $currentRow, '→ ' . $subService->name);
+                        $sheet->setCellValue('C' . $currentRow, $subService->note ?? '');
+                        
+                        // Thiết lập chiều cao dòng phù hợp cho ảnh
+                        $sheet->getRowDimension($currentRow)->setRowHeight($rowHeight);
+                        
+                        // Thêm ảnh mẫu nếu có
+                        if ($subService->sample_image_id) {
+                            $sampleImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $subService->sample_image_id;
+                            $this->addImageToCell($sheet, $sampleImageUrl, 'D', $currentRow, $imageIndex, $tempDir);
+                            $imageIndex++;
+                        } else {
+                            $sheet->setCellValue('D' . $currentRow, 'Không có ảnh');
+                        }
+                        
+                        // Thêm ảnh kết quả nếu có
+                        if ($subService->result_image_id) {
+                            $resultImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $subService->result_image_id;
+                            $this->addImageToCell($sheet, $resultImageUrl, 'E', $currentRow, $imageIndex, $tempDir);
+                            $imageIndex++;
+                        } else {
+                            $sheet->setCellValue('E' . $currentRow, 'Không có ảnh');
+                        }
+                        
+                        $sheet->setCellValue('F' . $currentRow, $subService->quantity);
+                        $sheet->setCellValue('G' . $currentRow, number_format($service->price, 0, ',', '.'));
+                        $sheet->setCellValue('H' . $currentRow, number_format($service->price * $subService->quantity, 0, ',', '.'));
+                        
+                        // Định dạng dịch vụ con
+                        $sheet->getStyle('A' . $currentRow . ':H' . $currentRow)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+                        $sheet->getStyle('A' . $currentRow . ':H' . $currentRow)->getFill()->getStartColor()->setRGB('F5F5F5');
+                        $sheet->getStyle('B' . $currentRow)->getAlignment()->setIndent(3);
+                        
+                        $currentRow++;
+                        $totalValue += ($service->price * $subService->quantity);
+                    }
+                }
+            }
+        }
+        
+        // Thiết lập border cho nội dung
+        $contentStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+            'alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+        ];
+        $sheet->getStyle('A5:H' . ($currentRow - 1))->applyFromArray($contentStyle);
+        
+        // Định dạng căn phải cho cột số lượng và giá
+        $sheet->getStyle('F6:H' . ($currentRow - 1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+        
+        // Thêm dòng tổng cộng
+        $sheet->mergeCells('A' . $currentRow . ':F' . $currentRow);
+        $sheet->setCellValue('A' . $currentRow, 'TỔNG CỘNG');
+        $sheet->getStyle('A' . $currentRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->setCellValue('G' . $currentRow, '');
+        $sheet->setCellValue('H' . $currentRow, number_format($contract->total_value, 0, ',', '.'));
+        
+        // Định dạng dòng tổng cộng
+        $totalStyle = [
+            'font' => [
+                'bold' => true,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => [
+                    'rgb' => '1A3D66',
+                ],
+            ],
+            'font' => [
+                'color' => ['rgb' => 'FFFFFF'],
+                'bold' => true,
+            ],
+        ];
+        $sheet->getStyle('A' . $currentRow . ':H' . $currentRow)->applyFromArray($totalStyle);
+        $sheet->getStyle('H' . $currentRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+        
+        // Thêm thông tin thanh toán
+        $currentRow += 2;
+        $sheet->mergeCells('A' . $currentRow . ':H' . $currentRow);
+        $sheet->setCellValue('A' . $currentRow, 'ĐIỀU KHOẢN THANH TOÁN');
+        $sheet->getStyle('A' . $currentRow)->getFont()->setBold(true);
+        
+        $currentRow++;
+        $sheet->mergeCells('A' . $currentRow . ':H' . $currentRow);
+        
+        // Lấy thông tin thanh toán từ hợp đồng
+        $paymentText = '';
+        if ($contract->payments->where('is_active', 1)->count() > 0) {
+            foreach ($contract->payments->where('is_active', 1) as $key => $payment) {
+                $paymentText .= ($key + 1) . ". " . $payment->name . ": " . 
+                    number_format($payment->price, 0, ',', '.') . "đ" . 
+                    ($payment->due_date ? " (hạn thanh toán: " . formatDateTime($payment->due_date, 'd/m/Y') . ")" : "") . "\n";
+            }
+        } else {
+            // Nếu không có điều khoản thanh toán cụ thể, sử dụng mặc định
+            $paymentText = "Thanh toán 100% giá trị khi ký hợp đồng.";
+        }
+        
+        $sheet->setCellValue('A' . $currentRow, $paymentText);
+        $sheet->getStyle('A' . $currentRow)->getAlignment()->setWrapText(true);
+        $sheet->getRowDimension($currentRow)->setRowHeight(60);
+        
+        // Thêm ghi chú
+        if ($contract->note) {
+            $currentRow += 2;
+            $sheet->mergeCells('A' . $currentRow . ':H' . $currentRow);
+            $sheet->setCellValue('A' . $currentRow, 'GHI CHÚ');
+            $sheet->getStyle('A' . $currentRow)->getFont()->setBold(true);
+            
+            $currentRow++;
+            $sheet->mergeCells('A' . $currentRow . ':H' . $currentRow);
+            $sheet->setCellValue('A' . $currentRow, $contract->note);
+            $sheet->getStyle('A' . $currentRow)->getAlignment()->setWrapText(true);
+            $sheet->getRowDimension($currentRow)->setRowHeight(40);
+        }
+        
+        // Thêm điều khoản và điều kiện
+        if ($contract->terms_and_conditions) {
+            $currentRow += 2;
+            $sheet->mergeCells('A' . $currentRow . ':H' . $currentRow);
+            $sheet->setCellValue('A' . $currentRow, 'ĐIỀU KHOẢN VÀ ĐIỀU KIỆN');
+            $sheet->getStyle('A' . $currentRow)->getFont()->setBold(true);
+            
+            $currentRow++;
+            $sheet->mergeCells('A' . $currentRow . ':H' . $currentRow);
+            $sheet->setCellValue('A' . $currentRow, $contract->terms_and_conditions);
+            $sheet->getStyle('A' . $currentRow)->getAlignment()->setWrapText(true);
+            $sheet->getRowDimension($currentRow)->setRowHeight(100);
+        }
+        
+        // Tạo file Excel và trả về phản hồi
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        
+        // Lưu log
+        LogService::saveLog([
+            'action' => 'EXPORT_EXCEL',
+            'ip' => request()->getClientIp(),
+            'details' => "Đã xuất Excel báo giá #{$contract->contract_number}",
+            'fk_key' => 'tbl_contracts|id',
+            'fk_value' => $contract->id,
+        ]);
+        
+        // Tạo phản hồi cho tải xuống
+        $filename = "BaoGia_{$contract->contract_number}.xlsx";
+        
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        
+        $writer->save('php://output');
+        
+        // Xóa thư mục tạm và các file ảnh sau khi hoàn thành
+        $this->removeDirectory($tempDir);
+        
+        exit;
+        
+    } catch (\Exception $e) {
+        // Đảm bảo xóa thư mục tạm nếu có lỗi
+        if (isset($tempDir) && is_dir($tempDir)) {
+            $this->removeDirectory($tempDir);
+        }
+        
+        return response()->json([
+            'status' => 500,
+            'message' => 'Đã xảy ra lỗi khi xuất Excel báo giá: ' . $e->getMessage(),
+        ]);
+    }
+}
+
+/**
+ * Thêm ảnh vào ô trong bảng tính Excel
+ * 
+ * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet
+ * @param string $imageUrl URL của ảnh
+ * @param string $column Cột để chèn ảnh
+ * @param int $row Dòng để chèn ảnh
+ * @param int $imageIndex Chỉ mục của ảnh (để tạo tên duy nhất)
+ * @param string $tempDir Thư mục tạm để lưu ảnh
+ * @return bool
+ */
+private function addImageToCell($sheet, $imageUrl, $column, $row, $imageIndex, $tempDir)
+{
+    try {
+        // Tạo tên file tạm thời
+        $tempFile = $tempDir . '/image_' . $imageIndex . '.jpg';
+        
+        // Tải hình ảnh từ URL
+        $imageContent = @file_get_contents($imageUrl);
+        if ($imageContent === false) {
+            // Nếu không tải được ảnh, hiển thị thông báo
+            $sheet->setCellValue($column . $row, 'Không thể tải ảnh');
+            return false;
+        }
+        
+        // Lưu ảnh vào file tạm
+        file_put_contents($tempFile, $imageContent);
+        
+        // Tạo đối tượng Drawing
+        $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+        $drawing->setName('Image ' . $imageIndex);
+        $drawing->setDescription('Image ' . $imageIndex);
+        $drawing->setPath($tempFile);
+        $drawing->setCoordinates($column . $row);
+        $drawing->setOffsetX(5);
+        $drawing->setOffsetY(5);
+        $drawing->setWidth(80); // Thiết lập chiều rộng cố định
+        $drawing->setHeight(80); // Thiết lập chiều cao cố định
+        $drawing->setWorksheet($sheet);
+        
+        return true;
+    } catch (\Exception $e) {
+        // Nếu có lỗi, hiển thị link thay vì ảnh
+        $sheet->setCellValue($column . $row, $imageUrl);
+        return false;
+    }
+}
+
+/**
+ * Xóa thư mục và tất cả nội dung bên trong
+ * 
+ * @param string $dir Đường dẫn thư mục cần xóa
+ * @return void
+ */
+private function removeDirectory($dir)
+{
+    if (is_dir($dir)) {
+        $files = scandir($dir);
+        foreach ($files as $file) {
+            if ($file != "." && $file != "..") {
+                if (is_dir($dir . "/" . $file)) {
+                    $this->removeDirectory($dir . "/" . $file);
+                } else {
+                    @unlink($dir . "/" . $file);
+                }
+            }
+        }
+        @rmdir($dir);
+    }
+}
 
     /**
      * Helper để cập nhật tổng giá trị hợp đồng
@@ -1832,175 +2336,129 @@ class ContractController extends Controller
                 if ($itemType === 'product') {
                     // Xử lý các sản phẩm
                     $productId = $item['product_id'];
-
-                    // Bỏ qua nếu product_id không hợp lệ
-                    if ($productId === 'Chọn sản phẩm' || empty($productId)) {
-                        continue;
-                    }
-
+    
                     // Duyệt qua các dịch vụ của sản phẩm
-                    foreach ($item['services'] as $service) {
-                        $serviceId = null;
-                        $serviceType = 'service';
-                        $serviceName = null;
-
-                        // Xác định loại dịch vụ và lấy thông tin
-                        if ($service['service_id'] === 'custom') {
-                            $serviceType = 'custom';
-                            $serviceName = $service['custom_name'];
-                        } else {
-                            $serviceId = $service['service_id'];
-                            $serviceObj = Service::find($serviceId);
-                            $serviceName = $serviceObj ? $serviceObj->name : "Dịch vụ #" . $serviceId;
-                        }
-
-                        $servicePrice = (float) $service['price'];
-                        $serviceQuantity = 1; // Mặc định là 1
-
-                        // Cập nhật tổng giá trị dịch vụ
-                        $totalServiceValue += $servicePrice;
-
-                        // Tìm dịch vụ hiện tại nếu có ID trong request
-                        $currentService = null;
-                        $serviceDbId = isset($service['id']) ? $service['id'] : null;
-
-                        if ($serviceDbId) {
-                            $currentService = $currentServices->where('id', $serviceDbId)->first();
-                        }
-
-                        // Nếu dịch vụ đã tồn tại thì cập nhật, nếu không thì tạo mới
-                        if ($currentService) {
-                            // Cập nhật thông tin dịch vụ
-                            $currentService->update([
-                                'service_id' => $serviceId,
-                                'name' => $serviceName,
-                                'type' => $serviceType,
-                                'price' => $servicePrice,
-                                'note' => $service['note'] ?? null,
-                            ]);
-
-                            // Lưu ID vào danh sách đã xử lý
-                            $processedServiceIds[] = $currentService->id;
-
-                            // Kiểm tra task liên quan nếu hợp đồng đang triển khai
-                            // if ($contract->status == 1) {
-                            //     $this->updateRelatedServiceTask($currentService, $servicePrice, $serviceQuantity);
-                            // }
-                        } else {
-                            // Tạo mới dịch vụ
-                            $newService = ContractService::create([
-                                'contract_id' => $contractId,
-                                'service_id' => $serviceId,
-                                'product_id' => $productId,
-                                'name' => $serviceName,
-                                'type' => $serviceType,
-                                'quantity' => $serviceQuantity,
-                                'price' => $servicePrice,
-                                'note' => $service['note'] ?? null,
-                                'is_active' => 1,
-                            ]);
-
-                            // Lưu ID vào danh sách đã xử lý
-                            $processedServiceIds[] = $newService->id;
-
-                            // Nếu hợp đồng đang triển khai, tạo task cho dịch vụ mới
-                            if ($contract->status == 1) {
-                                $newTasksToCreate[] = [
-                                    'serviceId' => $newService->id,
-                                    'serviceName' => $serviceName,
-                                    'contractId' => $contractId,
-                                    'serviceDbId' => $serviceId,
-                                    'serviceType' => 'SERVICE',
-                                    'price' => $servicePrice,
-                                    'quantity' => $serviceQuantity,
-                                ];
+                    if (!empty($item['services'])) {
+                        foreach ($item['services'] as $service) {
+                            $serviceId = null;
+                            $serviceType = 'service';
+                            $serviceName = null;
+                            $contractServiceId = isset($service['id']) ? $service['id'] : null;
+    
+                            // Xác định loại dịch vụ và lấy thông tin
+                            if ($service['service_id'] === 'custom') {
+                                $serviceType = 'custom';
+                                $serviceName = $service['custom_name'];
+                            } else {
+                                $serviceId = $service['service_id'];
+                                $serviceObj = Service::find($serviceId);
+                                $serviceName = $serviceObj ? $serviceObj->name : "Dịch vụ #" . $serviceId;
                             }
-                        }
-
-                        // Xử lý các dịch vụ con
-                        if (!empty($service['sub_services'])) {
-                            $processedSubServiceIds = [];
-
-                            foreach ($service['sub_services'] as $subService) {
-                                $subServiceName = $subService['name'];
-                                $subServiceQuantity = (float) $subService['quantity'];
-                                $subServicePrice = (float) $subService['total'];
-                                $subServiceNote = $subService['content'] ?? null;
-
-                                // Tìm dịch vụ con hiện tại nếu có ID trong request
-                                $currentSubService = null;
-                                $subServiceDbId = isset($subService['id']) ? $subService['id'] : null;
-
-                                if ($subServiceDbId) {
-                                    $currentSubService = $currentServices->where('id', $subServiceDbId)->first();
-                                }
-
-                                // Lấy ID dịch vụ cha (dịch vụ đã xử lý ở trên)
-                                $parentServiceId = $currentService ? $currentService->id : $newService->id;
-
-                                // Nếu dịch vụ con đã tồn tại thì cập nhật, nếu không thì tạo mới
-                                if ($currentSubService) {
-                                    // Cập nhật thông tin dịch vụ con
-                                    $currentSubService->update([
-                                        'name' => $subServiceName,
-                                        'quantity' => $subServiceQuantity,
-                                        'price' => $subServicePrice,
-                                        'note' => $subServiceNote,
-                                        'parent_id' => $parentServiceId,
-                                    ]);
-
-                                    // Lưu ID vào danh sách đã xử lý
-                                    $processedServiceIds[] = $currentSubService->id;
-                                    $processedSubServiceIds[] = $currentSubService->id;
-
-                                    // Kiểm tra task liên quan nếu hợp đồng đang triển khai
-                                    // if ($contract->status == 1) {
-                                    //     $this->updateRelatedSubServiceTask($currentSubService, $subServicePrice, $subServiceQuantity);
-                                    // }
-                                } else {
-                                    // Tạo mới dịch vụ con
-                                    $newSubService = ContractService::create([
-                                        'contract_id' => $contractId,
-                                        'product_id' => $productId,
-                                        'name' => $subServiceName,
-                                        'type' => 'sub_service',
-                                        'quantity' => $subServiceQuantity,
-                                        'price' => $subServicePrice,
-                                        'note' => $subServiceNote,
-                                        'parent_id' => $parentServiceId,
-                                        'is_active' => 1,
-                                    ]);
-
-                                    // Lưu ID vào danh sách đã xử lý
-                                    $processedServiceIds[] = $newSubService->id;
-                                    $processedSubServiceIds[] = $newSubService->id;
-
-                                    // Nếu hợp đồng đang triển khai, tạo task cho dịch vụ con mới
-                                    if ($contract->status == 1) {
-                                        $newTasksToCreate[] = [
-                                            'serviceId' => $newSubService->id,
-                                            'serviceName' => $subServiceName,
-                                            'contractId' => $contractId,
-                                            'parentServiceId' => $parentServiceId,
-                                            'serviceType' => 'SUB',
-                                            'price' => $subServicePrice,
+    
+                            $servicePrice = (float) $service['price'];
+                            $serviceQuantity = 1; // Mặc định là 1
+    
+                            // Tìm dịch vụ hiện tại nếu có ID
+                            $currentService = null;
+                            if ($contractServiceId) {
+                                $currentService = ContractService::find($contractServiceId);
+                            }
+    
+                            // Nếu dịch vụ đã tồn tại thì cập nhật, nếu không thì tạo mới
+                            if ($currentService) {
+                                // Cập nhật thông tin dịch vụ
+                                $currentService->update([
+                                    'service_id' => $serviceId,
+                                    'name' => $serviceName,
+                                    'type' => $serviceType,
+                                    'price' => $servicePrice,
+                                    'note' => $service['note'] ?? null,
+                                    'sample_image_id' => $service['sample_image_id'] ?? null, // Thêm trường mới
+                                    'result_image_id' => $service['result_image_id'] ?? null, // Thêm trường mới
+                                ]);
+    
+                                // Lưu ID vào danh sách đã xử lý
+                                $processedServiceIds[] = $currentService->id;
+                            } else {
+                                // Tạo mới dịch vụ
+                                $newService = ContractService::create([
+                                    'contract_id' => $contractId,
+                                    'service_id' => $serviceId,
+                                    'product_id' => $productId,
+                                    'name' => $serviceName,
+                                    'type' => $serviceType,
+                                    'quantity' => $serviceQuantity,
+                                    'price' => $servicePrice,
+                                    'note' => $service['note'] ?? null,
+                                    'sample_image_id' => $service['sample_image_id'] ?? null, // Thêm trường mới
+                                    'result_image_id' => $service['result_image_id'] ?? null, // Thêm trường mới
+                                    'is_active' => 1,
+                                ]);
+    
+                                // Lưu ID vào danh sách đã xử lý
+                                $processedServiceIds[] = $newService->id;
+                                $currentService = $newService;
+                            }
+    
+                            // Xử lý các dịch vụ con
+                            if (!empty($service['sub_services'])) {
+                                $processedSubServiceIds = [];
+    
+                                foreach ($service['sub_services'] as $subService) {
+                                    $subServiceName = $subService['name'];
+                                    $subServiceQuantity = (float) $subService['quantity'];
+                                    $subServicePrice = (float) $subService['total'];
+                                    $subServiceNote = $subService['content'] ?? null;
+                                    $contractSubServiceId = isset($subService['id']) ? $subService['id'] : null;
+    
+                                    // Tìm dịch vụ con hiện tại nếu có ID
+                                    $currentSubService = null;
+                                    if ($contractSubServiceId) {
+                                        $currentSubService = ContractService::find($contractSubServiceId);
+                                    }
+    
+                                    if ($currentSubService) {
+                                        // Cập nhật thông tin dịch vụ con
+                                        $currentSubService->update([
+                                            'name' => $subServiceName,
                                             'quantity' => $subServiceQuantity,
-                                        ];
+                                            'price' => $subServicePrice,
+                                            'note' => $subServiceNote,
+                                            'sample_image_id' => $subService['sample_image_id'] ?? null, // Thêm trường mới
+                                            'result_image_id' => $subService['result_image_id'] ?? null, // Thêm trường mới
+                                        ]);
+    
+                                        // Lưu ID vào danh sách đã xử lý
+                                        $processedServiceIds[] = $currentSubService->id;
+                                        $processedSubServiceIds[] = $currentSubService->id;
+                                    } else {
+                                        // Tạo mới dịch vụ con
+                                        $newSubService = ContractService::create([
+                                            'contract_id' => $contractId,
+                                            'product_id' => $productId,
+                                            'name' => $subServiceName,
+                                            'type' => 'sub_service',
+                                            'quantity' => $subServiceQuantity,
+                                            'price' => $subServicePrice,
+                                            'note' => $subServiceNote,
+                                            'parent_id' => $currentService->id,
+                                            'sample_image_id' => $subService['sample_image_id'] ?? null, // Thêm trường mới
+                                            'result_image_id' => $subService['result_image_id'] ?? null, // Thêm trường mới
+                                            'is_active' => 1,
+                                        ]);
+    
+                                        // Lưu ID vào danh sách đã xử lý
+                                        $processedServiceIds[] = $newSubService->id;
+                                        $processedSubServiceIds[] = $newSubService->id;
                                     }
                                 }
-                            }
-
-                            // Vô hiệu hóa các dịch vụ con không có trong request mới
-                            $currentSubServices = $currentServices->where('parent_id', $parentServiceId);
-                            foreach ($currentSubServices as $existingSubService) {
-                                if (!in_array($existingSubService->id, $processedSubServiceIds)) {
-                                    // Kiểm tra và xử lý task liên quan
-                                    // if ($contract->status == 1) {
-                                    //     $this->deactivateServiceTask($existingSubService->id);
-                                    // }
-
-                                    // Vô hiệu hóa dịch vụ con
-                                    $existingSubService->update(['is_active' => 0]);
+    
+                                // Vô hiệu hóa các dịch vụ con không có trong request mới
+                                $existingSubServices = ContractService::where('parent_id', $currentService->id)->get();
+                                foreach ($existingSubServices as $existingSubService) {
+                                    if (!in_array($existingSubService->id, $processedSubServiceIds)) {
+                                        $existingSubService->update(['is_active' => 0]);
+                                    }
                                 }
                             }
                         }
@@ -2039,11 +2497,6 @@ class ContractController extends Controller
 
                         // Lưu ID vào danh sách đã xử lý
                         $processedServiceIds[] = $currentCustomItem->id;
-
-                        // Kiểm tra task liên quan nếu hợp đồng đang triển khai
-                        // if ($contract->status == 1 && $customItemType !== 'discount') {
-                        //     $this->updateRelatedServiceTask($currentCustomItem, $itemPrice, 1);
-                        // }
                     } else {
                         // Tạo mới mục tùy chỉnh
                         $newCustomItem = ContractService::create([
@@ -2077,11 +2530,6 @@ class ContractController extends Controller
             // Vô hiệu hóa các dịch vụ không có trong request mới
             foreach ($currentServices as $existingService) {
                 if (!in_array($existingService->id, $processedServiceIds)) {
-                    // Kiểm tra và xử lý task liên quan
-                    // if ($contract->status == 1) {
-                    //     $this->deactivateServiceTask($existingService->id);
-                    // }
-
                     // Vô hiệu hóa dịch vụ
                     $existingService->update(['is_active' => 0]);
                 }
@@ -2126,615 +2574,6 @@ class ContractController extends Controller
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage() ?? 'Đã xảy ra lỗi khi cập nhật dịch vụ hợp đồng.',
-            ]);
-        }
-    }
-
-    /**
-     * Cập nhật task liên quan đến dịch vụ
-     *
-     * @param ContractService $service Đối tượng dịch vụ
-     * @param float $newPrice Giá mới của dịch vụ
-     * @param int $newQuantity Số lượng mới của dịch vụ
-     * @return void
-     */
-    private function updateRelatedServiceTask($service, $newPrice, $newQuantity)
-    {
-        // Tìm tất cả task liên quan đến dịch vụ (bao gồm cả task gốc và task bổ sung)
-        $allTasks = Task::where('contract_service_id', $service->id)
-            ->where('is_active', 1)
-            ->orderBy('created_at', 'asc') // Sắp xếp theo thời gian tạo để xử lý đúng thứ tự
-            ->get();
-
-        if ($allTasks->isEmpty()) {
-            return; // Không có task liên quan
-        }
-
-        // Phân loại các task theo trạng thái
-        $uncompletedTasks = $allTasks->filter(function ($task) {
-            return $task->status_id < 4;
-        });
-
-        $completedTasks = $allTasks->filter(function ($task) {
-            return $task->status_id >= 4;
-        });
-
-        // Cập nhật thông tin các task chưa hoàn thành
-        foreach ($uncompletedTasks as $task) {
-            // Chỉ cập nhật tên và mô tả, không cập nhật số lượng ngay
-            $task->update([
-                'name' => strpos($task->name, ' (Bổ sung') !== false ? $task->name : $service->name,
-                'description' => strpos($task->name, ' (Bổ sung') !== false
-                    ? $task->description
-                    : "Công việc thực hiện {$service->name} cho hợp đồng #{$service->contract_id}",
-                'is_updated' => 1, // Đánh dấu là task đã cập nhật
-            ]);
-
-            // Log sự thay đổi
-            LogService::saveLog([
-                'action' => 'TASK_UPDATE_LOG',
-                'ip' => request()->getClientIp(),
-                'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã cập nhật thông tin task #' . $task->id . ' theo dịch vụ ' . $service->name,
-                'fk_key' => 'tbl_tasks|id',
-                'fk_value' => $task->id,
-            ]);
-        }
-
-        // Tính tổng số lượng đã hoàn thành từ các task
-        $totalCompletedQuantity = $completedTasks->sum('qty_request');
-
-        // Tính tổng số lượng đang thực hiện (chưa hoàn thành)
-        $totalUncompletedQuantity = $uncompletedTasks->sum('qty_request');
-
-        // Tính số lượng còn thiếu so với yêu cầu mới
-        $quantityNeeded = $newQuantity - $totalCompletedQuantity;
-
-        // Không cần xử lý nếu số lượng đã hoàn thành vượt quá số lượng yêu cầu mới
-        if ($quantityNeeded <= 0) {
-            return;
-        }
-
-        // Nếu còn task chưa hoàn thành, phân bổ số lượng mới cho các task này
-        if (!$uncompletedTasks->isEmpty()) {
-            // Nếu tổng số lượng chưa hoàn thành bằng số lượng cần, không cần cập nhật
-            if ($totalUncompletedQuantity == $quantityNeeded) {
-                return;
-            }
-
-            // Nếu chỉ có 1 task chưa hoàn thành, cập nhật số lượng cho task đó
-            if ($uncompletedTasks->count() == 1) {
-                $uncompletedTask = $uncompletedTasks->first();
-                $uncompletedTask->update([
-                    'qty_request' => $quantityNeeded,
-                    'description' => strpos($uncompletedTask->name, ' (Bổ sung') !== false
-                        ? "Công việc bổ sung cho {$service->name} (phần chênh lệch sau cập nhật - đã điều chỉnh)"
-                        : "Công việc thực hiện {$service->name} cho hợp đồng #{$service->contract_id}",
-                ]);
-
-                // Log việc cập nhật task
-                LogService::saveLog([
-                    'action' => 'TASK_UPDATE_LOG',
-                    'ip' => request()->getClientIp(),
-                    'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã cập nhật số lượng task #' . $uncompletedTask->id . ' từ ' . $uncompletedTask->qty_request . ' thành ' . $quantityNeeded . ' cho dịch vụ ' . $service->name,
-                    'fk_key' => 'tbl_tasks|id',
-                    'fk_value' => $uncompletedTask->id,
-                ]);
-
-                return;
-            }
-
-            // Nếu có nhiều task chưa hoàn thành, ưu tiên cập nhật task gốc trước, sau đó đến task bổ sung
-            $originalTask = $uncompletedTasks->first(function ($task) {
-                return strpos($task->name, ' (Bổ sung') === false;
-            });
-
-            $supplementTasks = $uncompletedTasks->filter(function ($task) {
-                return strpos($task->name, ' (Bổ sung') !== false;
-            })->sortBy('created_at');
-
-            // Cập nhật task gốc nếu có
-            if ($originalTask) {
-                $originalTask->update(['qty_request' => $quantityNeeded]);
-                $quantityNeeded = 0; // Đã phân bổ hết
-
-                // Log việc cập nhật task
-                LogService::saveLog([
-                    'action' => 'TASK_UPDATE_LOG',
-                    'ip' => request()->getClientIp(),
-                    'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã cập nhật số lượng task gốc #' . $originalTask->id . ' cho dịch vụ ' . $service->name,
-                    'fk_key' => 'tbl_tasks|id',
-                    'fk_value' => $originalTask->id,
-                ]);
-
-                // Vô hiệu hóa các task bổ sung không cần thiết
-                foreach ($supplementTasks as $supplementTask) {
-                    $supplementTask->update([
-                        'is_active' => 0,
-                        'description' => $supplementTask->description . " (Đã gỡ do đã cập nhật số lượng ở task gốc)",
-                    ]);
-
-                    // Log việc gỡ task bổ sung
-                    LogService::saveLog([
-                        'action' => 'TASK_REMOVE_LOG',
-                        'ip' => request()->getClientIp(),
-                        'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã gỡ task bổ sung #' . $supplementTask->id . ' do đã cập nhật số lượng ở task gốc',
-                        'fk_key' => 'tbl_tasks|id',
-                        'fk_value' => $supplementTask->id,
-                    ]);
-                }
-            } else if (!$supplementTasks->isEmpty()) {
-                // Nếu không có task gốc, cập nhật task bổ sung đầu tiên
-                $firstSupplementTask = $supplementTasks->first();
-                $firstSupplementTask->update(['qty_request' => $quantityNeeded]);
-                $quantityNeeded = 0; // Đã phân bổ hết
-
-                // Log việc cập nhật task
-                LogService::saveLog([
-                    'action' => 'TASK_UPDATE_LOG',
-                    'ip' => request()->getClientIp(),
-                    'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã cập nhật số lượng task bổ sung #' . $firstSupplementTask->id . ' cho dịch vụ ' . $service->name,
-                    'fk_key' => 'tbl_tasks|id',
-                    'fk_value' => $firstSupplementTask->id,
-                ]);
-
-                // Vô hiệu hóa các task bổ sung khác không cần thiết
-                $otherSupplementTasks = $supplementTasks->filter(function ($task) use ($firstSupplementTask) {
-                    return $task->id !== $firstSupplementTask->id;
-                });
-
-                foreach ($otherSupplementTasks as $otherTask) {
-                    $otherTask->update([
-                        'is_active' => 0,
-                        'description' => $otherTask->description . " (Đã gỡ do đã cập nhật số lượng ở task bổ sung khác)",
-                    ]);
-
-                    // Log việc gỡ task bổ sung
-                    LogService::saveLog([
-                        'action' => 'TASK_REMOVE_LOG',
-                        'ip' => request()->getClientIp(),
-                        'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã gỡ task bổ sung #' . $otherTask->id . ' do đã cập nhật số lượng ở task bổ sung khác',
-                        'fk_key' => 'tbl_tasks|id',
-                        'fk_value' => $otherTask->id,
-                    ]);
-                }
-            }
-        } else {
-            // Nếu không có task chưa hoàn thành, tạo task mới
-
-            // Tìm task đã hoàn thành gần nhất để lấy thông tin
-            $lastCompletedTask = $completedTasks->sortByDesc('created_at')->first();
-
-            // Tạo task mới cho phần chênh lệch
-            $supplementNumber = Task::where('contract_service_id', $service->id)
-                ->where('name', 'like', $service->name . " (Bổ sung%")
-                ->count() + 1;
-
-            $supplementName = $supplementNumber > 1
-                ? $service->name . " (Bổ sung " . $supplementNumber . ")"
-                : $service->name . " (Bổ sung)";
-
-            $newTask = Task::create([
-                'name' => $supplementName,
-                'type' => $lastCompletedTask->type,
-                'status_id' => 1, // Trạng thái mới
-                'priority_id' => $lastCompletedTask->priority_id,
-                'assign_id' => $lastCompletedTask->assign_id,
-                'start_date' => date('Y-m-d'),
-                'due_date' => date('Y-m-d', strtotime('+7 days')),
-                'estimate_time' => $lastCompletedTask->estimate_time,
-                'description' => "Công việc bổ sung cho {$service->name} (phần chênh lệch sau cập nhật)",
-                'qty_request' => $quantityNeeded,
-                'contract_id' => $service->contract_id,
-                'service_id' => $service->service_id,
-                'contract_service_id' => $service->id,
-                'parent_id' => $lastCompletedTask->parent_id,
-                'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
-                'is_updated' => 0,
-                'is_active' => 1,
-            ]);
-
-            // Log việc tạo task mới
-            LogService::saveLog([
-                'action' => 'TASK_CREATE_LOG',
-                'ip' => request()->getClientIp(),
-                'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã tạo task bổ sung #' . $newTask->id . ' cho dịch vụ ' . $service->name . ' với số lượng ' . $quantityNeeded,
-                'fk_key' => 'tbl_tasks|id',
-                'fk_value' => $newTask->id,
-            ]);
-        }
-    }
-
-
-    /**
-     * Cập nhật task liên quan đến dịch vụ con
-     *
-     * @param ContractService $subService Đối tượng dịch vụ con
-     * @param float $newPrice Giá mới của dịch vụ con
-     * @param int $newQuantity Số lượng mới của dịch vụ con
-     * @return void
-     */
-    private function updateRelatedSubServiceTask($subService, $newPrice, $newQuantity)
-    {
-        // Tìm tất cả task liên quan đến dịch vụ con (bao gồm cả task gốc và task bổ sung)
-        $allTasks = Task::where('contract_service_id', $subService->id)
-            ->where('is_active', 1)
-            ->orderBy('created_at', 'asc') // Sắp xếp theo thời gian tạo để xử lý đúng thứ tự
-            ->get();
-
-        if ($allTasks->isEmpty()) {
-            return; // Không có task liên quan
-        }
-
-        // Tìm task cha (task của dịch vụ cha)
-        $parentTask = Task::where('contract_service_id', $subService->parent_id)
-            ->where('is_active', 1)
-            ->first();
-
-        // Phân loại các task theo trạng thái
-        $uncompletedTasks = $allTasks->filter(function ($task) {
-            return $task->status_id < 4;
-        });
-
-        $completedTasks = $allTasks->filter(function ($task) {
-            return $task->status_id >= 4;
-        });
-
-        // Cập nhật thông tin các task chưa hoàn thành
-        foreach ($uncompletedTasks as $task) {
-            // Chỉ cập nhật tên và mô tả, không cập nhật số lượng ngay
-            $task->update([
-                'name' => strpos($task->name, ' (Bổ sung') !== false ? $task->name : $subService->name,
-                'description' => strpos($task->name, ' (Bổ sung') !== false
-                    ? $task->description
-                    : "Công việc con {$subService->name} cho dịch vụ chính",
-                'is_updated' => 1, // Đánh dấu là task đã cập nhật
-            ]);
-
-            // Log sự thay đổi
-            LogService::saveLog([
-                'action' => 'TASK_UPDATE_LOG',
-                'ip' => request()->getClientIp(),
-                'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã cập nhật thông tin task con #' . $task->id . ' theo dịch vụ con ' . $subService->name,
-                'fk_key' => 'tbl_tasks|id',
-                'fk_value' => $task->id,
-            ]);
-        }
-
-        // Tính tổng số lượng đã hoàn thành từ các task
-        $totalCompletedQuantity = $completedTasks->sum('qty_request');
-
-        // Tính số lượng còn thiếu so với yêu cầu mới
-        $quantityNeeded = $newQuantity - $totalCompletedQuantity;
-
-        // Không cần xử lý nếu số lượng đã hoàn thành vượt quá số lượng yêu cầu mới
-        if ($quantityNeeded <= 0) {
-            return;
-        }
-
-        // Nếu còn task chưa hoàn thành, phân bổ số lượng mới cho các task này
-        if (!$uncompletedTasks->isEmpty()) {
-            // Nếu tổng số lượng chưa hoàn thành bằng số lượng cần, không cần cập nhật
-            $totalUncompletedQuantity = $uncompletedTasks->sum('qty_request');
-            if ($totalUncompletedQuantity == $quantityNeeded) {
-                return;
-            }
-
-            // Nếu chỉ có 1 task chưa hoàn thành, cập nhật số lượng cho task đó
-            if ($uncompletedTasks->count() == 1) {
-                $uncompletedTask = $uncompletedTasks->first();
-                $uncompletedTask->update([
-                    'qty_request' => $quantityNeeded,
-                    'description' => strpos($uncompletedTask->name, ' (Bổ sung') !== false
-                        ? "Công việc con bổ sung cho {$subService->name} (phần chênh lệch sau cập nhật - đã điều chỉnh)"
-                        : "Công việc con {$subService->name} cho dịch vụ chính",
-                ]);
-
-                // Log việc cập nhật task
-                LogService::saveLog([
-                    'action' => 'TASK_UPDATE_LOG',
-                    'ip' => request()->getClientIp(),
-                    'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã cập nhật số lượng task con #' . $uncompletedTask->id . ' từ ' . $uncompletedTask->qty_request . ' thành ' . $quantityNeeded . ' cho dịch vụ con ' . $subService->name,
-                    'fk_key' => 'tbl_tasks|id',
-                    'fk_value' => $uncompletedTask->id,
-                ]);
-
-                return;
-            }
-
-            // Nếu có nhiều task chưa hoàn thành, ưu tiên cập nhật task gốc trước, sau đó đến task bổ sung
-            $originalTask = $uncompletedTasks->first(function ($task) {
-                return strpos($task->name, ' (Bổ sung') === false;
-            });
-
-            $supplementTasks = $uncompletedTasks->filter(function ($task) {
-                return strpos($task->name, ' (Bổ sung') !== false;
-            })->sortBy('created_at');
-
-            // Cập nhật task gốc nếu có
-            if ($originalTask) {
-                $originalTask->update(['qty_request' => $quantityNeeded]);
-                $quantityNeeded = 0; // Đã phân bổ hết
-
-                // Log việc cập nhật task
-                LogService::saveLog([
-                    'action' => 'TASK_UPDATE_LOG',
-                    'ip' => request()->getClientIp(),
-                    'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã cập nhật số lượng task con gốc #' . $originalTask->id . ' cho dịch vụ con ' . $subService->name,
-                    'fk_key' => 'tbl_tasks|id',
-                    'fk_value' => $originalTask->id,
-                ]);
-
-                // Vô hiệu hóa các task bổ sung không cần thiết
-                foreach ($supplementTasks as $supplementTask) {
-                    $supplementTask->update([
-                        'is_active' => 0,
-                        'description' => $supplementTask->description . " (Đã gỡ do đã cập nhật số lượng ở task gốc)",
-                    ]);
-
-                    // Log việc gỡ task bổ sung
-                    LogService::saveLog([
-                        'action' => 'TASK_REMOVE_LOG',
-                        'ip' => request()->getClientIp(),
-                        'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã gỡ task con bổ sung #' . $supplementTask->id . ' do đã cập nhật số lượng ở task gốc',
-                        'fk_key' => 'tbl_tasks|id',
-                        'fk_value' => $supplementTask->id,
-                    ]);
-                }
-            } else if (!$supplementTasks->isEmpty()) {
-                // Nếu không có task gốc, cập nhật task bổ sung đầu tiên
-                $firstSupplementTask = $supplementTasks->first();
-                $firstSupplementTask->update(['qty_request' => $quantityNeeded]);
-                $quantityNeeded = 0; // Đã phân bổ hết
-
-                // Log việc cập nhật task
-                LogService::saveLog([
-                    'action' => 'TASK_UPDATE_LOG',
-                    'ip' => request()->getClientIp(),
-                    'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã cập nhật số lượng task con bổ sung #' . $firstSupplementTask->id . ' cho dịch vụ con ' . $subService->name,
-                    'fk_key' => 'tbl_tasks|id',
-                    'fk_value' => $firstSupplementTask->id,
-                ]);
-
-                // Vô hiệu hóa các task bổ sung khác không cần thiết
-                $otherSupplementTasks = $supplementTasks->filter(function ($task) use ($firstSupplementTask) {
-                    return $task->id !== $firstSupplementTask->id;
-                });
-
-                foreach ($otherSupplementTasks as $otherTask) {
-                    $otherTask->update([
-                        'is_active' => 0,
-                        'description' => $otherTask->description . " (Đã gỡ do đã cập nhật số lượng ở task bổ sung khác)",
-                    ]);
-
-                    // Log việc gỡ task bổ sung
-                    LogService::saveLog([
-                        'action' => 'TASK_REMOVE_LOG',
-                        'ip' => request()->getClientIp(),
-                        'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã gỡ task con bổ sung #' . $otherTask->id . ' do đã cập nhật số lượng ở task bổ sung khác',
-                        'fk_key' => 'tbl_tasks|id',
-                        'fk_value' => $otherTask->id,
-                    ]);
-                }
-            }
-        } else {
-            // Nếu không có task chưa hoàn thành, tạo task mới
-
-            // Tìm task đã hoàn thành gần nhất để lấy thông tin
-            $lastCompletedTask = $completedTasks->sortByDesc('created_at')->first();
-
-            // Tạo task mới cho phần chênh lệch
-            $supplementNumber = Task::where('contract_service_id', $subService->id)
-                ->where('name', 'like', $subService->name . " (Bổ sung%")
-                ->count() + 1;
-
-            $supplementName = $supplementNumber > 1
-                ? $subService->name . " (Bổ sung " . $supplementNumber . ")"
-                : $subService->name . " (Bổ sung)";
-
-            $newTask = Task::create([
-                'name' => $supplementName,
-                'type' => 'SUB',
-                'status_id' => 1, // Trạng thái mới
-                'priority_id' => $lastCompletedTask->priority_id,
-                'assign_id' => $lastCompletedTask->assign_id,
-                'start_date' => date('Y-m-d'),
-                'due_date' => date('Y-m-d', strtotime('+7 days')),
-                'estimate_time' => $lastCompletedTask->estimate_time,
-                'description' => "Công việc con bổ sung cho {$subService->name} (phần chênh lệch sau cập nhật)",
-                'qty_request' => $quantityNeeded,
-                'contract_id' => $subService->contract_id,
-                'contract_service_id' => $subService->id,
-                'parent_id' => $parentTask ? $parentTask->id : $lastCompletedTask->parent_id,
-                'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
-                'is_updated' => 0,
-                'is_active' => 1,
-            ]);
-
-            // Log việc tạo task mới
-            LogService::saveLog([
-                'action' => 'TASK_CREATE_LOG',
-                'ip' => request()->getClientIp(),
-                'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã tạo task con bổ sung #' . $newTask->id . ' cho dịch vụ con ' . $subService->name . ' với số lượng ' . $quantityNeeded,
-                'fk_key' => 'tbl_tasks|id',
-                'fk_value' => $newTask->id,
-            ]);
-        }
-    }
-
-    /**
-     * Vô hiệu hóa task liên quan đến dịch vụ bị xóa
-     *
-     * @param int $serviceId ID của dịch vụ
-     * @return void
-     */
-    private function deactivateServiceTask($serviceId)
-    {
-        // Tìm dịch vụ để xác định loại
-        $service = ContractService::find($serviceId);
-        if (!$service) {
-            return; // Dịch vụ không tồn tại
-        }
-
-        // Vô hiệu hóa task của dịch vụ hiện tại
-        $tasks = Task::where('contract_service_id', $serviceId)
-            ->where('is_active', 1)
-            ->get();
-
-        foreach ($tasks as $task) {
-            // Chỉ vô hiệu hóa task chưa hoàn thành
-            if ($task->status_id < 4) {
-                $task->update([
-                    'is_active' => 0,
-                    'description' => $task->description . " (Đã gỡ do dịch vụ đã bị xóa)",
-                ]);
-
-                // Log việc gỡ task
-                LogService::saveLog([
-                    'action' => 'TASK_REMOVE_LOG',
-                    'ip' => request()->getClientIp(),
-                    'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã gỡ task #' . $task->id . ' do dịch vụ liên quan đã bị xóa',
-                    'fk_key' => 'tbl_tasks|id',
-                    'fk_value' => $task->id,
-                ]);
-            }
-        }
-
-        // Nếu là dịch vụ cha, vô hiệu hóa tất cả dịch vụ con và task con liên quan
-        if ($service->parent_id === null) {
-            // Tìm tất cả dịch vụ con
-            $childServices = ContractService::where('parent_id', $serviceId)
-                ->where('is_active', 1)
-                ->get();
-
-            foreach ($childServices as $childService) {
-                // Vô hiệu hóa dịch vụ con
-                $childService->update(['is_active' => 0]);
-
-                // Vô hiệu hóa task của dịch vụ con
-                $childTasks = Task::where('contract_service_id', $childService->id)
-                    ->where('is_active', 1)
-                    ->get();
-
-                foreach ($childTasks as $childTask) {
-                    // Chỉ vô hiệu hóa task chưa hoàn thành
-                    if ($childTask->status_id < 4) {
-                        $childTask->update([
-                            'is_active' => 0,
-                            'description' => $childTask->description . " (Đã gỡ do dịch vụ cha đã bị xóa)",
-                        ]);
-
-                        // Log việc gỡ task con
-                        LogService::saveLog([
-                            'action' => 'TASK_REMOVE_LOG',
-                            'ip' => request()->getClientIp(),
-                            'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã gỡ task con #' . $childTask->id . ' do dịch vụ cha đã bị xóa',
-                            'fk_key' => 'tbl_tasks|id',
-                            'fk_value' => $childTask->id,
-                        ]);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Tạo các task mới cho dịch vụ mới thêm vào
-     *
-     * @param array $newTasksInfo Mảng thông tin các task cần tạo
-     * @param Contract $contract Đối tượng hợp đồng
-     * @return void
-     */
-    private function createNewTasksForServices($newTasksInfo, $contract)
-    {
-        // Tìm task chính của hợp đồng
-        $mainTask = Task::where('contract_id', $contract->id)
-            ->where('type', 'CONTRACT')
-            ->where('is_active', 1)
-            ->first();
-
-        if (!$mainTask) {
-            // Nếu không tìm thấy task chính, tạo task chính
-            $mainTask = Task::create([
-                'name' => "Hợp đồng #$contract->contract_number - $contract->name",
-                'type' => 'CONTRACT',
-                'status_id' => 1, // Trạng thái mặc định
-                'priority_id' => 1, // Độ ưu tiên mặc định
-                'assign_id' => $contract->user_id, // Gán cho nhân viên phụ trách
-                'start_date' => $contract->effective_date,
-                'due_date' => $contract->expiry_date,
-                'estimate_time' => (!empty($contract->effective_date) && !empty($contract->effective_date))
-                    ? (strtotime($contract->effective_date) - strtotime($contract->effective_date)) / 3600
-                    : 24, // Quy đổi thành giờ
-                'description' => "Công việc tổng thể cho hợp đồng #$contract->contract_number",
-                'qty_request' => 1,
-                'contract_id' => $contract->id,
-                'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
-                'is_updated' => 0, // Đánh dấu là task mới tạo
-                'is_active' => 1,
-            ]);
-
-            // Log việc tạo task chính
-            LogService::saveLog([
-                'action' => 'TASK_CREATE_LOG',
-                'ip' => request()->getClientIp(),
-                'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã tạo task chính #' . $mainTask->id . ' cho hợp đồng ' . $contract->contract_number,
-                'fk_key' => 'tbl_tasks|id',
-                'fk_value' => $mainTask->id,
-            ]);
-        }
-
-        // Duyệt qua các task cần tạo
-        foreach ($newTasksInfo as $taskInfo) {
-            // Xác định loại task và task cha
-            $serviceType = $taskInfo['serviceType'];
-            $parentId = null;
-
-            if ($serviceType === 'SERVICE') {
-                // Nếu là dịch vụ chính, parent là task chính
-                $parentId = $mainTask->id;
-            } else if ($serviceType === 'SUB') {
-                // Nếu là dịch vụ con, tìm task của dịch vụ cha
-                $parentServiceTask = Task::where('contract_service_id', $taskInfo['parentServiceId'])
-                    ->where('is_active', 1)
-                    ->first();
-
-                $parentId = $parentServiceTask ? $parentServiceTask->id : $mainTask->id;
-            }
-
-            // Tạo task mới
-            $newTask = Task::create([
-                'name' => $taskInfo['serviceName'],
-                'type' => $serviceType,
-                'status_id' => 1, // Trạng thái mặc định
-                'priority_id' => 1, // Độ ưu tiên mặc định
-                'assign_id' => $contract->user_id, // Gán cho nhân viên phụ trách
-                'start_date' => $contract->effective_date ?? date('Y-m-d'),
-                'due_date' => $contract->expiry_date ?? date('Y-m-d', strtotime('+30 days')),
-                'estimate_time' => (!empty($contract->effective_date) && !empty($contract->effective_date))
-                    ? (strtotime($contract->effective_date) - strtotime($contract->effective_date)) / 3600
-                    : ($serviceType === 'SUB' ? 12 : 24), // Nếu là task con thì thời gian ít hơn
-                'description' => $serviceType === 'SERVICE'
-                    ? "Công việc thực hiện {$taskInfo['serviceName']} cho hợp đồng #{$contract->contract_number}"
-                    : "Công việc con {$taskInfo['serviceName']} cho dịch vụ chính",
-                'qty_request' => $taskInfo['quantity'],
-                'contract_id' => $contract->id,
-                'service_id' => isset($taskInfo['serviceDbId']) ? $taskInfo['serviceDbId'] : null,
-                'contract_service_id' => $taskInfo['serviceId'],
-                'parent_id' => $parentId,
-                'created_id' => Session::get(ACCOUNT_CURRENT_SESSION)['id'],
-                'is_updated' => 0, // Đánh dấu là task mới tạo
-                'is_active' => 1,
-            ]);
-
-            // Log việc tạo task
-            LogService::saveLog([
-                'action' => 'TASK_CREATE_LOG',
-                'ip' => request()->getClientIp(),
-                'details' => Session::get(ACCOUNT_CURRENT_SESSION)['name'] . ' (#' . Session::get(ACCOUNT_CURRENT_SESSION)['id'] . ') đã tạo task ' .
-                    ($serviceType === 'SUB' ? 'con ' : '') . '#' . $newTask->id . ' cho ' .
-                    ($serviceType === 'SUB' ? 'dịch vụ con ' : 'dịch vụ ') . $taskInfo['serviceName'],
-                'fk_key' => 'tbl_tasks|id',
-                'fk_value' => $newTask->id,
             ]);
         }
     }

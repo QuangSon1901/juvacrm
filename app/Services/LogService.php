@@ -8,7 +8,7 @@ class LogService
 {
     public static function saveLog($data)
     {
-        $userId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
+        $userId = Session::get(ACCOUNT_CURRENT_SESSION)['id'] ?? null;
         
         ActivityLogs::create([
             'user_id' => $userId,

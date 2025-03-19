@@ -78,6 +78,10 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
                     <i class="ki-filled ki-file-down text-gray-700"></i>
                     <span>Xuất PDF</span>
                 </a>
+                <a href="{{ route('dashboard.contract.export-excel', $details['id']) }}" class="btn btn-light px-5 py-2 flex items-center gap-2">
+                    <i class="ki-filled ki-file-down text-gray-700"></i>
+                    <span>Xuất Excel</span>
+                </a>
                 @endif
 
                 @if ($details['status'] < 2) 

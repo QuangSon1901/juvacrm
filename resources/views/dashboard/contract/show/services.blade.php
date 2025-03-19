@@ -72,59 +72,6 @@
                                             <!-- Add contract_item_id field -->
                                             <input type="hidden" name="contract_item_id[]" value="{{ $item['id'] ?? '' }}">
                                         </div>
-                                        <div>
-                                            <label class="block text-gray-700 text-sm mb-1">Hình ảnh</label>
-                                            <div class="flex items-center gap-2">
-                                                @if($canEdit)
-                                                <button type="button" class="btn btn-light btn-sm image-upload-btn" onclick="triggerImageUpload(this, 'item')">
-                                                    <i class="ki-filled ki-file-up"></i>
-                                                    Tải ảnh
-                                                </button>
-                                                @endif
-                                                @if(isset($item['image_url']) && $item['image_url'])
-                                                <div class="preview-image-container h-8 w-8 border border-gray-200 rounded-lg overflow-hidden relative group">
-                                                    <!-- Thêm loading spinner -->
-                                                    <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
-                                                        <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
-                                                    </div>
-                                                    <!-- Thêm icon xem và xóa ảnh -->
-                                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <a href="{{ $item['image_url'] }}" target="_blank" class="p-1 text-white hover:text-blue-200" title="Xem ảnh">
-                                                            <i class="ki-filled ki-eye"></i>
-                                                        </a>
-                                                        @if($canEdit)
-                                                        <button type="button" class="p-1 text-white hover:text-red-200" title="Xóa ảnh" onclick="removeImage(this, 'item')">
-                                                            <i class="ki-filled ki-trash"></i>
-                                                        </button>
-                                                        @endif
-                                                    </div>
-                                                    <img class="item-image-preview h-full w-full object-cover cursor-pointer" src="{{ $item['image_url'] }}" alt="" onclick="window.open('{{ $item['image_url'] }}', '_blank')">
-                                                </div>
-                                                @else
-                                                <div class="preview-image-container h-8 w-8 border border-gray-200 rounded-lg overflow-hidden hidden relative group">
-                                                    <!-- Thêm loading spinner -->
-                                                    <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
-                                                        <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
-                                                    </div>
-                                                    <!-- Thêm icon xem và xóa ảnh -->
-                                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <a href="#" target="_blank" class="p-1 text-white hover:text-blue-200" title="Xem ảnh">
-                                                            <i class="ki-filled ki-eye"></i>
-                                                        </a>
-                                                        @if($canEdit)
-                                                        <button type="button" class="p-1 text-white hover:text-red-200" title="Xóa ảnh" onclick="removeImage(this, 'item')">
-                                                            <i class="ki-filled ki-trash"></i>
-                                                        </button>
-                                                        @endif
-                                                    </div>
-                                                    <img class="item-image-preview h-full w-full object-cover cursor-pointer" src="" alt="" onclick="window.open(this.src, '_blank')">
-                                                </div>
-                                                @endif
-                                                <input type="file" name="item_image[]" class="item-image-input hidden" accept="image/*" onchange="previewImage(this)" {{ !$canEdit ? 'disabled' : '' }}>
-                                                <!-- Thêm input hidden để lưu driver_id -->
-                                                <input type="hidden" name="item_driver_id[]" value="{{ $item['driver_id'] ?? '' }}">
-                                            </div>
-                                        </div>
                                     </div>
                                     <div class="flex gap-2 mb-3">
                                         @if($canEdit)
@@ -180,6 +127,45 @@
                                                 <input name="service_note[]" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full" type="text" placeholder="Ghi chú" value="{{ $service['note'] ?? '' }}" {{ !$canEdit ? 'disabled' : '' }}>
                                             </div>
                                         </div>
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
+                                            <div>
+                                                <label class="block text-gray-700 text-sm mb-1">Hình ảnh mẫu</label>
+                                                <div class="flex items-center gap-2">
+                                                <button type="button" class="btn btn-light btn-sm image-upload-btn" onclick="triggerImageUpload(this, 'service-sample')">
+                                    <i class="ki-filled ki-file-up"></i>
+                                    Tải ảnh mẫu
+                                </button>
+                                                    <div class="preview-image-container h-8 w-8 border border-gray-200 rounded-lg overflow-hidden relative group">
+                                                        
+                                                        <img onerror="this.src='/assets/images/default.svg'" class="h-full w-full object-cover cursor-pointer" src="https://res.cloudinary.com/{{env('CLOUDINARY_CLOUD_NAME')}}/image/upload/w_56,h_56,q_auto,f_auto/uploads/{{ $service['sample_image_id'] }}" alt="">
+                                                    </div>
+                                                    <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'service_sample')">
+                                                        <i class="ki-filled ki-trash"></i>
+                                                    </button>
+                                                    <input type="file" name="service_sample_image[]" class="service-sample-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="service_sample_image_id[]" value="{{ $service['sample_image_id'] }}">
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="block text-gray-700 text-sm mb-1">Hình ảnh kết quả</label>
+                                                <div class="flex items-center gap-2">
+                                                <button type="button" class="btn btn-light btn-sm image-upload-btn" onclick="triggerImageUpload(this, 'service-result')">
+                                    <i class="ki-filled ki-file-up"></i>
+                                    Tải ảnh kết quả
+                                </button>
+                                                    <div class="preview-image-container h-8 w-8 border border-gray-200 rounded-lg overflow-hidden relative group">
+                                                        
+                                                        <img onerror="this.src='/assets/images/default.svg'" class="h-full w-full object-cover cursor-pointer" src="https://res.cloudinary.com/{{env('CLOUDINARY_CLOUD_NAME')}}/image/upload/w_56,h_56,q_auto,f_auto/uploads/{{ $service['result_image_id'] }}" alt="">
+                                                    </div>
+                                                    <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'service_result')">
+                                            <i class="ki-filled ki-trash"></i>
+                                        </button>
+                                <input type="file" name="service_result_image[]" class="service-result-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="service_result_image_id[]" value="{{ $service['result_image_id'] }}">
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="flex gap-2 mb-3">
                                             @if($canEdit)
                                             <button type="button" class="btn btn-sm btn-light" onclick="addSubService(this)">
@@ -213,65 +199,46 @@
                                                         <label class="block text-gray-700 text-sm mb-1">Nội dung</label>
                                                         <textarea name="sub_service_content[]" class="textarea border-gray-200 focus:border-blue-500 rounded-lg w-full" type="text" placeholder="Nội dung" {{ !$canEdit ? 'disabled' : '' }}>{{ $subService['content'] }}</textarea>
                                                     </div>
-                                                    <div class="lg:!col-span-6">
-                                                        <label class="block text-gray-700 text-sm mb-1">Hình ảnh</label>
-                                                        <div class="flex items-center gap-1">
-                                                            @if($canEdit)
-                                                            <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub_service')">
-                                                                <i class="ki-filled ki-file-up"></i>
-                                                                Tải ảnh
-                                                            </button>
-                                                            @endif
-                                                            @if(isset($subService['image_url']) && $subService['image_url'])
-                                                            <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden relative group">
-                                                                <!-- Thêm loading spinner -->
-                                                                <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
-                                                                    <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
-                                                                </div>
-                                                                <!-- Thêm icon xem và xóa ảnh -->
-                                                                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                    <a href="{{ $subService['image_url'] }}" target="_blank" class="p-1 text-white hover:text-blue-200" title="Xem ảnh">
-                                                                        <i class="ki-filled ki-eye"></i>
-                                                                    </a>
-                                                                    @if($canEdit)
-                                                                    <button type="button" class="p-1 text-white hover:text-red-200" title="Xóa ảnh" onclick="removeImage(this, 'sub_service')">
-                                                                        <i class="ki-filled ki-trash"></i>
-                                                                    </button>
-                                                                    @endif
-                                                                </div>
-                                                                <img class="sub-service-image-preview h-full w-full object-cover cursor-pointer" src="{{ $subService['image_url'] }}" alt="" onclick="window.open('{{ $subService['image_url'] }}', '_blank')">
-                                                            </div>
-                                                            @else
-                                                            <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden hidden relative group">
-                                                                <!-- Thêm loading spinner -->
-                                                                <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
-                                                                    <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
-                                                                </div>
-                                                                <!-- Thêm icon xem và xóa ảnh -->
-                                                                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                    <a href="#" target="_blank" class="p-1 text-white hover:text-blue-200" title="Xem ảnh">
-                                                                        <i class="ki-filled ki-eye"></i>
-                                                                    </a>
-                                                                    @if($canEdit)
-                                                                    <button type="button" class="p-1 text-white hover:text-red-200" title="Xóa ảnh" onclick="removeImage(this, 'sub_service')">
-                                                                        <i class="ki-filled ki-trash"></i>
-                                                                    </button>
-                                                                    @endif
-                                                                </div>
-                                                                <img class="sub-service-image-preview h-full w-full object-cover cursor-pointer" src="" alt="" onclick="window.open(this.src, '_blank')">
-                                                            </div>
-                                                            @endif
-                                                            <input type="file" name="sub_service_image[]" class="sub-service-image-input hidden" accept="image/*" onchange="previewImage(this)" {{ !$canEdit ? 'disabled' : '' }}>
-                                                            <!-- Thêm input hidden để lưu driver_id -->
-                                                            <input type="hidden" name="sub_service_driver_id[]" value="{{ $subService['driver_id'] ?? '' }}">
-                                                            @if($canEdit)
-                                                            <button type="button" class="btn btn-sm btn-icon btn-light hover:!bg-red-100 h-8 w-8" onclick="removeSubService(this)">
-                                                                <i class="ki-filled ki-trash !text-red-500"></i>
-                                                            </button>
-                                                            @endif
+                                                </div>
+                                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-2">
+                                                <div>
+                                                    <label class="block text-gray-700 text-sm mb-1">Hình ảnh mẫu</label>
+                                                    <div class="flex items-center gap-1">
+                                                    <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub-service-sample')">
+                                    <i class="ki-filled ki-file-up"></i>
+                                    Tải ảnh mẫu
+                                </button>
+                                                        <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden relative group">
+                                                            
+                                                            <img onerror="this.src='/assets/images/default.svg'" class="h-full w-full object-cover cursor-pointer" src="https://res.cloudinary.com/{{env('CLOUDINARY_CLOUD_NAME')}}/image/upload/w_56,h_56,q_auto,f_auto/uploads/{{ $subService['sample_image_id'] }}" alt="">
                                                         </div>
+                                                        <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'sub_service_sample')">
+                                            <i class="ki-filled ki-trash"></i>
+                                        </button>
+                                <input type="file" name="sub_service_sample_image[]" class="sub-service-sample-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="sub_service_sample_image_id[]" value="{{ $subService['sample_image_id'] }}">
                                                     </div>
                                                 </div>
+                                                
+                                                <div>
+                                                    <label class="block text-gray-700 text-sm mb-1">Hình ảnh kết quả</label>
+                                                    <div class="flex items-center gap-1">
+                                                    <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub-service-result')">
+                                    <i class="ki-filled ki-file-up"></i>
+                                    Tải ảnh kết quả
+                                </button>
+                                                        <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden relative group">
+                                                            
+                                                            <img onerror="this.src='/assets/images/default.svg'" class="h-full w-full object-cover cursor-pointer" src="https://res.cloudinary.com/{{env('CLOUDINARY_CLOUD_NAME')}}/image/upload/w_56,h_56,q_auto,f_auto/uploads/{{ $subService['result_image_id'] }}" alt="">
+                                                        </div>
+                                                        <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'sub_service_result')">
+                                            <i class="ki-filled ki-trash"></i>
+                                        </button>
+                                <input type="file" name="sub_service_result_image[]" class="sub-service-result-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="sub_service_result_image_id[]" value="{{ $subService['result_image_id'] }}">
+                                                    </div>
+                                                </div>
+                                            </div>
                                             </div>
                                             @endforeach
                                         </div>
@@ -318,6 +285,45 @@
                                                 <input name="service_note[]" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full" type="text" placeholder="Ghi chú" value="{{ $service['note'] ?? '' }}" {{ !$canEdit ? 'disabled' : '' }}>
                                             </div>
                                         </div>
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
+                                            <div>
+                                                <label class="block text-gray-700 text-sm mb-1">Hình ảnh mẫu</label>
+                                                <div class="flex items-center gap-2">
+                                                <button type="button" class="btn btn-light btn-sm image-upload-btn" onclick="triggerImageUpload(this, 'service-sample')">
+                                    <i class="ki-filled ki-file-up"></i>
+                                    Tải ảnh mẫu
+                                </button>
+                                                    <div class="preview-image-container h-8 w-8 border border-gray-200 rounded-lg overflow-hidden relative group">
+                                                        
+                                                        <img onerror="this.src='/assets/images/default.svg'" class="h-full w-full object-cover cursor-pointer" src="https://res.cloudinary.com/{{env('CLOUDINARY_CLOUD_NAME')}}/image/upload/w_56,h_56,q_auto,f_auto/uploads/{{ $service['sample_image_id'] }}" alt="">
+                                                    </div>
+                                                    <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'service_sample')">
+                                            <i class="ki-filled ki-trash"></i>
+                                        </button>
+                                <input type="file" name="service_sample_image[]" class="service-sample-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="service_sample_image_id[]" value="{{ $service['sample_image_id'] }}">
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="block text-gray-700 text-sm mb-1">Hình ảnh kết quả</label>
+                                                <div class="flex items-center gap-2">
+                                                <button type="button" class="btn btn-light btn-sm image-upload-btn" onclick="triggerImageUpload(this, 'service-result')">
+                                    <i class="ki-filled ki-file-up"></i>
+                                    Tải ảnh kết quả
+                                </button>
+                                                    <div class="preview-image-container h-8 w-8 border border-gray-200 rounded-lg overflow-hidden relative group">
+                                                        
+                                                        <img onerror="this.src='/assets/images/default.svg'" class="h-full w-full object-cover cursor-pointer" src="https://res.cloudinary.com/{{env('CLOUDINARY_CLOUD_NAME')}}/image/upload/w_56,h_56,q_auto,f_auto/uploads/{{ $service['result_image_id'] }}" alt="">
+                                                    </div>
+                                                    <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'service_result')">
+                                            <i class="ki-filled ki-trash"></i>
+                                        </button>
+                                <input type="file" name="service_result_image[]" class="service-result-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="service_result_image_id[]" value="{{ $service['result_image_id'] }}">
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="flex gap-2 mb-3">
                                             @if($canEdit)
                                             <button type="button" class="btn btn-sm btn-light" onclick="addSubService(this)">
@@ -351,65 +357,46 @@
                                                         <label class="block text-gray-700 text-sm mb-1">Nội dung</label>
                                                         <textarea name="sub_service_content[]" class="textarea border-gray-200 focus:border-blue-500 rounded-lg w-full" type="text" placeholder="Nội dung" {{ !$canEdit ? 'disabled' : '' }}>{{ $subService['content'] }}</textarea>
                                                     </div>
-                                                    <div class="lg:!col-span-6">
-                                                        <label class="block text-gray-700 text-sm mb-1">Hình ảnh</label>
-                                                        <div class="flex items-center gap-1">
-                                                            @if($canEdit)
-                                                            <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub_service')">
-                                                                <i class="ki-filled ki-file-up"></i>
-                                                                Tải ảnh
-                                                            </button>
-                                                            @endif
-                                                            @if(isset($subService['image_url']) && $subService['image_url'])
-                                                            <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden relative group">
-                                                                <!-- Thêm loading spinner -->
-                                                                <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
-                                                                    <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
-                                                                </div>
-                                                                <!-- Thêm icon xem và xóa ảnh -->
-                                                                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                    <a href="{{ $subService['image_url'] }}" target="_blank" class="p-1 text-white hover:text-blue-200" title="Xem ảnh">
-                                                                        <i class="ki-filled ki-eye"></i>
-                                                                    </a>
-                                                                    @if($canEdit)
-                                                                    <button type="button" class="p-1 text-white hover:text-red-200" title="Xóa ảnh" onclick="removeImage(this, 'sub_service')">
-                                                                        <i class="ki-filled ki-trash"></i>
-                                                                    </button>
-                                                                    @endif
-                                                                </div>
-                                                                <img class="sub-service-image-preview h-full w-full object-cover cursor-pointer" src="{{ $subService['image_url'] }}" alt="" onclick="window.open('{{ $subService['image_url'] }}', '_blank')">
-                                                            </div>
-                                                            @else
-                                                            <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden hidden relative group">
-                                                                <!-- Thêm loading spinner -->
-                                                                <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
-                                                                    <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
-                                                                </div>
-                                                                <!-- Thêm icon xem và xóa ảnh -->
-                                                                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                    <a href="#" target="_blank" class="p-1 text-white hover:text-blue-200" title="Xem ảnh">
-                                                                        <i class="ki-filled ki-eye"></i>
-                                                                    </a>
-                                                                    @if($canEdit)
-                                                                    <button type="button" class="p-1 text-white hover:text-red-200" title="Xóa ảnh" onclick="removeImage(this, 'sub_service')">
-                                                                        <i class="ki-filled ki-trash"></i>
-                                                                    </button>
-                                                                    @endif
-                                                                </div>
-                                                                <img class="sub-service-image-preview h-full w-full object-cover cursor-pointer" src="" alt="" onclick="window.open(this.src, '_blank')">
-                                                            </div>
-                                                            @endif
-                                                            <input type="file" name="sub_service_image[]" class="sub-service-image-input hidden" accept="image/*" onchange="previewImage(this)" {{ !$canEdit ? 'disabled' : '' }}>
-                                                            <!-- Thêm input hidden để lưu driver_id -->
-                                                            <input type="hidden" name="sub_service_driver_id[]" value="{{ $subService['driver_id'] ?? '' }}">
-                                                            @if($canEdit)
-                                                            <button type="button" class="btn btn-sm btn-icon btn-light hover:!bg-red-100 h-8 w-8" onclick="removeSubService(this)">
-                                                                <i class="ki-filled ki-trash !text-red-500"></i>
-                                                            </button>
-                                                            @endif
+                                                </div>
+                                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-2">
+                                                <div>
+                                                    <label class="block text-gray-700 text-sm mb-1">Hình ảnh mẫu</label>
+                                                    <div class="flex items-center gap-1">
+                                                    <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub-service-sample')">
+                                    <i class="ki-filled ki-file-up"></i>
+                                    Tải ảnh mẫu
+                                </button>
+                                                        <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden relative group">
+                                                            
+                                                            <img onerror="this.src='/assets/images/default.svg'" class="h-full w-full object-cover cursor-pointer" src="https://res.cloudinary.com/{{env('CLOUDINARY_CLOUD_NAME')}}/image/upload/w_56,h_56,q_auto,f_auto/uploads/{{ $subService['sample_image_id'] }}" alt="">
                                                         </div>
+                                                        <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'sub_service_sample')">
+                                            <i class="ki-filled ki-trash"></i>
+                                        </button>
+                                <input type="file" name="sub_service_sample_image[]" class="sub-service-sample-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="sub_service_sample_image_id[]" value="{{ $subService['sample_image_id'] }}">
                                                     </div>
                                                 </div>
+                                                
+                                                <div>
+                                                    <label class="block text-gray-700 text-sm mb-1">Hình ảnh kết quả</label>
+                                                    <div class="flex items-center gap-1">
+                                                    <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub-service-result')">
+                                    <i class="ki-filled ki-file-up"></i>
+                                    Tải ảnh kết quả
+                                </button>
+                                                        <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden relative group">
+                                                            
+                                                            <img onerror="this.src='/assets/images/default.svg'" class="h-full w-full object-cover cursor-pointer" src="https://res.cloudinary.com/{{env('CLOUDINARY_CLOUD_NAME')}}/image/upload/w_56,h_56,q_auto,f_auto/uploads/{{ $subService['result_image_id'] }}" alt="" >
+                                                        </div>
+                                                        <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'sub_service_result')">
+                                            <i class="ki-filled ki-trash"></i>
+                                        </button>
+                                <input type="file" name="sub_service_result_image[]" class="sub-service-result-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="sub_service_result_image_id[]" value="{{ $subService['result_image_id'] }}">
+                                                    </div>
+                                                </div>
+                                            </div>
                                             </div>
                                             @endforeach
                                         </div>
@@ -477,34 +464,7 @@
                                     <input type="hidden" name="item_type[]" value="product">
                                     <input type="hidden" name="contract_item_id[]" value="">
                                 </div>
-                                <div>
-                                    <label class="block text-gray-700 text-sm mb-1">Hình ảnh</label>
-                                    <div class="flex items-center gap-2">
-                                        <button type="button" class="btn btn-light btn-sm image-upload-btn" onclick="triggerImageUpload(this, 'item')">
-                                            <i class="ki-filled ki-file-up"></i>
-                                            Tải ảnh
-                                        </button>
-                                        <div class="preview-image-container h-8 w-8 border border-gray-200 rounded-lg overflow-hidden hidden relative group">
-                                            <!-- Thêm loading spinner -->
-                                            <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
-                                                <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
-                                            </div>
-                                            <!-- Thêm icon xem và xóa ảnh -->
-                                            <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <a href="#" target="_blank" class="p-1 text-white hover:text-blue-200" title="Xem ảnh">
-                                                    <i class="ki-filled ki-eye"></i>
-                                                </a>
-                                                <button type="button" class="p-1 text-white hover:text-red-200" title="Xóa ảnh" onclick="removeImage(this, 'item')">
-                                                    <i class="ki-filled ki-trash"></i>
-                                                </button>
-                                            </div>
-                                            <img class="item-image-preview h-full w-full object-cover cursor-pointer" src="" alt="" onclick="window.open(this.src, '_blank')">
-                                        </div>
-                                        <input type="file" name="item_image[]" class="item-image-input hidden" accept="image/*" onchange="previewImage(this)">
-                                        <!-- Thêm input hidden để lưu driver_id -->
-                                        <input type="hidden" name="item_driver_id[]" value="">
-                                    </div>
-                                </div>
+                                <!-- Đã loại bỏ phần upload ảnh sản phẩm -->
                             </div>
                             <div class="flex gap-2 mb-3">
                                 <button type="button" class="btn btn-sm btn-light" onclick="addService(this)">
@@ -563,7 +523,7 @@
                 </div>
             </template>
 
-            <!-- Service Template -->
+            <!-- Thay đổi trong template dịch vụ -->
             <template id="service-template">
                 <div class="service-item mb-3 rounded-lg border border-gray-400 p-3" data-service-id="__SERVICE_ID__">
                     <div class="flex justify-between items-start gap-2 mb-3">
@@ -582,10 +542,8 @@
                             <label class="block text-gray-700 text-sm mb-1">Tên dịch vụ</label>
                             <select name="service_ids[]" class="select border-gray-200 focus:border-blue-500 rounded-lg w-full service-select">
                                 <option disabled selected>Chọn dịch vụ</option>
-                                <!-- Services options will be added dynamically -->
                                 __SERVICES_OPTIONS__
                             </select>
-                            <!-- Add contract_service_id field -->
                             <input type="hidden" name="contract_service_id[]" value="">
                         </div>
                         <div>
@@ -600,6 +558,52 @@
                             <input name="service_note[]" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full" type="text" placeholder="Ghi chú">
                         </div>
                     </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-gray-700 text-sm mb-1">Hình ảnh mẫu</label>
+                            <div class="flex items-center gap-2">
+                                <button type="button" class="btn btn-light btn-sm image-upload-btn" onclick="triggerImageUpload(this, 'service-sample')">
+                                    <i class="ki-filled ki-file-up"></i>
+                                    Tải ảnh mẫu
+                                </button>
+                                <div class="preview-image-container h-8 w-8 border border-gray-200 rounded-lg overflow-hidden hidden relative group">
+                                    <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
+                                        <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
+                                    </div>
+                                    
+                                    <img onerror="this.src='/assets/images/default.svg'" class="service-sample-image-preview h-full w-full object-cover cursor-pointer" src="" alt="">
+                                </div>
+                                <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'service_sample')">
+                                            <i class="ki-filled ki-trash"></i>
+                                        </button>
+                                <input type="file" name="service_sample_image[]" class="service-sample-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="service_sample_image_id[]" value="">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm mb-1">Hình ảnh kết quả</label>
+                            <div class="flex items-center gap-2">
+                                <button type="button" class="btn btn-light btn-sm image-upload-btn" onclick="triggerImageUpload(this, 'service-result')">
+                                    <i class="ki-filled ki-file-up"></i>
+                                    Tải ảnh kết quả
+                                </button>
+                                <div class="preview-image-container h-8 w-8 border border-gray-200 rounded-lg overflow-hidden hidden relative group">
+                                    <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
+                                        <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
+                                    </div>
+                                    
+                                    <img onerror="this.src='/assets/images/default.svg'" class="service-result-image-preview h-full w-full object-cover cursor-pointer" src="" alt="">
+                                </div>
+                                        <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'service_result')">
+                                            <i class="ki-filled ki-trash"></i>
+                                        </button>
+                                <input type="file" name="service_result_image[]" class="service-result-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="service_result_image_id[]" value="">
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="flex gap-2 mb-3">
                         <button type="button" class="btn btn-sm btn-light" onclick="addSubService(this)">
                             <i class="ki-filled ki-plus text-blue-500 mr-1"></i>
@@ -611,6 +615,7 @@
                     </div>
                 </div>
             </template>
+
             <!-- Custom Service Template -->
             <template id="custom-service-template">
                 <div class="service-item mb-3 rounded-lg border border-gray-400 p-3" data-service-id="__SERVICE_ID__">
@@ -657,14 +662,13 @@
                 </div>
             </template>
 
-            <!-- Sub Service Template -->
+            <!-- Thay đổi trong template dịch vụ con -->
             <template id="sub-service-template">
                 <div class="sub-service-item mb-2 rounded p-2 border-l-2 border-gray-400" data-sub-service-id="__SUB_SERVICE_ID__">
                     <div class="grid grid-cols-1 lg:!grid-cols-12 gap-2">
                         <div class="lg:!col-span-6">
                             <label class="block text-gray-700 text-sm mb-1">Góc máy</label>
                             <input name="sub_service_name[]" class="input border-gray-200 focus:border-blue-500 rounded-lg w-full" type="text" placeholder="Góc máy">
-                            <!-- Add contract_sub_service_id field -->
                             <input type="hidden" name="contract_sub_service_id[]" value="">
                         </div>
                         <div class="lg:!col-span-2">
@@ -682,32 +686,50 @@
                             <label class="block text-gray-700 text-sm mb-1">Nội dung</label>
                             <textarea name="sub_service_content[]" class="textarea border-gray-200 focus:border-blue-500 rounded-lg w-full" type="text" placeholder="Nội dung"></textarea>
                         </div>
-                        <div class="lg:!col-span-6">
-                            <label class="block text-gray-700 text-sm mb-1">Hình ảnh</label>
+                    </div>
+                    
+                    <!-- Thay đổi phần upload hình ảnh thành hai loại ảnh: mẫu và kết quả -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-2">
+                        <div>
+                            <label class="block text-gray-700 text-sm mb-1">Hình ảnh mẫu</label>
                             <div class="flex items-center gap-1">
-                                <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub_service')">
+                                <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub-service-sample')">
                                     <i class="ki-filled ki-file-up"></i>
-                                    Tải ảnh
+                                    Tải ảnh mẫu
                                 </button>
                                 <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden hidden relative group">
-                                    <!-- Thêm loading spinner -->
                                     <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
                                         <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
                                     </div>
-                                    <!-- Thêm icon xem và xóa ảnh -->
-                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <a href="#" target="_blank" class="p-1 text-white hover:text-blue-200" title="Xem ảnh">
-                                            <i class="ki-filled ki-eye"></i>
-                                        </a>
-                                        <button type="button" class="p-1 text-white hover:text-red-200" title="Xóa ảnh" onclick="removeImage(this, 'sub_service')">
+                                    
+                                    <img onerror="this.src='/assets/images/default.svg'" class="sub-service-sample-image-preview h-full w-full object-cover cursor-pointer" src="" alt="">
+                                </div>
+                                        <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'sub_service_sample')">
                                             <i class="ki-filled ki-trash"></i>
                                         </button>
+                                <input type="file" name="sub_service_sample_image[]" class="sub-service-sample-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="sub_service_sample_image_id[]" value="">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm mb-1">Hình ảnh kết quả</label>
+                            <div class="flex items-center gap-1">
+                                <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub-service-result')">
+                                    <i class="ki-filled ki-file-up"></i>
+                                    Tải ảnh kết quả
+                                </button>
+                                <div class="preview-image-container h-8 w-8 border border-gray-200 rounded overflow-hidden hidden relative group">
+                                    <div class="image-loading-spinner h-full w-full bg-gray-100 flex items-center justify-center hidden">
+                                        <i class="ki-filled ki-loading animate-spin text-blue-500"></i>
                                     </div>
-                                    <img class="sub-service-image-preview h-full w-full object-cover cursor-pointer" src="" alt="" onclick="window.open(this.src, '_blank')">
+                                    
+                                    <img onerror="this.src='/assets/images/default.svg'" class="sub-service-result-image-preview h-full w-full object-cover cursor-pointer" src="" alt="">
                                 </div>
-                                <input type="file" name="sub_service_image[]" class="sub-service-image-input hidden" accept="image/*" onchange="previewImage(this)">
-                                <!-- Thêm input hidden để lưu driver_id -->
-                                <input type="hidden" name="sub_service_driver_id[]" value="">
+                                        <button type="button" class="p-1 text-red-500" title="Xóa ảnh" onclick="removeImage(this, 'sub_service_result')">
+                                            <i class="ki-filled ki-trash"></i>
+                                        </button>
+                                <input type="file" name="sub_service_result_image[]" class="sub-service-result-image-input hidden" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" name="sub_service_result_image_id[]" value="">
                                 <button type="button" class="btn btn-sm btn-icon btn-light hover:!bg-red-100 h-8 w-8" onclick="removeSubService(this)">
                                     <i class="ki-filled ki-trash !text-red-500"></i>
                                 </button>
@@ -841,17 +863,19 @@
     // Kích hoạt dialog upload ảnh
     function triggerImageUpload(button, type) {
         const container = button.closest('div');
-        const fileInput = type === 'item' ?
-            container.querySelector('.item-image-input') :
-            container.querySelector('.sub-service-image-input');
-
-        fileInput.click();
+        const fileInput = container.querySelector(`.${type}-image-input`);
+        
+        if (fileInput) {
+            fileInput.click();
+        }
     }
 
+
+    // Xóa hình ảnh
     function removeImage(button, type) {
-        const container = button.closest('.preview-image-container').parentNode;
+        const container = button.closest('div').querySelector('.preview-image-container').parentNode;
         const previewContainer = container.querySelector('.preview-image-container');
-        const driverIdInput = container.querySelector(`input[name="${type}_driver_id[]"]`);
+        const imageIdInput = container.querySelector(`input[name="${type}_image_id[]"]`);
 
         // Ẩn container ảnh preview
         previewContainer.classList.add('hidden');
@@ -866,9 +890,9 @@
             imageLink.href = '#';
         }
 
-        // Reset giá trị driver_id
-        if (driverIdInput) {
-            driverIdInput.value = '';
+        // Reset giá trị image_id
+        if (imageIdInput) {
+            imageIdInput.value = '';
         }
 
         // Reset input file
@@ -878,30 +902,24 @@
         }
     }
 
+    // Hiển thị preview hình ảnh và upload lên Google Drive
     async function previewImage(input) {
         if (input.files && input.files[0]) {
             const container = input.closest('div');
             const previewContainer = container.querySelector('.preview-image-container');
-            const previewImg = container.querySelector('img');
-            const loadingSpinner = container.querySelector('.image-loading-spinner');
+            const previewImg = previewContainer.querySelector('img');
             const imageLink = previewContainer.querySelector('a');
+            const imageIdInputName = input.name.replace('image', 'image_id');
+            const imageIdInput = container.querySelector(`input[name="${imageIdInputName}"]`);
 
             try {
                 // Hiển thị container ảnh
                 previewContainer.classList.remove('hidden');
 
-                // Hiển thị loading spinner và ẩn ảnh preview
-                loadingSpinner.classList.remove('hidden');
                 previewImg.classList.add('hidden');
 
                 // Tạo preview tạm thời
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    // Chỉ hiển thị preview tạm thời trong trường hợp upload chậm
-                    if (loadingSpinner.classList.contains('hidden') === false) {
-                        previewImg.src = e.target.result;
-                    }
-                };
                 reader.readAsDataURL(input.files[0]);
 
                 // Upload file
@@ -909,9 +927,8 @@
                 let res = await uploadFileTemplate(file);
 
                 if (res.data.status == 200) {
-
-                    const imageUrl = `https://drive.google.com/file/d/${res.data.data.driver_id}/view`;
-                    const thumbnailUrl = `https://drive.google.com/thumbnail?id=${res.data.data.driver_id}&sz=w56`;
+                    const imageUrl = `https://res.cloudinary.com/{{env('CLOUDINARY_CLOUD_NAME')}}/image/upload/q_auto,f_auto/uploads/${res.data.data.driver_id}`;
+                    const thumbnailUrl = `https://res.cloudinary.com/{{env('CLOUDINARY_CLOUD_NAME')}}/image/upload/w_56,h_56,q_auto,f_auto/uploads/${res.data.data.driver_id}`;
 
                     // Hiển thị ảnh và thay đổi source của ảnh preview thành ảnh từ Google Drive
                     previewImg.src = thumbnailUrl;
@@ -922,31 +939,17 @@
                         imageLink.href = imageUrl;
                     }
 
-                    // Thêm hidden input để lưu driver_id
-                    const driverIdInput = document.createElement('input');
-                    driverIdInput.type = 'hidden';
-                    driverIdInput.name = input.name.replace('image', 'driver_id');
-                    driverIdInput.value = res.data.data.driver_id;
-
-                    // Kiểm tra xem đã có driver_id input chưa và thay thế nếu có
-                    const existingDriverId = container.querySelector(`input[name="${driverIdInput.name}"]`);
-                    if (existingDriverId) {
-                        existingDriverId.value = res.data.data.driver_id;
-                    } else {
-                        container.appendChild(driverIdInput);
+                    // Cập nhật giá trị image_id
+                    if (imageIdInput) {
+                        imageIdInput.value = res.data.data.driver_id;
                     }
                     
-                    // Ẩn loading spinner
-                    loadingSpinner.classList.add('hidden');
                 } else {
-                    // Ẩn loading spinner và preview container nếu upload thất bại
-                    loadingSpinner.classList.add('hidden');
                     previewContainer.classList.add('hidden');
                     showAlert('error', 'Upload failed!');
                 }
             } catch (error) {
                 // Ẩn loading spinner và preview container nếu có lỗi
-                loadingSpinner.classList.add('hidden');
                 previewContainer.classList.add('hidden');
                 showAlert('error', 'Error uploading file');
                 console.error(error);
@@ -1016,6 +1019,7 @@
         $('input[name="total_value"]').val(total);
     }
 
+    
     async function saveCreateContract($id) {
         Notiflix.Confirm.show(
             'Bạn có chắc chắn muốn cập nhật dịch vụ',
@@ -1023,132 +1027,124 @@
             'Đúng',
             'Hủy',
             async () => {
-                    calculateTotalValue();
+                calculateTotalValue();
 
-                    // Tạo cấu trúc dữ liệu cho sản phẩm, dịch vụ và dịch vụ con
-                    let contractItemsData = [];
+                // Tạo cấu trúc dữ liệu cho sản phẩm, dịch vụ và dịch vụ con
+                let contractItemsData = [];
 
-                    // Lặp qua tất cả các item (sản phẩm và mục khác)
-                    document.querySelectorAll('.item-container').forEach(itemContainer => {
-                        const itemId = itemContainer.dataset.itemId;
-                        const itemType = itemContainer.dataset.itemType;
-                        const contractItemId = itemContainer.querySelector('input[name="contract_item_id[]"]')?.value || null;
+                // Lặp qua tất cả các item (sản phẩm và mục khác)
+                document.querySelectorAll('.item-container').forEach(itemContainer => {
+                    const itemId = itemContainer.dataset.itemId;
+                    const itemType = itemContainer.dataset.itemType;
+                    const contractItemId = itemContainer.querySelector('input[name="contract_item_id[]"]')?.value || null;
 
-                        let itemData = {
-                            type: itemType,
-                            id: contractItemId,
-                            product_id: null,
-                            name: null,
-                            quantity: null,
-                            price: null,
-                            note: null,
-                            driver_id: null, // Thay thế image bằng driver_id
-                            services: []
+                    let itemData = {
+                        type: itemType,
+                        id: contractItemId,
+                        product_id: null,
+                        name: null,
+                        quantity: null,
+                        price: null,
+                        note: null,
+                        services: []
+                    };
+
+                    // Xử lý dựa vào loại item
+                    if (itemType === 'product') {
+                        // Sản phẩm
+                        itemData.product_id = itemContainer.querySelector('select[name="item_product_id[]"]')?.value;
+                        itemData.quantity = itemContainer.querySelector('input[name="item_quantity[]"]')?.value;
+                    } else {
+                        // Mục khác (giảm giá, phí,...)
+                        itemData.name = itemContainer.querySelector('input[name="item_name[]"]')?.value;
+                        itemData.price = itemContainer.querySelector('input[name="item_price[]"]')?.value;
+                        itemData.note = itemContainer.querySelector('input[name="item_note[]"]')?.value;
+                    }
+
+                    // Thu thập dữ liệu dịch vụ cho mỗi item
+                    const serviceItems = itemContainer.querySelectorAll('.service-item');
+                    serviceItems.forEach(serviceItem => {
+                        const serviceId = serviceItem.dataset.serviceId;
+                        const isCustomService = serviceItem.querySelector('input[name="service_ids[]"][value="custom"]') !== null;
+                        const contractServiceId = serviceItem.querySelector('input[name="contract_service_id[]"]')?.value || null;
+
+                        let serviceData = {
+                            service_id: isCustomService ? 'custom' : serviceItem.querySelector('select[name="service_ids[]"]')?.value,
+                            id: contractServiceId,
+                            custom_name: isCustomService ? serviceItem.querySelector('input[name="service_custom_name[]"]')?.value : null,
+                            price: serviceItem.querySelector('input[name="service_price[]"]')?.value,
+                            note: serviceItem.querySelector('input[name="service_note[]"]')?.value,
+                            // Thêm các trường hình ảnh mẫu và kết quả
+                            sample_image_id: serviceItem.querySelector('input[name="service_sample_image_id[]"]')?.value || null,
+                            result_image_id: serviceItem.querySelector('input[name="service_result_image_id[]"]')?.value || null,
+                            sub_services: []
                         };
 
-                        // Xử lý dựa vào loại item
-                        if (itemType === 'product') {
-                            // Sản phẩm
-                            itemData.product_id = itemContainer.querySelector('select[name="item_product_id[]"]')?.value;
-                            itemData.quantity = itemContainer.querySelector('input[name="item_quantity[]"]')?.value;
+                        // Thu thập dữ liệu dịch vụ con
+                        const subServiceItems = serviceItem.querySelectorAll('.sub-service-item');
+                        subServiceItems.forEach(subServiceItem => {
+                            const contractSubServiceId = subServiceItem.querySelector('input[name="contract_sub_service_id[]"]')?.value || null;
 
-                            // Lấy driver_id thay vì file ảnh
-                            const driverIdInput = itemContainer.querySelector('input[name="item_driver_id[]"]');
-                            if (driverIdInput) {
-                                itemData.driver_id = driverIdInput.value;
-                            }
-                        } else {
-                            // Mục khác (giảm giá, phí,...)
-                            itemData.name = itemContainer.querySelector('input[name="item_name[]"]')?.value;
-                            itemData.price = itemContainer.querySelector('input[name="item_price[]"]')?.value;
-                            itemData.note = itemContainer.querySelector('input[name="item_note[]"]')?.value;
-                        }
-
-                        // Thu thập dữ liệu dịch vụ cho mỗi item
-                        const serviceItems = itemContainer.querySelectorAll('.service-item');
-                        serviceItems.forEach(serviceItem => {
-                            const serviceId = serviceItem.dataset.serviceId;
-                            const isCustomService = serviceItem.querySelector('input[name="service_ids[]"][value="custom"]') !== null;
-                            const contractServiceId = serviceItem.querySelector('input[name="contract_service_id[]"]')?.value || null;
-
-                            let serviceData = {
-                                service_id: isCustomService ? 'custom' : serviceItem.querySelector('select[name="service_ids[]"]')?.value,
-                                id: contractServiceId,
-                                custom_name: isCustomService ? serviceItem.querySelector('input[name="service_custom_name[]"]')?.value : null,
-                                price: serviceItem.querySelector('input[name="service_price[]"]')?.value,
-                                note: serviceItem.querySelector('input[name="service_note[]"]')?.value,
-                                sub_services: []
+                            const subServiceData = {
+                                id: contractSubServiceId,
+                                name: subServiceItem.querySelector('input[name="sub_service_name[]"]')?.value,
+                                quantity: subServiceItem.querySelector('input[name="sub_service_quantity[]"]')?.value,
+                                total: subServiceItem.querySelector('input[name="sub_service_total[]"]')?.value,
+                                content: subServiceItem.querySelector('textarea[name="sub_service_content[]"]')?.value,
+                                // Thêm các trường hình ảnh mẫu và kết quả
+                                sample_image_id: subServiceItem.querySelector('input[name="sub_service_sample_image_id[]"]')?.value || null,
+                                result_image_id: subServiceItem.querySelector('input[name="sub_service_result_image_id[]"]')?.value || null
                             };
 
-                            // Thu thập dữ liệu dịch vụ con
-                            const subServiceItems = serviceItem.querySelectorAll('.sub-service-item');
-                            subServiceItems.forEach(subServiceItem => {
-                                const contractSubServiceId = subServiceItem.querySelector('input[name="contract_sub_service_id[]"]')?.value || null;
-
-                                const subServiceData = {
-                                    id: contractSubServiceId,
-                                    name: subServiceItem.querySelector('input[name="sub_service_name[]"]')?.value,
-                                    quantity: subServiceItem.querySelector('input[name="sub_service_quantity[]"]')?.value,
-                                    total: subServiceItem.querySelector('input[name="sub_service_total[]"]')?.value,
-                                    content: subServiceItem.querySelector('textarea[name="sub_service_content[]"]')?.value,
-                                    driver_id: null // Thay thế image bằng driver_id
-                                };
-
-                                // Lấy driver_id cho hình ảnh dịch vụ con
-                                const driverIdInput = subServiceItem.querySelector('input[name="sub_service_driver_id[]"]');
-                                if (driverIdInput) {
-                                    subServiceData.driver_id = driverIdInput.value;
-                                }
-
-                                serviceData.sub_services.push(subServiceData);
-                            });
-
-                            itemData.services.push(serviceData);
+                            serviceData.sub_services.push(subServiceData);
                         });
 
-                        contractItemsData.push(itemData);
+                        itemData.services.push(serviceData);
                     });
 
-                    // Tạo FormData để gửi dữ liệu form
-                    const formData = new FormData(document.getElementById('tab-services'));
+                    contractItemsData.push(itemData);
+                });
 
-                    // Thêm dữ liệu cấu trúc JSON
-                    formData.append('contract_items_data', JSON.stringify(contractItemsData));
-                    formData.append('contract_id', $id);
+                // Tạo FormData để gửi dữ liệu form
+                const formData = new FormData(document.getElementById('tab-services'));
 
-                    let method = "post",
-                        url = "/contract/update",
-                        params = null,
-                        data = formData;
+                // Thêm dữ liệu cấu trúc JSON
+                formData.append('contract_items_data', JSON.stringify(contractItemsData));
+                formData.append('contract_id', $id);
 
-                    try {
-                        // Sử dụng Axios với Content-Type là multipart/form-data
-                        const axiosConfig = {
-                            headers: {
-                                'Content-Type': 'multipart/form-data'
-                            }
-                        };
+                let method = "post",
+                    url = "/contract/update",
+                    params = null,
+                    data = formData;
 
-                        let res = await axios[method](url, data, axiosConfig);
-
-                        switch (res.data.status) {
-                            case 200:
-                                showAlert('success', res.data.message);
-                                // Hiệu ứng thành công trước khi tải lại trang
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 500);
-                                break;
-                            default:
-                                showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-                                break;
+                try {
+                    // Sử dụng Axios với Content-Type là multipart/form-data
+                    const axiosConfig = {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
                         }
-                    } catch (error) {
-                        showAlert('error', "Đã có lỗi xảy ra khi gửi yêu cầu!");
-                        console.error(error);
+                    };
+
+                    let res = await axios[method](url, data, axiosConfig);
+
+                    switch (res.data.status) {
+                        case 200:
+                            showAlert('success', res.data.message);
+                            // Hiệu ứng thành công trước khi tải lại trang
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500);
+                            break;
+                        default:
+                            showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
+                            break;
                     }
-                },
-                () => {}, {}
+                } catch (error) {
+                    showAlert('error', "Đã có lỗi xảy ra khi gửi yêu cầu!");
+                    console.error(error);
+                }
+            },
+            () => {}, {}
         );
     }
 

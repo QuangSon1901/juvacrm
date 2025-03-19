@@ -35,7 +35,9 @@ class Task extends Model
         'start_date', 
         'service_other',
         'bonus_amount', 
-        'deduction_amount'
+        'deduction_amount',
+        'sample_image_id',
+            'result_image_id',
     ];
 
     /**

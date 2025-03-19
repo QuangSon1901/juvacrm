@@ -38,7 +38,7 @@ function uploadFileTemplate(file) {
     data.append("file", file);
     data.append("action", 'IMAGE_DRIVER_UPLOAD');
     let method = "post",
-        url = "/upload-file",
+        url = "/upload-file-cloud",
         params = null;
     return axiosTemplate(method, url, params, data);
 }

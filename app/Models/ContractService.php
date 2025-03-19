@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class ContractService extends Model
 {
     protected $table = 'tbl_contract_services';
-    protected $fillable = ['contract_id', 'service_id', 'product_id', 'name', 'type', 'quantity', 'price', 'note', 'is_active', 'parent_id'];
+    protected $fillable = [
+        'contract_id', 'service_id', 'product_id', 'name', 'type', 
+        'quantity', 'price', 'note', 'is_active', 'parent_id',
+        'sample_image_id', 'result_image_id'
+    ];
 
     /**
      * Lấy hợp đồng chứa dịch vụ này

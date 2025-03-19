@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BizFlyController;
+use App\Http\Controllers\CloudinaryController;
 use App\Http\Controllers\Dashboard\Account\Member\MemberController;
 use App\Http\Controllers\Dashboard\Account\Role\RoleController;
 use App\Http\Controllers\Dashboard\Account\Task\TaskController;
@@ -59,6 +60,7 @@ Route::group(
 // Route::post('google/drive/upload', [GoogleDriveController::class, 'uploadFile']);
 // Route::get('google/drive/storage-info', [GoogleDriveController::class, 'getStorageInfo'])->name('google.drive.storage-info');
 /************************************************** Group Dashboard **************************************************/
+
 Route::group(
     ['namespace' => 'Dashboard', 'as' => 'dashboard.', 'middleware' => [Authenticate::class]],
     function () {
@@ -66,6 +68,7 @@ Route::group(
         Route::group(
             ['namespace' => 'Upload', 'as' => 'upload.', 'middleware' => []],
             function () {
+                Route::post('/upload-file-cloud', [CloudinaryController::class, "uploadFile"])->name("upload-file-cloud");
                 Route::post('/upload-file', [GoogleDriveController::class, "uploadFile"])->name("upload-file");
             }
         );
@@ -145,6 +148,7 @@ Route::group(
                 Route::post('/contract/update-payment', [ContractController::class, 'updatePayment'])->name('contract.updatePayment');
                 Route::post('/contract/cancel-payment', [ContractController::class, 'cancelPayment'])->name('contract.cancelPayment');
                 Route::get('/contract/{id}/export-pdf', [ContractController::class, 'exportPdf'])->name('export-pdf');
+                Route::get('/contract/{id}/export-excel', [ContractController::class, 'exportExcel'])->name('export-excel');
                 Route::post('/contract/sync-contract-tasks', [ContractController::class, 'syncTasks'])->name('contract.sync-contract-tasks');
             }
         );

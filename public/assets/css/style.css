@@ -347,3 +347,27 @@
 .btn-subtle.btn-warning.active i,.btn-subtle.btn-warning:active i,.btn-subtle.btn-warning:focus i,.btn-subtle.btn-warning:hover i {
     color: var(--tw-warning)
 }
+
+/* Use attribute selector instead of class for styling all images */
+img:not(.no-zoom) {
+    cursor: zoom-in;
+    transition: opacity 0.2s;
+  }
+
+  a img {
+    cursor: pointer !important;
+  }
+  
+  img:not(.no-zoom):hover {
+    opacity: 0.9;
+  }
+  
+  /* Fade-in and scale animation for the modal */
+  .image-viewer-active {
+    display: flex !important;
+    opacity: 1 !important;
+  }
+  
+  .image-viewer-active > div {
+    transform: scale(1) !important;
+  }
