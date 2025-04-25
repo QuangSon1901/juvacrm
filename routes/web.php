@@ -425,6 +425,8 @@ Route::group(
             ['namespace' => 'Setting', 'as' => 'setting.', 'middleware' => []],
             function () {
                 Route::get('/setting', [SettingController::class, "index"])->name("setting");
+                Route::post('/setting/update', [SettingController::class, "update"])->name("update");
+                Route::get('/setting/commissions', [SettingController::class, "commissions"])->name("commissions");
             }
         );
     }

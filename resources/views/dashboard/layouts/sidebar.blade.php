@@ -298,6 +298,14 @@
                             </span>
                         </a>
                     </div>
+
+                    <div class="menu-item">
+                        <a class="menu-link" href="{{route('dashboard.setting.commissions')}}">
+                            <span class="menu-title">
+                                Quản lý hoa hồng
+                            </span>
+                        </a>
+                    </div>
                     
                     <!-- Lương nhân viên -->
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">

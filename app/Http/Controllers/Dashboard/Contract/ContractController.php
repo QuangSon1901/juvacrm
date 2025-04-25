@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard\Contract;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contract;
+use App\Models\ContractCommission;
 use App\Models\ContractPayment;
 use App\Models\ContractService;
 use App\Models\Currency;
@@ -12,6 +13,7 @@ use App\Models\PaymentMethod;
 use App\Models\Service;
 use App\Models\Product;
 use App\Models\ServiceCategory;
+use App\Models\SystemConfig;
 use App\Models\Task;
 use App\Models\Transaction;
 use App\Models\TransactionCategory;
@@ -34,19 +36,78 @@ class ContractController extends Controller
 
     public function complete(Request $request) {
         try {
-            $contract = Contract::findOrFail($request['id']);
+            DB::beginTransaction();
+            
+            $contract = Contract::with('user')->findOrFail($request['id']);
             $contract->update(['status' => 2]);
-
+    
+            // Cập nhật tất cả các task liên quan
             Task::where('contract_id', $request['id'])->update(['status_id' => 8]);
-
+            
+            // Tính và lưu hoa hồng cho nhân viên được phân công
+            $this->calculateAndSaveCommission($contract);
+    
+            DB::commit();
+    
             return response()->json([
                 'status' => 200,
                 'message' => 'Hợp đồng đã kết thúc.',
             ]);
-        }  catch (\Exception $e) {
+        } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage() ?? 'Đã xảy ra lỗi khi kết thúc hợp đồng.',
+            ]);
+        }
+    }
+    
+    /**
+     * Tính và lưu hoa hồng cho nhân viên được phân công hợp đồng
+     * 
+     * @param Contract $contract Hợp đồng đã hoàn tất
+     * @return void
+     */
+    private function calculateAndSaveCommission(Contract $contract)
+    {
+        // Lấy nhân viên được phân công
+        $assignedUser = $contract->user;
+        if (!$assignedUser) {
+            return;
+        }
+        
+        // Lấy tổng giá trị hợp đồng
+        $totalValue = $contract->total_value;
+        
+        // Lấy phần trăm hoa hồng từ cấu hình hệ thống
+        $commissionPercentage = SystemConfig::where('config_key', 'contract_commission_percentage')
+                                ->where('is_active', 1)
+                                ->first();
+        
+        $percentage = $commissionPercentage ? (float)$commissionPercentage->config_value : 0;
+        
+        if ($percentage > 0 && $totalValue > 0) {
+            // Tính số tiền hoa hồng
+            $commissionAmount = ($totalValue * $percentage) / 100;
+            
+            // Lưu vào bảng hoa hồng
+            ContractCommission::create([
+                'contract_id' => $contract->id,
+                'user_id' => $assignedUser->id,
+                'commission_percentage' => $percentage,
+                'commission_amount' => $commissionAmount,
+                'contract_value' => $totalValue,
+                'processed_at' => now(),
+                'is_paid' => 0,
+            ]);
+            
+            // Lưu log
+            LogService::saveLog([
+                'action' => 'COMMISSION_CREATED',
+                'ip' => request()->getClientIp(),
+                'details' => "Đã tạo hoa hồng {$percentage}% ({$commissionAmount}) cho nhân viên {$assignedUser->name} từ hợp đồng #{$contract->contract_number}",
+                'fk_key' => 'tbl_contracts|id',
+                'fk_value' => $contract->id,
             ]);
         }
     }
