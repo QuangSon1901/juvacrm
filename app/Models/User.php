@@ -31,6 +31,7 @@ class User extends Authenticatable implements AuthenticatableContract
         'note',
         'login_attempts',
         'ended_at',
+        'is_super_admin'
     ];
 
     protected $hidden = [
@@ -80,5 +81,41 @@ class User extends Authenticatable implements AuthenticatableContract
     public function tasks()
     {
         return $this->hasMany(Task::class, 'assign_id');
+    }
+
+    public function isSuperAdmin()
+    {
+        return (bool) $this->is_super_admin;
+    }
+
+    // Thêm phương thức này vào model User
+    public function permissions()
+    {
+        return Permission::select('tbl_permissions.*')
+            ->join('tbl_role_permissions', 'tbl_permissions.id', '=', 'tbl_role_permissions.permission_id')
+            ->join('tbl_user_departments', function($join) {
+                $join->on('tbl_role_permissions.level_id', '=', 'tbl_user_departments.level_id')
+                    ->on('tbl_role_permissions.department_id', '=', 'tbl_user_departments.department_id');
+            })
+            ->where('tbl_user_departments.user_id', $this->id)
+            ->where('tbl_user_departments.is_active', 1)
+            ->distinct();
+    }
+
+    public function hasPermission($permission)
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+        
+        if (is_string($permission)) {
+            return $this->permissions()->where('slug', $permission)->exists();
+        }
+        
+        if (is_array($permission)) {
+            return $this->permissions()->whereIn('slug', $permission)->exists();
+        }
+        
+        return false;
     }
 }

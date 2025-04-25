@@ -34,9 +34,11 @@
                         </i>
                         <input class="input input-sm pl-8" id="search-input" data-filter="search" placeholder="Tìm kiếm" type="text">
                     </div>
-                    <a href="/member/create-view" class="btn btn-primary btn-sm">
-                        Thêm nhân viên
-                    </a>
+                    @if(hasPermission('create-member'))
+                        <a href="/member/create-view" class="btn btn-primary btn-sm">
+                            Thêm nhân viên
+                        </a>
+                    @endif
                 </div>
             </div>
             <div class="card-body">

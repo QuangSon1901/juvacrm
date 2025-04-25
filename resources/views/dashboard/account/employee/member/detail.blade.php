@@ -71,10 +71,12 @@
                                         {{$details['name']}}
                                     </td>
                                     <td class="py-2 text-center">
+                                    @if(hasPermission('edit-member'))
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="name">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </button>
+                                        @endif
                                     </td>
                                 </tr>
                                 <tr>
@@ -96,11 +98,13 @@
                                         {{formatDateTime($details['birth_date'], 'd-m-Y', 'Y-m-d')}}
                                     </td>
                                     <td class="py-3 text-center">
+                                    @if(hasPermission('edit-member'))
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="birth_date">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </button>
-                                    </td>
+                                        @endif
+                                        </td>
                                 </tr>
                                 <tr>
                                     <td class="py-3 text-gray-600 font-normal">
@@ -110,10 +114,12 @@
                                         {{$details['gender'] == 0 ? 'Nam' : 'Nữ'}}
                                     </td>
                                     <td class="py-3 text-center">
+                                    @if(hasPermission('edit-member'))
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="gender">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </button>
+                                        @endif
                                     </td>
                                 </tr>
                                 <tr>
@@ -124,10 +130,12 @@
                                         {{$details['cccd'] ?? '---'}}
                                     </td>
                                     <td class="py-3 text-center">
+                                    @if(hasPermission('edit-member'))
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="cccd">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </button>
+                                        @endif
                                     </td>
                                 </tr>
                                 <tr>
@@ -138,11 +146,13 @@
                                         {{$details['address'] ?? '---'}}
                                     </td>
                                     <td class="py-3 text-center">
+                                    @if(hasPermission('edit-member'))
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="address">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </button>
-                                    </td>
+                                        @endif
+                                        </td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 text-gray-600 font-normal">
@@ -152,11 +162,13 @@
                                         {{formatCurrency($details['salary'] ?? 0)}}
                                     </td>
                                     <td class="py-3 text-center">
+                                    @if(hasPermission('edit-member'))
                                         <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="salary">
                                             <i class="ki-filled ki-notepad-edit">
                                             </i>
                                         </button>
-                                    </td>
+                                        @endif
+                                        </td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 text-gray-600 font-normal">
@@ -229,11 +241,13 @@
                                         </div>
                                     </div>
                                 </div>
+                                    @if(hasPermission('edit-member'))
                                 <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="phone">
                                     <i class="ki-filled ki-notepad-edit">
                                     </i>
                                 </button>
-                            </div>
+                                @endif
+                                </div>
                             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                                 <div class="flex items-center flex-wrap gap-3.5">
                                     <img alt="" class="size-6 shrink-0" src="{{asset('assets/images/icons/gmail.png')}}">
@@ -246,11 +260,13 @@
                                         </div>
                                     </div>
                                 </div>
+                                    @if(hasPermission('edit-member'))
                                 <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-member-modal" data-name="email">
                                     <i class="ki-filled ki-notepad-edit">
                                     </i>
                                 </button>
-                            </div>
+                                @endif
+                                </div>
                         </div>
                     </div>
                 </div>

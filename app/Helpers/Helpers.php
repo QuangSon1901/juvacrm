@@ -2,6 +2,7 @@
 
 use App\Services\LogService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 if (!function_exists('isActiveRoute')) {
     function isActiveRoute($route, $output = 'active')
@@ -171,5 +172,20 @@ if (!function_exists('tryCatchHelper')) {
                 'message' => 'Đã xảy ra lỗi. Vui lòng thử lại.',
             ]);
         }
+    }
+}
+
+
+if (!function_exists('hasPermission')) {
+    /**
+     * Kiểm tra người dùng hiện tại có quyền không
+     *
+     * @param string|array $permission
+     * @return bool
+     */
+    function hasPermission($permission)
+    {
+        $user = Auth::user();
+        return $user ? $user->hasPermission($permission) : false;
     }
 }

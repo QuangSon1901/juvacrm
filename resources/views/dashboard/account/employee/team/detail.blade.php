@@ -220,10 +220,9 @@
                                         </button>
                                         <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
                                             <div class="menu-item">
-                                                <a class="menu-link" href="/role/{{ $level['id'] }}/{{ $level['department_id'] }}">
+                                                <a class="menu-link" href="/role/{{ $level['id'] }}/{{ $level['department_id'] }}/permissions">
                                                     <span class="menu-icon">
-                                                        <i class="ki-filled ki-setting-2">
-                                                        </i>
+                                                        <i class="ki-filled ki-setting-2"></i>
                                                     </span>
                                                     <span class="menu-title">
                                                         Phân quyền

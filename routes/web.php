@@ -182,20 +182,33 @@ Route::group(
                     function () {
                         Route::get('/role/{level_id}/{department_id}', [RoleController::class, "detail"])->name("detail");
                         Route::get('/role/employee-in-role', [RoleController::class, "memberInRole"])->name("memberInRole");
+                        
+                        // Thêm routes mới
+                        Route::get('/role/{level_id}/{department_id}/permissions', [RoleController::class, "getPermissions"])->name("permissions");
+                        Route::post('/role/{level_id}/{department_id}/permissions', [RoleController::class, "savePermissions"])->name("savePermissions");
                     }
                 );
 
                 Route::group(
                     ['namespace' => 'Member', 'as' => 'member.', 'middleware' => []],
                     function () {
-                        Route::get('/member', [MemberController::class, "index"])->name("member");
-                        Route::get('/member/data', [MemberController::class, "data"])->name("data");
-                        Route::get('/member/create-view', [MemberController::class, "createView"])->name("createView");
-                        Route::post('/member/create', [MemberController::class, "create"])->name("create");
-                        Route::post('/member/update', [MemberController::class, "update"])->name("update");
-                        Route::post('/member/reset-password', [MemberController::class, "resetPassword"])->name("resetPassword");
-                        Route::post('/member/lock-account', [MemberController::class, "lockAccount"])->name("lockAccount");
-                        Route::get('/member/{id}', [MemberController::class, "detail"])->name("detail");
+                        Route::group(['middleware' => ['permission:create-member']], function () {
+                            Route::get('/member/create-view', [MemberController::class, "createView"])->name("createView");
+                            Route::post('/member/create', [MemberController::class, "create"])->name("create");
+                        });
+                        
+                        Route::group(['middleware' => ['permission:edit-member']], function () {
+                            Route::post('/member/update', [MemberController::class, "update"])->name("update");
+                            Route::post('/member/reset-password', [MemberController::class, "resetPassword"])->name("resetPassword");
+                            Route::post('/member/lock-account', [MemberController::class, "lockAccount"])->name("lockAccount");
+                        });
+
+                        
+                        Route::group(['middleware' => ['permission:view-member']], function () {
+                            Route::get('/member', [MemberController::class, "index"])->name("member");
+                            Route::get('/member/data', [MemberController::class, "data"])->name("data");
+                            Route::get('/member/{id}', [MemberController::class, "detail"])->name("detail");
+                        });
                     }
                 );
 

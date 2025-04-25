@@ -17,4 +17,10 @@ class Level extends Model
         'created_at',
         'updated_at'
     ];
+
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class, 'tbl_role_permissions', 'level_id', 'permission_id')
+                    ->withPivot('department_id');
+    }
 }
