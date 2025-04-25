@@ -44,4 +44,61 @@ class Contract extends Model
     {
         return $this->belongsTo(User::class, 'created_id');
     }
+
+    /**
+     * Lấy giao dịch thanh toán liên quan đến hợp đồng
+     */
+    public function transactions()
+    {
+        return $this->hasManyThrough(
+            Transaction::class,
+            ContractPayment::class,
+            'contract_id', // Khóa ngoại trên bảng ContractPayment
+            'payment_id',  // Khóa ngoại trên bảng Transaction
+            'id',          // Khóa chính trên bảng Contract
+            'id'           // Khóa chính trên bảng ContractPayment
+        );
+    }
+    
+    /**
+     * Tính tổng giá trị đã thanh toán của hợp đồng
+     * 
+     * @return float
+     */
+    public function getTotalPaidAmount()
+    {
+        // Tổng các khoản thu - Tổng các khoản chi
+        return $this->payments()
+            ->where('status', 1)
+            ->where('is_active', 1)
+            ->where('payment_stage', '!=', 3)
+            ->sum('price') 
+            - 
+            $this->payments()
+            ->where('status', 1)
+            ->where('is_active', 1)
+            ->where('payment_stage', 3)
+            ->sum('price');
+    }
+    
+    /**
+     * Tính số tiền còn lại phải thanh toán
+     * 
+     * @return float
+     */
+    public function getRemainingAmount()
+    {
+        $totalPaid = $this->getTotalPaidAmount();
+        return max(0, $this->total_value - $totalPaid);
+    }
+    
+    /**
+     * Kiểm tra hợp đồng đã thanh toán đủ chưa
+     * 
+     * @return bool
+     */
+    public function isFullyPaid()
+    {
+        return $this->getRemainingAmount() == 0;
+    }
 }

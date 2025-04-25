@@ -102,7 +102,7 @@
                     <div class="menu-item">
                         <a class="menu-link" href="{{route('dashboard.accounting.deposit-receipt.deposit-receipt')}}">
                             <span class="menu-title">
-                                Biên nhận cọc
+                                Thanh toán hợp đồng
                             </span>
                         </a>
                     </div>
@@ -254,6 +254,7 @@
                     </span>
                 </div>
                 <div class="menu-default menu-dropdown gap-0.5 w-[220px] scrollable-y-auto lg:overflow-visible max-h-[50vh]">
+                    <!-- Quản lý thu chi -->
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
                             <span class="menu-title">
@@ -266,35 +267,39 @@
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.accounting.transaction.transaction')}}">
                                     <span class="menu-title">
-                                        Phiếu thu
+                                        Phiếu thu chi
                                     </span>
                                 </a>
                             </div>
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.accounting.category.category')}}">
                                     <span class="menu-title">
-                                        Phiếu chi
+                                        Danh mục thu chi
                                     </span>
                                 </a>
                             </div>
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.accounting.report.financial')}}">
                                     <span class="menu-title">
-                                        Hạng mục thu
-                                    </span>
-                                </a>
-                            </div>
-                            <div class="menu-item">
-                                <a class="menu-link" href="/">
-                                    <span class="menu-title">
-                                        Hạng mục chi
+                                        Báo cáo tài chính
                                     </span>
                                 </a>
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Biên nhận cọc/thanh toán -->
+                    <div class="menu-item">
+                        <a class="menu-link" href="{{route('dashboard.accounting.deposit-receipt.deposit-receipt')}}">
+                            <span class="menu-title">
+                                Biên nhận thanh toán
+                            </span>
+                        </a>
+                    </div>
+                    
+                    <!-- Lương nhân viên -->
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
                             <span class="menu-title">
@@ -322,6 +327,8 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Phương thức thanh toán -->
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
                             <span class="menu-title">
