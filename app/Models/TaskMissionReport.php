@@ -13,7 +13,8 @@ class TaskMissionReport extends Model
         'user_id',
         'quantity',
         'note',
-        'date_completed'
+        'date_completed',
+        'price'
     ];
     
     /**

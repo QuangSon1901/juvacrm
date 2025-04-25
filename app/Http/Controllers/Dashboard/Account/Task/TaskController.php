@@ -2453,13 +2453,13 @@ private function updateTaskStatus($taskId, $statusId)
 
                 // Tạo báo cáo
                 $note = isset($request->notes[$assignmentId]) ? $request->notes[$assignmentId] : null;
-
                 $report = TaskMissionReport::create([
                     'assignment_id' => $assignment->id,
                     'user_id' => $currentUserId,
                     'quantity' => $quantity,
                     'note' => $note,
                     'date_completed' => now(),
+                    'price' => $assignment->mission->salary * $quantity
                 ]);
 
                 // Cập nhật số lượng đã hoàn thành cho assignment
