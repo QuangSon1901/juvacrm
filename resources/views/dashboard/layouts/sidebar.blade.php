@@ -20,6 +20,56 @@
                     </span>
                 </a>
             </div>
+            
+            <!-- Cá nhân - Thông tin cá nhân và lương cá nhân -->
+            <div class="menu-item" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
+                <div class="menu-link rounded-[9px] border border-transparent menu-item-here:border-gray-200 menu-item-here:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2 grow">
+                    <span class="menu-icon menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary text-gray-600">
+                        <i class="ki-filled ki-user text-1.5xl"></i>
+                    </span>
+                    <span class="menu-title menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary font-medium text-xs text-gray-600 w-max">
+                        Cá nhân
+                    </span>
+                </div>
+                <div class="menu-default menu-dropdown gap-0.5 w-[220px] scrollable-y-auto lg:overflow-visible max-h-[50vh]">
+                    <div class="menu-item">
+                        <a class="menu-link" href="{{route('dashboard.profile.profile')}}">
+                            <span class="menu-title">
+                                Thông tin cá nhân
+                            </span>
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a class="menu-link" href="">
+                            <span class="menu-title">
+                                Bảng lương cá nhân
+                            </span>
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a class="menu-link" href="">
+                            <span class="menu-title">
+                                Bảng chấm công
+                            </span>
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a class="menu-link" href="">
+                            <span class="menu-title">
+                                Lịch làm việc
+                            </span>
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a class="menu-link" href="">
+                            <span class="menu-title">
+                                Hoa hồng cá nhân
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
             <div class="menu-item {{ isActiveRoute(['dashboard.customer.support.customer-support', 'dashboard.customer.client.customer-leads', 'dashboard.customer.manage.leads', 'dashboard.customer.manage.customer-type']) }}" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
                 <div class="menu-link rounded-[9px] border border-transparent menu-item-here:border-gray-200 menu-item-here:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2 grow">
                     <span class="menu-icon menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary text-gray-600">
@@ -108,6 +158,8 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Nhân sự - Cập nhật tính năng quản lý lương và công -->
             <div class="menu-item" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
                 <div class="menu-link rounded-[9px] border border-transparent menu-item-here:border-gray-200 menu-item-here:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2 grow">
                     <span class="menu-icon menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary text-gray-600">
@@ -146,13 +198,79 @@
                             </div>
                         </div>
                     </div>
-                    <div class="menu-item">
-                        <a class="menu-link" href="{{route('dashboard.account.timekeeping.timekeeping')}}">
+                    
+                    <!-- Quản lý chấm công và lịch làm việc -->
+                    <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
+                        <div class="menu-link grow cursor-pointer">
                             <span class="menu-title">
-                                Quản lý chấm công
+                                Quản lý thời gian làm việc
                             </span>
-                        </a>
+                            <span class="menu-arrow">
+                                <i class="ki-filled ki-right text-3xs rtl:translate rtl:rotate-180">
+                                </i>
+                            </span>
+                        </div>
+                        <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
+                            <div class="menu-item">
+                                <a class="menu-link" href="">
+                                    <span class="menu-title">
+                                        Quản lý chấm công
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link" href="">
+                                    <span class="menu-title">
+                                        Lịch làm việc
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link" href="">
+                                    <span class="menu-title">
+                                        Đăng ký lịch part-time
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
+                    
+                    <!-- Quản lý lương -->
+                    <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
+                        <div class="menu-link grow cursor-pointer">
+                            <span class="menu-title">
+                                Quản lý lương
+                            </span>
+                            <span class="menu-arrow">
+                                <i class="ki-filled ki-right text-3xs rtl:translate rtl:rotate-180">
+                                </i>
+                            </span>
+                        </div>
+                        <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
+                            <div class="menu-item">
+                                <a class="menu-link" href="">
+                                    <span class="menu-title">
+                                        Cấu hình tính lương
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link" href="">
+                                    <span class="menu-title">
+                                        Bảng lương nhân viên
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link" href="">
+                                    <span class="menu-title">
+                                        Tạm ứng lương
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
                             <span class="menu-title">
@@ -180,33 +298,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
-                        <div class="menu-link grow cursor-pointer">
-                            <span class="menu-title">
-                                Đào tạo nhân sự
-                            </span>
-                            <span class="menu-arrow">
-                                <i class="ki-filled ki-right text-3xs rtl:translate rtl:rotate-180">
-                                </i>
-                            </span>
-                        </div>
-                        <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
-                            <div class="menu-item">
-                                <a class="menu-link" href="{{route('dashboard.account.training.document.document')}}">
-                                    <span class="menu-title">
-                                        File tài liệu hướng dẫn
-                                    </span>
-                                </a>
-                            </div>
-                            <div class="menu-item">
-                                <a class="menu-link" href="{{route('dashboard.account.training.document.blank')}}">
-                                    <span class="menu-title">
-                                        Lịch sử đào tạo
-                                    </span>
-                                </a>
-                            </div>
-                        </div>
-                    </div> -->
                 </div>
             </div>
             <div class="menu-item" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
@@ -243,6 +334,8 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Kế toán - Cập nhật phần quản lý lương -->
             <div class="menu-item" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
                 <div class="menu-link rounded-[9px] border border-transparent menu-item-here:border-gray-200 menu-item-here:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2 grow">
                     <span class="menu-icon menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary text-gray-600">
@@ -299,19 +392,11 @@
                         </a>
                     </div>
 
-                    <div class="menu-item">
-                        <a class="menu-link" href="{{route('dashboard.setting.commissions')}}">
-                            <span class="menu-title">
-                                Quản lý hoa hồng
-                            </span>
-                        </a>
-                    </div>
-                    
-                    <!-- Lương nhân viên -->
+                    <!-- Quản lý hoa hồng -->
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
                             <span class="menu-title">
-                                Lương nhân viên
+                                Quản lý hoa hồng
                             </span>
                             <span class="menu-arrow">
                                 <i class="ki-filled ki-right text-3xs rtl:translate rtl:rotate-180">
@@ -320,16 +405,52 @@
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.setting.commissions')}}">
                                     <span class="menu-title">
-                                        Bảng lương
+                                        Cấu hình hoa hồng
                                     </span>
                                 </a>
                             </div>
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="">
+                                    <span class="menu-title">
+                                        Báo cáo hoa hồng
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lương nhân viên - Đã được cập nhật -->
+                    <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
+                        <div class="menu-link grow cursor-pointer">
+                            <span class="menu-title">
+                                Chi trả lương
+                            </span>
+                            <span class="menu-arrow">
+                                <i class="ki-filled ki-right text-3xs rtl:translate rtl:rotate-180">
+                                </i>
+                            </span>
+                        </div>
+                        <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
+                            <div class="menu-item">
+                                <a class="menu-link" href="">
+                                    <span class="menu-title">
+                                        Chi trả lương
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link" href="">
                                     <span class="menu-title">
                                         Chi ứng lương
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link" href="">
+                                    <span class="menu-title">
+                                        Báo cáo chi lương
                                     </span>
                                 </a>
                             </div>
@@ -436,11 +557,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- <div class="grid p-5 border-t border-t-gray-200">
-                        <a class="btn btn-sm btn-light justify-center" href="/">
-                            Xem tất cả
-                        </a>
-                    </div> -->
                 </div>
             </div>
             <a href="{{route('dashboard.setting.setting')}}" class="btn btn-icon btn-icon-xl relative rounded-md size-9 border border-transparent hover:bg-light hover:text-primary hover:border-gray-200 dropdown-open:bg-gray-200 text-gray-600">
@@ -449,6 +565,7 @@
                 </span>
             </a>
         </div>
+        
         <div class="menu" data-menu="true">
             <div class="menu-item" data-menu-item-offset="-20px, 28px" data-menu-item-overflow="true" data-menu-item-placement="right-end" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
                 <div class="menu-toggle btn btn-icon">
@@ -468,9 +585,6 @@
                             </div>
                             </img>
                         </div>
-                        <!-- <span class="badge badge-xs badge-primary badge-outline">
-                            Admin
-                        </span> -->
                     </div>
                     <div class="menu-separator">
                     </div>
@@ -486,7 +600,27 @@
                                 </span>
                             </a>
                         </div>
-                        <div class="menu-item" data-menu-item-offset="-10px, 0" data-menu-item-placement="left-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
+                        <div class="menu-item">
+                            <a class="menu-link" href="">
+                                <span class="menu-icon">
+                                    <i class="ki-filled ki-time">
+                                    </i>
+                                </span>
+                                <span class="menu-title !text-success">
+                                    Chấm công
+                                </span>
+                            </a>
+                            <a class="menu-link hidden" href="">
+                                <span class="menu-icon">
+                                    <i class="ki-filled ki-time">
+                                    </i>
+                                </span>
+                                <span class="menu-title !text-danger">
+                                    Kết thúc
+                                </span>
+                            </a>
+                        </div>
+                        {{--<div class="menu-item" data-menu-item-offset="-10px, 0" data-menu-item-placement="left-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
                             <div class="menu-link">
                                 <span class="menu-icon">
                                     <i class="ki-filled ki-icon"></i>
@@ -550,42 +684,8 @@
                                         </span>
                                     </button>
                                 </div>
-                                <!-- <div class="menu-item">
-                                    <a class="menu-link h-10" href="?dir=rtl">
-                                        <span class="menu-icon">
-                                            <svg class="size-4" enable-background="new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                                                <circle cx="256" cy="256" fill="#f0f0f0" r="256" />
-                                                <g fill="#d80027">
-                                                    <path d="m244.87 256h267.13c0-23.106-3.08-45.49-8.819-66.783h-258.311z" />
-                                                    <path d="m244.87 122.435h229.556c-15.671-25.572-35.708-48.175-59.07-66.783h-170.486z" />
-                                                    <path d="m256 512c60.249 0 115.626-20.824 159.356-55.652h-318.712c43.73 34.828 99.107 55.652 159.356 55.652z" />
-                                                    <path d="m37.574 389.565h436.852c12.581-20.529 22.338-42.969 28.755-66.783h-494.362c6.417 23.814 16.174 46.254 28.755 66.783z" />
-                                                </g>
-                                                <path d="m118.584 39.978h23.329l-21.7 15.765 8.289 25.509-21.699-15.765-21.699 15.765 7.16-22.037c-19.106 15.915-35.852 34.561-49.652 55.337h7.475l-13.813 10.035c-2.152 3.59-4.216 7.237-6.194 10.938l6.596 20.301-12.306-8.941c-3.059 6.481-5.857 13.108-8.372 19.873l7.267 22.368h26.822l-21.7 15.765 8.289 25.509-21.699-15.765-12.998 9.444c-1.301 10.458-1.979 21.11-1.979 31.921h256c0-141.384 0-158.052 0-256-50.572 0-97.715 14.67-137.416 39.978zm9.918 190.422-21.699-15.765-21.699 15.765 8.289-25.509-21.7-15.765h26.822l8.288-25.509 8.288 25.509h26.822l-21.7 15.765zm-8.289-100.083 8.289 25.509-21.699-15.765-21.699 15.765 8.289-25.509-21.7-15.765h26.822l8.288-25.509 8.288 25.509h26.822zm100.115 100.083-21.699-15.765-21.699 15.765 8.289-25.509-21.7-15.765h26.822l8.288-25.509 8.288 25.509h26.822l-21.7 15.765zm-8.289-100.083 8.289 25.509-21.699-15.765-21.699 15.765 8.289-25.509-21.7-15.765h26.822l8.288-25.509 8.288 25.509h26.822zm0-74.574 8.289 25.509-21.699-15.765-21.699 15.765 8.289-25.509-21.7-15.765h26.822l8.288-25.509 8.288 25.509h26.822z" fill="#0052b4" />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                                <g />
-                                            </svg>
-                                        </span>
-                                        <span class="menu-title">
-                                            English
-                                        </span>
-                                    </a>
-                                </div> -->
                             </div>
-                        </div>
+                        </div>--}}
                         <div class="menu-item">
                             <a class="menu-link" href="{{route('dashboard.logs.activity.activity')}}">
                                 <span class="menu-icon">
