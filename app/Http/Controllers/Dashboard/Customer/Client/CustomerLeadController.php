@@ -49,13 +49,19 @@ class CustomerLeadController extends Controller
                 ->count(),
         ];
 
+        $conversionStats = [
+            'lead_to_customer' => $this->calculateConversionRate(Customer::TYPE_LEAD, Customer::TYPE_CUSTOMER),
+            'response_rate' => 75.4, // Giả lập dữ liệu, trong thực tế cần tính toán
+        ];
+        
         return view("dashboard.customer.client.leads", [
             'services' => $services,
             'classes' => $classes,
             'sources' => $sources,
             'contacts' => $contacts,
             'statuses' => $statuses,
-            'statistics' => $leadStatistics
+            'statistics' => $leadStatistics,
+            'conversion_stats' => $conversionStats
         ]);
     }
 
@@ -118,7 +124,6 @@ class CustomerLeadController extends Controller
             if ($customer->lead_score === null) {
                 $customer->calculateLeadScore();
             }
-            
             return [
                 'index' => $offset + $key + 1,
                 'id' => $customer->id,

@@ -79,11 +79,30 @@
     </td>
     <td class="text-sm text-gray-800 font-normal">{{$item['company']}}</td>
     <td class="text-sm text-gray-800 font-normal">
-        @if ($item['updated_at'])
-        <p class="leading-none text-gray-900 font-medium">{{formatDateTime($item['updated_at'], 'd-m-Y')}}</p>
-        <span class="text-gray-700 text-xs">{{formatDateTime($item['updated_at'], 'H:i:s')}}</span>
+        @if (isset($item['last_interaction']) && $item['last_interaction']['date'])
+        <p class="leading-none text-gray-900 font-medium">{{ $item['last_interaction']['text'] }}</p>
+        @if (Carbon\Carbon::parse($item['last_interaction']['date'])->diffInDays(now()) > 30)
+        <span class="badge badge-sm badge-danger">Lâu chưa tương tác</span>
+        @endif
         @else
-        ---
+        <span class="badge badge-sm badge-warning">Chưa tương tác</span>
+        @endif
+    </td>
+    <td class="text-sm text-gray-800 font-normal">
+        @if ($item['consultation_status'] === 0)
+        <span class="badge badge-sm badge-primary">Hỏi nhu cầu</span>
+        @elseif ($item['consultation_status'] === 1)
+        <span class="badge badge-sm badge-warning">Tư vấn gói</span>
+        @elseif ($item['consultation_status'] === 2)
+        <span class="badge badge-sm badge-success">Đã lập hợp đồng</span>
+        @elseif ($item['consultation_status'] === 3)
+        <span class="badge badge-sm badge-info">Đã gửi báo giá</span>
+        @elseif ($item['consultation_status'] === 4)
+        <span class="badge badge-sm badge-danger">Từ chối</span>
+        @elseif ($item['consultation_status'] === 5)
+        <span class="badge badge-sm badge-gray">Hẹn tư vấn lại</span>
+        @else
+        <span class="badge badge-sm badge-neutral">Chưa tư vấn</span>
         @endif
     </td>
     <td class="w-[60px]">

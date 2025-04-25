@@ -169,70 +169,117 @@
                     </div>
                 </div>
                 <div class="card min-w-full">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            Danh sách hợp đồng
-                        </h3>
-                        <div class="flex gap-2">
-                            <a href="/contract/create-view?customer={{ $details['id'] }}" class="btn btn-light btn-xs">
-                                <i class="ki-filled ki-plus"></i>
-                                Tạo hợp đồng
+    <div class="card-header">
+        <h3 class="card-title">
+            Danh sách hợp đồng
+        </h3>
+        <div class="flex gap-2">
+            <a href="/contract/create-view?customer={{ $details['id'] }}" class="btn btn-light btn-xs">
+                <i class="ki-filled ki-plus"></i>
+                Tạo hợp đồng
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        @forelse($recent_contracts as $contract)
+        <div class="relative flex items-center justify-between gap-1 w-full after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[4px] after:h-[78%] after:bg-{{ $contract['status_color'] }} pl-4 hover:bg-gray-50 hover:after:bg-blue-800 mb-3">
+            <div class="flex flex-col">
+                <div>
+                    <a href="/contract/{{ $contract['id'] }}">
+                        <span class="checkbox-label font-normal text-primary">#{{ $contract['contract_number'] }}:</span>
+                        <span class="checkbox-label font-semibold hover:text-primary-active">{{ $contract['name'] }}</span>
+                    </a>
+                </div>
+                <div>
+                    <span class="checkbox-label font-normal badge badge-{{ $contract['status_color'] }} badge-sm">{{ $contract['status_text'] }}</span>
+                    <span>-</span>
+                    <span class="checkbox-label font-medium">
+                        <span class="text-gray-600">Giá trị:</span> 
+                        <span class="font-bold">{{ number_format($contract['total_value'], 0, ',', '.') }}đ</span>
+                    </span>
+                    <span>-</span>
+                    <span class="checkbox-label font-normal">Từ <span class="font-medium">{{ formatDateTime($contract['effective_date'], 'd-m-Y') }}</span></span>
+                    <span class="checkbox-label font-normal">đến <span class="font-medium">{{ formatDateTime($contract['expiry_date'], 'd-m-Y') }}</span></span>
+                </div>
+            </div>
+            <div class="menu" data-menu="true">
+                <div class="menu-item" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                    <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                        <i class="ki-filled ki-dots-vertical"></i>
+                    </button>
+                    <div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true">
+                        <div class="menu-item">
+                            <a class="menu-link" href="/contract/{{ $contract['id'] }}">
+                                <span class="menu-icon">
+                                    <i class="ki-filled ki-search-list"></i>
+                                </span>
+                                <span class="menu-title">
+                                    Xem chi tiết
+                                </span>
                             </a>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="flex items-center flex-wrap justify-between gap-2.5">
-                            <div class="relative flex items-center justify-between gap-1 w-full after:absolute after:top-1/2 after:-translate-y-1/2 after:left-0 after:w-[4px] after:h-[78%] after:bg-gray-200 pl-4 hover:bg-gray-50 hover:after:bg-blue-800">
-                                <div class="flex flex-col">
-                                    <div>
-                                        <a href="/task/6">
-                                            <span class="checkbox-label font-normal text-primary">#6:</span>
-                                            <span class="checkbox-label font-semibold hover:text-primary-active">Chụp sản phẩm thuốc trắng da</span>
-                                        </a>
-                                    </div>
-                                    <div>
-                                        <span class="checkbox-label font-normal text-success">Chưa bắt đầu</span>
-                                        <span>-</span>
-                                        <span class="checkbox-label font-normal text-danger">Chưa Chụp</span>
-                                        <span>-</span>
-                                        <span class="checkbox-label font-medium"><a class="hover:text-primary-active" href="/member/1">Vũ Quang Sơn</a></span>
-                                        <span>-</span>
-                                        <span class="checkbox-label font-normal">Từ <span class="font-medium">16-01-2025</span></span>
-                                        <span class="checkbox-label font-normal">đến <span class="font-medium">31-01-2025</span></span>
-                                    </div>
-                                </div>
-                                <div class="menu" data-menu="true">
-                                    <div class="menu-item" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
-                                        <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
-                                            <i class="ki-filled ki-dots-vertical">
-                                            </i>
-                                        </button>
-                                        <div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true" style="">
-                                            <div class="menu-item">
-                                                <a class="menu-link" href="/task/6">
-                                                    <span class="menu-icon">
-                                                        <i class="ki-filled ki-search-list">
-                                                        </i>
-                                                    </span>
-                                                    <span class="menu-title">
-                                                        Xem chi tiết
-                                                    </span>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
+            </div>
+        </div>
+        @empty
+        <div class="flex flex-col items-center justify-center p-6 text-gray-500">
+            <i class="ki-filled ki-questionnaire-tablet text-3xl mb-2"></i>
+            <p>Khách hàng này chưa có hợp đồng nào</p>
+            <a href="/contract/create-view?customer={{ $details['id'] }}" class="btn btn-sm btn-primary mt-2">
+                <i class="ki-filled ki-plus"></i> Tạo hợp đồng mới
+            </a>
+        </div>
+        @endforelse
+    </div>
+</div>
                 <div class="card min-w-full">
                     <div class="card-header">
                         <h3 class="card-title">
-                            Lịch hẹn
+                            Lịch hẹn sắp tới
                         </h3>
+                        <a href="/appointment/detail/{{$details['id']}}" class="btn btn-xs btn-light">
+                            <i class="ki-filled ki-calendar"></i> Xem tất cả
+                        </a>
                     </div>
-                    <div class="card-body"></div>
+                    <div class="card-body">
+                        <div id="upcoming-appointments">
+                            <!-- Hiển thị 3 lịch hẹn sắp tới -->
+                            @if(isset($upcoming_appointments) && count($upcoming_appointments) > 0)
+                                @foreach($upcoming_appointments as $appointment)
+                                <div class="flex items-center gap-3 p-3 mb-2 rounded-lg border border-{{$appointment['color']}}-200 bg-{{$appointment['color']}}-50">
+                                    <div class="rounded-full bg-{{$appointment['color']}}-100 p-2">
+                                        <i class="ki-filled ki-calendar text-{{$appointment['color']}} text-xl"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium">{{$appointment['name']}}</p>
+                                        <div class="flex items-center text-sm text-gray-600">
+                                            <i class="ki-filled ki-time mr-1"></i>
+                                            <span>{{formatDateTime($appointment['start_time'], 'd/m/Y H:i')}} - {{formatDateTime($appointment['end_time'], 'H:i')}}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        @if(strtotime($appointment['start_time']) - time() < 86400)
+                                            <span class="badge badge-danger">Hôm nay</span>
+                                        @elseif(strtotime($appointment['start_time']) - time() < 172800)
+                                            <span class="badge badge-warning">Ngày mai</span>
+                                        @else
+                                            <span class="badge badge-info">{{round((strtotime($appointment['start_time']) - time())/86400)}} ngày nữa</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endforeach
+                            @else
+                                <div class="flex flex-col items-center justify-center p-6 text-gray-500">
+                                    <i class="ki-filled ki-calendar-8 text-3xl mb-2"></i>
+                                    <p>Chưa có lịch hẹn</p>
+                                    <a href="/appointment/detail/{{$details['id']}}" class="btn btn-sm btn-light mt-2">
+                                        <i class="ki-filled ki-plus"></i> Tạo lịch hẹn
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -271,91 +318,94 @@
                     </div>
                 </div>
                 <div class="card min-w-full">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            Thống kê khách hàng
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <label class="checkbox-group mb-2">
-                            <span class="checkbox-label text-gray-800 !font-bold">
-                                Tổng số hợp đồng:
-                            </span>
-                            <span class="checkbox-label text-gray-800">
-                                0 hợp đồng
-                            </span>
-                        </label>
-                        <div class="flex items-center flex-wrap gap-2">
-                            <div class="grid grid-cols-1 content-between gap-1.5 border border-dashed border-green-400 bg-green-100 shrink-0 rounded-md px-3.5 py-2 min-w-24 max-w-auto">
-                                <span class="text-green-900 text-md leading-none font-medium">
-                                    0
-                                </span>
-                                <span class="text-green-700 text-2sm">
-                                    Hoàn thành
-                                </span>
-                            </div>
-                            <div class="grid grid-cols-1 content-between gap-1.5 border border-dashed border-blue-400 bg-blue-100 shrink-0 rounded-md px-3.5 py-2 min-w-24 max-w-auto">
-                                <span class="text-blue-900 text-md leading-none font-medium">
-                                    0
-                                </span>
-                                <span class="text-blue-700 text-2sm">
-                                    Đang thực hiện
-                                </span>
-                            </div>
-                            <div class="grid grid-cols-1 content-between gap-1.5 border border-dashed border-red-400 bg-red-100 shrink-0 rounded-md px-3.5 py-2 min-w-24 max-w-auto">
-                                <span class="text-red-900 text-md leading-none font-medium">
-                                    0
-                                </span>
-                                <span class="text-red-700 text-2sm">
-                                    Đã huỷ
-                                </span>
-                            </div>
-                        </div>
-                        <label class="checkbox-group mb-2 mt-4">
-                            <span class="checkbox-label text-gray-800 !font-bold">
-                                Tổng số dư tài chính:
-                            </span>
-                            <span class="checkbox-label text-gray-800">
-                                0 đ
-                            </span>
-                        </label>
-                        <ul class="list-disc ml-4">
-                            <li>
-                                <span class="text-gray-800 text-2sm leading-none">
-                                    Số tiền đã thu:
-                                </span>
-                                <span class="text-green-700 text-2sm font-medium">
-                                    0 đ
-                                </span>
-                            </li>
-                            <li>
-                                <span class="text-gray-800 text-2sm leading-none">
-                                    Số tiền còn nợ:
-                                </span>
-                                <span class="text-red-700 text-2sm font-medium">
-                                    0 đ
-                                </span>
-                            </li>
-                        </ul>
-                        <label class="checkbox-group mb-2 mt-4">
-                            <span class="checkbox-label text-gray-800 !font-bold">
-                                Hình thức thanh toán
-                            </span>
-                        </label>
-                        <ul class="list-disc ml-4">
-                            <!-- <li>
-                                <span class="text-gray-800 text-2sm leading-none">
-                                    Chuyển khoản ngân hàng
-                                </span>
-                            </li>
-                            <li>
-                                <span class="text-gray-800 text-2sm leading-none">
-                                    Tiền mặt
-                                </span>
-                            </li> -->
-                        </ul>
-                    </div>
-                </div>
+    <div class="card-header">
+        <h3 class="card-title">
+            Thống kê khách hàng
+        </h3>
+    </div>
+    <div class="card-body">
+        <label class="checkbox-group mb-2">
+            <span class="checkbox-label text-gray-800 !font-bold">
+                Tổng số hợp đồng:
+            </span>
+            <span class="checkbox-label text-gray-800">
+                {{ $contract_stats['total'] }} hợp đồng
+            </span>
+        </label>
+        <div class="flex items-center flex-wrap gap-2">
+            <div class="grid grid-cols-1 content-between gap-1.5 border border-dashed border-green-400 bg-green-100 shrink-0 rounded-md px-3.5 py-2 min-w-24 max-w-auto">
+                <span class="text-green-900 text-md leading-none font-medium">
+                    {{ $contract_stats['completed'] }}
+                </span>
+                <span class="text-green-700 text-2sm">
+                    Hoàn thành
+                </span>
+            </div>
+            <div class="grid grid-cols-1 content-between gap-1.5 border border-dashed border-blue-400 bg-blue-100 shrink-0 rounded-md px-3.5 py-2 min-w-24 max-w-auto">
+                <span class="text-blue-900 text-md leading-none font-medium">
+                    {{ $contract_stats['active'] }}
+                </span>
+                <span class="text-blue-700 text-2sm">
+                    Đang thực hiện
+                </span>
+            </div>
+            <div class="grid grid-cols-1 content-between gap-1.5 border border-dashed border-red-400 bg-red-100 shrink-0 rounded-md px-3.5 py-2 min-w-24 max-w-auto">
+                <span class="text-red-900 text-md leading-none font-medium">
+                    {{ $contract_stats['canceled'] }}
+                </span>
+                <span class="text-red-700 text-2sm">
+                    Đã huỷ
+                </span>
+            </div>
+        </div>
+        <label class="checkbox-group mb-2 mt-4">
+            <span class="checkbox-label text-gray-800 !font-bold">
+                Tổng số dư tài chính:
+            </span>
+            <span class="checkbox-label text-gray-800">
+                {{ number_format($financial_stats['total_value'], 0, ',', '.') }} đ
+            </span>
+        </label>
+        <ul class="list-disc ml-4">
+            <li>
+                <span class="text-gray-800 text-2sm leading-none">
+                    Số tiền đã thu:
+                </span>
+                <span class="text-green-700 text-2sm font-medium">
+                    {{ number_format($financial_stats['paid_amount'], 0, ',', '.') }} đ
+                </span>
+            </li>
+            <li>
+                <span class="text-gray-800 text-2sm leading-none">
+                    Số tiền còn nợ:
+                </span>
+                <span class="text-red-700 text-2sm font-medium">
+                    {{ number_format($financial_stats['due_amount'], 0, ',', '.') }} đ
+                </span>
+            </li>
+        </ul>
+        <label class="checkbox-group mb-2 mt-4">
+            <span class="checkbox-label text-gray-800 !font-bold">
+                Hình thức thanh toán
+            </span>
+        </label>
+        <ul class="list-disc ml-4">
+            @forelse($payment_methods as $method => $count)
+            <li>
+                <span class="text-gray-800 text-2sm leading-none">
+                    {{ $method }} ({{ $count }})
+                </span>
+            </li>
+            @empty
+            <li>
+                <span class="text-gray-500 text-2sm leading-none italic">
+                    Chưa có giao dịch
+                </span>
+            </li>
+            @endforelse
+        </ul>
+    </div>
+</div>
                 <div class="card min-w-full">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -376,39 +426,43 @@
                         </div>
                     </div>
                 </div>
-                <div class="card">
+                <div class="card min-w-full">
                     <div class="card-header">
                         <h3 class="card-title">
-                            Lịch sử
+                            Lịch sử tương tác gần đây
                         </h3>
+                        <a href="/customer-consultation/{{$details['id']}}" class="btn btn-light btn-xs">
+                            Xem đầy đủ
+                        </a>
                     </div>
-                    <div class="card-body">
-                        <div class="flex flex-col scrollable-y-auto max-h-[500px]">
-                            @foreach ($activity_logs as $log)
-                            <div class="flex items-start relative">
-                                @if ($log['index'] != count($activity_logs) - 1)
-                                <div class="w-9 start-0 top-9 absolute bottom-0 rtl:-translate-x-1/2 translate-x-1/2 border-s border-s-gray-300">
-                                </div>
-                                @endif
-                                <div class="flex items-center justify-center shrink-0 rounded-full bg-gray-100 border border-gray-300 size-9 text-gray-600">
-                                    <i class="ki-filled ki-user text-base">
-                                    </i>
-                                </div>
-                                <div class="ps-2.5 mb-7 text-md grow">
-                                    <div class="flex flex-col">
-                                        <div class="text-xs text-gray-800">
-                                            Cập nhật bởi <b>{{$log['user']['name'] ?? '---'}}</b>
-                                        </div>
-                                        <span class="text-xs text-gray-600">
-                                            Khoảng {{timeAgo(strtotime($log['created_at']))}} trước
-                                        </span>
-                                        <ul class="ml-4 list-disc">
-                                            <li class="text-xs">{{$log['details']}}</li>
-                                        </ul>
+                    <div class="card-body p-0">
+                        <div class="timeline-vertical py-0">
+                            @if(isset($recent_interactions) && count($recent_interactions) > 0)
+                                @foreach($recent_interactions as $interaction)
+                                <div class="timeline-item">
+                                    <div class="timeline-badge">
+                                        @if($interaction['type'] == 'consultation')
+                                            <i class="ki-filled ki-message-text-2 text-primary"></i>
+                                        @elseif($interaction['type'] == 'appointment')
+                                            <i class="ki-filled ki-calendar text-success"></i>
+                                        @elseif($interaction['type'] == 'contract')
+                                            <i class="ki-filled ki-questionnaire-tablet text-warning"></i>
+                                        @else
+                                            <i class="ki-filled ki-notification text-gray-600"></i>
+                                        @endif
+                                    </div>
+                                    <div class="timeline-content ps-4 pb-2">
+                                        <div class="text-sm font-medium text-gray-900 mb-1">{{ $interaction['title'] }}</div>
+                                        <div class="text-xs text-gray-600">{{ timeAgo(strtotime($interaction['created_at'])) }} trước</div>
+                                        <p class="text-sm text-gray-700 mt-1">{{ $interaction['description'] }}</p>
                                     </div>
                                 </div>
-                            </div>
-                            @endforeach
+                                @endforeach
+                            @else
+                                <div class="p-6 text-center text-gray-500">
+                                    <p>Chưa có lịch sử tương tác</p>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -616,5 +670,44 @@
                 break;
         }
     }
+</script>
+<script>
+    $(function() {
+    // Hiệu ứng hover cho card lịch hẹn
+    $('.appointment-card').hover(
+        function() { $(this).addClass('shadow-md'); },
+        function() { $(this).removeClass('shadow-md'); }
+    );
+    
+    // Hiệu ứng đếm ngược cho lịch hẹn
+    function updateCountdowns() {
+        $('.appointment-countdown').each(function() {
+            const targetDate = new Date($(this).data('date'));
+            const now = new Date();
+            const diff = Math.floor((targetDate - now) / 1000); // Seconds
+            
+            if (diff < 0) {
+                $(this).text('Đã diễn ra');
+                return;
+            }
+            
+            const days = Math.floor(diff / 86400);
+            const hours = Math.floor((diff % 86400) / 3600);
+            const minutes = Math.floor((diff % 3600) / 60);
+            
+            if (days > 0) {
+                $(this).text(`Còn ${days} ngày ${hours} giờ`);
+            } else if (hours > 0) {
+                $(this).text(`Còn ${hours} giờ ${minutes} phút`);
+            } else {
+                $(this).text(`Còn ${minutes} phút`);
+            }
+        });
+    }
+    
+    // Cập nhật mỗi phút
+    updateCountdowns();
+    setInterval(updateCountdowns, 60000);
+});
 </script>
 @endpush

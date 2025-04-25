@@ -16,6 +16,63 @@
     </div>
 </div>
 <div class="container-fixed">
+<div class="grid !grid-cols-1 lg:!grid-cols-4 gap-4 mb-5">
+    <div class="card bg-white shadow-sm">
+        <div class="card-body p-4">
+            <div class="flex items-center">
+                <div class="rounded-full bg-primary-100 p-3 mr-4">
+                    <i class="ki-filled ki-profile-user text-primary text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm">Tổng số khách hàng</p>
+                    <h3 class="text-2xl font-bold">{{ $statistics['total_customers'] }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card bg-white shadow-sm">
+        <div class="card-body p-4">
+            <div class="flex items-center">
+                <div class="rounded-full bg-success-100 p-3 mr-4">
+                    <i class="ki-filled ki-calendar-add text-success text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm">Lịch hẹn sắp tới</p>
+                    <h3 class="text-2xl font-bold">{{ $statistics['upcoming_appointments'] ?? 0 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card bg-white shadow-sm">
+        <div class="card-body p-4">
+            <div class="flex items-center">
+                <div class="rounded-full bg-warning-100 p-3 mr-4">
+                    <i class="ki-filled ki-chart text-warning text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm">Đang tư vấn</p>
+                    <h3 class="text-2xl font-bold">{{ $statistics['active_consultations'] }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card bg-white shadow-sm">
+        <div class="card-body p-4">
+            <div class="flex items-center">
+                <div class="rounded-full bg-danger-100 p-3 mr-4">
+                    <i class="ki-filled ki-time text-danger text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm">Cần liên hệ lại</p>
+                    <h3 class="text-2xl font-bold">{{ $statistics['due_follow_ups'] }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="grid gap-5">
         <div class="card card-grid min-w-full">
             <div class="card-header flex-wrap gap-2">
@@ -55,6 +112,13 @@
                                     {{$class_item['name']}}
                                 </option>
                                 @endforeach
+                            </select>
+                            <select data-filter="interaction" class="select select-sm w-40">
+                                <option value="" selected>Tương tác gần đây</option>
+                                <option value="recent">7 ngày qua</option>
+                                <option value="medium">8-30 ngày qua</option>
+                                <option value="old">Trên 30 ngày</option>
+                                <option value="none">Chưa tương tác</option>
                             </select>
                         </div>
                         <div class="flex flex-wrap lg:justify-end gap-2">
@@ -121,6 +185,9 @@
                                     </th>
                                     <th class="text-gray-700 font-normal min-w-[200px]">
                                         Lần tương tác gần nhất
+                                    </th>
+                                    <th class="text-gray-700 font-normal min-w-[200px]">
+                                    Trạng thái tư vấn
                                     </th>
                                     <th class="w-[60px]">
                                     </th>

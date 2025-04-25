@@ -76,6 +76,40 @@
     </div>
 
     <div class="grid gap-5">
+        {{--<div class="card bg-white shadow-sm mb-5">
+            <div class="card-header">
+                <h3 class="card-title">Phân tích nguồn khách hàng tiềm năng</h3>
+            </div>
+            <div class="card-body">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="text-lg font-medium mb-2">Theo nguồn</h4>
+                        <div class="h-48" id="leads-by-source-chart">
+                            <!-- Đây sẽ là biểu đồ hiển thị lead theo nguồn -->
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-medium mb-2">Tỷ lệ chuyển đổi</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="flex flex-col items-center p-4 border rounded-lg">
+                                <span class="text-sm text-gray-500">Lead → Khách hàng</span>
+                                <span class="text-2xl font-bold text-primary">{{ number_format($conversion_stats['lead_to_customer'], 1) }}%</span>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                                    <div class="bg-primary h-2.5 rounded-full" style="width: {{ min($conversion_stats['lead_to_customer'], 100) }}%"></div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center p-4 border rounded-lg">
+                                <span class="text-sm text-gray-500">Tỷ lệ phản hồi</span>
+                                <span class="text-2xl font-bold text-success">{{ number_format($conversion_stats['response_rate'], 1) }}%</span>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                                    <div class="bg-success h-2.5 rounded-full" style="width: {{ min($conversion_stats['response_rate'], 100) }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>--}}
         <div class="card card-grid min-w-full">
             <div class="card-header flex-wrap gap-2">
                 <h3 class="card-title">
@@ -153,7 +187,7 @@
                     </div>
                     <div>
                         <a href="/customer/create-view" class="btn btn-primary btn-sm">
-                            Thêm khách hàng
+                            <i class="ki-filled ki-plus"></i> Thêm khách hàng tiềm năng
                         </a>
                     </div>
                 </div>
@@ -319,5 +353,35 @@
                 break;
         }
     }
+</script>
+<script>
+    $(function() {
+    // Tạo biểu đồ nguồn lead nếu có
+    if (document.getElementById('leads-by-source-chart')) {
+        // Code để tạo biểu đồ với Chart.js hoặc thư viện khác
+        // Có thể sử dụng ApexCharts hoặc Chart.js
+        
+        // Ví dụ giả định nếu dùng ApexCharts
+        var options = {
+            series: [{
+                name: 'Số lượng lead',
+                data: [31, 40, 28, 51, 42, 15]
+            }],
+            chart: {
+                height: 250,
+                type: 'bar',
+            },
+            colors: ['#3b82f6'],
+            xaxis: {
+                categories: ['Facebook', 'Google', 'Website', 'Referral', 'Event', 'Other'],
+            }
+        };
+        
+        if (typeof ApexCharts !== 'undefined') {
+            var chart = new ApexCharts(document.getElementById('leads-by-source-chart'), options);
+            chart.render();
+        }
+    }
+});
 </script>
 @endpush
