@@ -13,6 +13,7 @@ use App\Models\Upload;
 use App\Services\LogService;
 use App\Services\PaginationService;
 use App\Services\ValidatorService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
@@ -24,10 +25,27 @@ class CustomerSupportController extends Controller
         $statuses = CustomerLead::select('id', 'name', 'color')->where('type', 2)->where('is_active', 1)->orderBy('sort', 'asc')->get()->toArray();
         $classes = CustomerClass::select('id', 'name', 'color')->where('is_active', 1)->orderBy('sort', 'asc')->get()->toArray();
 
+        // Thêm thống kê khách hàng để hiển thị trong dashboard
+        $customerStatistics = [
+            'total_customers' => Customer::where('type', '>', Customer::TYPE_LEAD)->count(),
+            'new_today' => Customer::where('type', '>', Customer::TYPE_LEAD)
+                ->whereDate('created_at', today())->count(),
+            'active_consultations' => Consultation::whereHas('consultation_logs', function($query) {
+                $query->where('action', '<', 2); // Chưa hoàn thành tư vấn
+            })->count(),
+            'due_follow_ups' => Customer::where('type', '>', Customer::TYPE_LEAD)
+                ->where('last_interaction_date', '<', now()->subDays(14))
+                ->count(),
+            'by_status' => CustomerLead::where('type', 2)->withCount(['customers' => function($query) {
+                $query->where('type', '>', Customer::TYPE_LEAD);
+            }])->get(),
+        ];
+
         return view("dashboard.customer.support.index", [
             'services' => $services,
             'statuses' => $statuses,
             'classes' => $classes,
+            'statistics' => $customerStatistics
         ]);
     }
 
@@ -38,6 +56,7 @@ class CustomerSupportController extends Controller
             return abort(404, 'Khách hàng không tồn tại.');
         }
 
+        // Tự động tạo nhật ký tư vấn mặc định nếu chưa có
         if ($customer->consultations->isEmpty()) {
             $consultations = [
                 ['customer_id' => $id, 'name' => 'Nhật ký lần 1'],
@@ -45,6 +64,9 @@ class CustomerSupportController extends Controller
                 ['customer_id' => $id, 'name' => 'Nhật ký lần 3'],
             ];
             Consultation::insert($consultations);
+            
+            // Cập nhật ngày tương tác cho khách hàng
+            $customer->updateLastInteraction();
         }
 
         $customer = Customer::find($id);
@@ -63,17 +85,72 @@ class CustomerSupportController extends Controller
                 'name' => $customer->status->name,
                 'color' => $customer->status->color
             ],
+            'type' => $customer->getTypeName(),
             'updated_at' => $customer->updated_at,
             'consultations' => $customer->consultations->map(function ($cons, $_) {
+                // Thêm trạng thái tư vấn hiện tại
+                $latestLog = ConsultationLog::where('consultation_id', $cons->id)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+                
+                $status = 'Chưa bắt đầu';
+                $statusColor = 'neutral';
+                
+                if ($latestLog) {
+                    switch ($latestLog->action) {
+                        case 0:
+                            $status = 'Đã hẹn tư vấn';
+                            $statusColor = 'primary';
+                            break;
+                        case 1:
+                            $status = 'Đang tư vấn';
+                            $statusColor = 'warning';
+                            break;
+                        case 2:
+                            $status = 'Đã tư vấn';
+                            $statusColor = 'success';
+                            break;
+                        case 3:
+                            $status = 'Đã huỷ';
+                            $statusColor = 'danger';
+                            break;
+                        case 4:
+                            $status = 'Quá hạn';
+                            $statusColor = 'gray';
+                            break;
+                    }
+                }
+                
                 return [
                     "index" => ++$_,
                     "id" => $cons->id,
                     "name" => $cons->name,
+                    "status" => $status,
+                    "status_color" => $statusColor,
                     "updated_at" => $cons->updated_at
                 ];
             })
         ];
-        return view("dashboard.customer.support.consultation", ['details' => $result]);
+        
+        // Lấy các tiến trình tư vấn sắp tới để hiển thị nhắc nhở
+        $upcomingConsultations = ConsultationLog::where('action', 0)
+            ->whereIn('consultation_id', $customer->consultations->pluck('id'))
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($log) {
+                $consultation = Consultation::find($log->consultation_id);
+                return [
+                    'id' => $log->id,
+                    'consultation_name' => $consultation->name,
+                    'message' => $log->message,
+                    'created_at' => $log->created_at
+                ];
+            });
+            
+        return view("dashboard.customer.support.consultation", [
+            'details' => $result,
+            'upcoming' => $upcomingConsultations
+        ]);
     }
 
     public function data(Request $request)
@@ -86,13 +163,58 @@ class CustomerSupportController extends Controller
             ->filterByServices($request['filter']['services'] ?? '')
             ->filterByStatus($request['filter']['status_id'] ?? 0)
             ->filterByClass($request['filter']['class_id'] ?? 0)
-            ->filterByType($request['filter']['lead'] ?? 1)
+            ->where('type', '>', Customer::TYPE_LEAD) // Chỉ lấy khách hàng thật (không phải lead)
             ->search($request['filter']['search'] ?? '');
+            
+        // Thêm bộ lọc mới - theo loại khách hàng (prospect hoặc customer)
+        if (isset($request['filter']['customer_type'])) {
+            $customersQuery->where('type', $request['filter']['customer_type']);
+        }
+        
+        // Thêm bộ lọc theo thời gian tương tác cuối
+        if (isset($request['filter']['interaction'])) {
+            switch ($request['filter']['interaction']) {
+                case 'recent': // Tương tác trong 7 ngày qua
+                    $customersQuery->whereDate('last_interaction_date', '>=', now()->subDays(7));
+                    break;
+                case 'medium': // Tương tác trong 8-30 ngày qua
+                    $customersQuery->whereDate('last_interaction_date', '>=', now()->subDays(30))
+                                  ->whereDate('last_interaction_date', '<', now()->subDays(7));
+                    break;
+                case 'old': // Tương tác cách đây hơn 30 ngày
+                    $customersQuery->whereDate('last_interaction_date', '<', now()->subDays(30));
+                    break;
+                case 'none': // Chưa từng tương tác
+                    $customersQuery->whereNull('last_interaction_date');
+                    break;
+            }
+        }
 
         $paginationResult = PaginationService::paginate($customersQuery, $currentPage, TABLE_PERPAGE_NUM);
         $offset = $paginationResult['sorter']['offset'];
 
         $result = $paginationResult['data']->map(function ($customer, $key) use ($offset) {
+            // Thêm thông tin về tương tác gần nhất
+            $lastConsultation = ConsultationLog::whereIn('consultation_id', 
+                                    $customer->consultations->pluck('id'))
+                                ->orderBy('created_at', 'desc')
+                                ->first();
+            
+            $lastInteractionText = "Chưa có tương tác";
+            if ($customer->last_interaction_date) {
+                $daysSince = now()->diffInDays($customer->last_interaction_date);
+                
+                if ($daysSince == 0) {
+                    $lastInteractionText = "Hôm nay";
+                } elseif ($daysSince == 1) {
+                    $lastInteractionText = "Hôm qua";
+                } elseif ($daysSince <= 30) {
+                    $lastInteractionText = $daysSince . " ngày trước";
+                } else {
+                    $lastInteractionText = Carbon::parse($customer->last_interaction_date)->format('d/m/Y');
+                }
+            }
+            
             return [
                 'index' => $offset + $key + 1,
                 'id' => $customer->id,
@@ -117,6 +239,12 @@ class CustomerSupportController extends Controller
                     'id' => $customer->user->id ?? 0,
                     'name' => $customer->user->name ?? '',
                 ],
+                'type' => $customer->getTypeName(),
+                'last_interaction' => [
+                    'date' => $customer->last_interaction_date,
+                    'text' => $lastInteractionText
+                ],
+                'consultation_status' => $lastConsultation ? $lastConsultation->action : null,
                 'updated_at' => $customer->updated_at,
                 'is_active' => $customer->is_active,
             ];
@@ -262,12 +390,12 @@ class CustomerSupportController extends Controller
 
     public function consultationAddLog(Request $request)
     {
-
         $validator = ValidatorService::make($request, [
             'message' => 'required|string|max:255',
             'action' => 'nullable|integer',
             'phone' => 'nullable|string|max:10',
             'consultation_id' => 'required|integer|exists:tbl_consultations,id',
+            'follow_up_date' => 'nullable|date', // Thêm trường ngày theo dõi tiếp theo
         ]);
 
         if ($validator->fails()) {
@@ -294,8 +422,22 @@ class CustomerSupportController extends Controller
             $consultation = Consultation::find($request['consultation_id']);
             $customer = Customer::find($consultation->customer_id);
 
+            // Cập nhật SĐT nếu có
             if (isset($request['phone']) && $request['phone']!='') {
                 $customer->update(['phone' => $request['phone']]);
+            }
+            
+            // Cập nhật ngày tương tác gần nhất
+            $customer->updateLastInteraction();
+            
+            // Nếu tư vấn thành công và khách hàng là prospect, có thể tạo hợp đồng
+            if ($request['action'] == 2 && $customer->type == Customer::TYPE_PROSPECT) {
+                // Có thể thêm logic gợi ý tạo hợp đồng ở đây
+            }
+            
+            // Tạo nhắc nhở nếu có ngày theo dõi tiếp theo
+            if (isset($request['follow_up_date']) && !empty($request['follow_up_date'])) {
+                // Code để tạo nhắc nhở
             }
 
             return response()->json([
@@ -315,5 +457,37 @@ class CustomerSupportController extends Controller
                 'fk_value' => $response->data->customer_id,
             ]);
         });
+    }
+
+    public function getCustomersNeedingAttention()
+    {
+        $result = [
+            'no_recent_interaction' => Customer::where('type', '>', Customer::TYPE_LEAD)
+                ->where(function($query) {
+                    $query->whereNull('last_interaction_date')
+                          ->orWhere('last_interaction_date', '<', now()->subDays(30));
+                })
+                ->limit(10)
+                ->get(),
+                
+            'pending_consultations' => Consultation::whereHas('consultation_logs', function($query) {
+                    $query->where('action', 0); // Đã hẹn tư vấn
+                })
+                ->with('customer')
+                ->limit(10)
+                ->get(),
+                
+            'in_progress_consultations' => Consultation::whereHas('consultation_logs', function($query) {
+                    $query->where('action', 1); // Đang tư vấn
+                })
+                ->with('customer')
+                ->limit(10)
+                ->get(),
+        ];
+        
+        return response()->json([
+            'status' => 200,
+            'data' => $result
+        ]);
     }
 }

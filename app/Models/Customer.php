@@ -26,9 +26,15 @@ class Customer extends Model
         'status_id',
         'note',
         'is_active',
+        'last_interaction_date',
+        'lead_score',
         'created_at',
         'updated_at',
     ];
+
+    const TYPE_LEAD = 0;         // Khách hàng tiềm năng
+    const TYPE_PROSPECT = 1;     // Khách hàng chưa sử dụng dịch vụ
+    const TYPE_CUSTOMER = 2;     // Khách hàng đã sử dụng dịch vụ
 
     public function user()
     {
@@ -129,5 +135,73 @@ class Customer extends Model
                                         ->orWhere('email', 'like', "%$search%")
                                         ->orWhere('company', 'like', "%$search%");
         return $query;
+    }
+
+    public function convertToProspect()
+    {
+        $this->type = self::TYPE_PROSPECT;
+        $this->save();
+        return $this;
+    }
+
+    public function convertToCustomer()
+    {
+        $this->type = self::TYPE_CUSTOMER;
+        $this->service_usage_count = $this->service_usage_count + 1;
+        $this->save();
+        return $this;
+    }
+
+    public function getTypeName()
+    {
+        switch ($this->type) {
+            case self::TYPE_LEAD:
+                return 'Khách hàng tiềm năng';
+            case self::TYPE_PROSPECT:
+                return 'Khách hàng chưa sử dụng dịch vụ';
+            case self::TYPE_CUSTOMER:
+                return 'Khách hàng đã sử dụng dịch vụ';
+            default:
+                return 'Không xác định';
+        }
+    }
+
+    // Cập nhật ngày tương tác gần nhất
+    public function updateLastInteraction()
+    {
+        $this->last_interaction_date = now();
+        $this->save();
+        return $this;
+    }
+
+    // Tính điểm khách hàng tiềm năng
+    public function calculateLeadScore()
+    {
+        $score = 0;
+        
+        // Có email +20 điểm
+        if (!empty($this->email)) $score += 20;
+        
+        // Có SĐT +30 điểm
+        if (!empty($this->phone)) $score += 30;
+        
+        // Có địa chỉ +10 điểm
+        if (!empty($this->address)) $score += 10;
+        
+        // Có quan tâm dịch vụ +5 điểm cho mỗi dịch vụ
+        if (!empty($this->services)) {
+            $serviceCount = count(explode('|', $this->services));
+            $score += $serviceCount * 5;
+        }
+        
+        // Đã tương tác gần đây (trong 7 ngày) +15 điểm
+        if (!empty($this->last_interaction_date) && now()->diffInDays($this->last_interaction_date) <= 7) {
+            $score += 15;
+        }
+        
+        $this->lead_score = $score;
+        $this->save();
+        
+        return $score;
     }
 }

@@ -18,4 +18,9 @@ class CustomerLead extends Model
         'color',
         'is_active',
     ];
+
+    public function customers()
+    {
+        return $this->hasMany(Customer::class, 'status_id');
+    }
 }

@@ -95,6 +95,8 @@ Route::group(
 
                         Route::get('/customer-leads', [CustomerLeadController::class, "leads"])->name("customer-leads");
                         Route::get('/customer-leads-data', [CustomerLeadController::class, "data"])->name("customer-leads-data");
+                        Route::post('/customer-leads/convert-to-prospect', [CustomerLeadController::class, "convertToProspect"])->name("convert-to-prospect");
+                        Route::get('/customer-leads/statistics', [CustomerLeadController::class, "getLeadStatistics"])->name("lead-statistics");
                     }
                 );
 
@@ -103,6 +105,7 @@ Route::group(
                     function () {
                         Route::get('/customer-support', [CustomerSupportController::class, "index"])->name("customer-support");
                         Route::get('/customer-support-data', [CustomerSupportController::class, "data"])->name("customer-support-data");
+                        Route::get('/customer-support/customers-needing-attention', [CustomerSupportController::class, "getCustomersNeedingAttention"])->name("customers-needing-attention");
                         Route::get('/customer-support/{id}', [CustomerSupportController::class, "detail"])->name("customer-support-detail");
                         Route::get('/customer-consultation/{id}', [CustomerSupportController::class, "consultation"])->name("customer-consultation");
                         Route::post('/consultation/create', [CustomerSupportController::class, "consultationCreate"])->name("consultation-create");
