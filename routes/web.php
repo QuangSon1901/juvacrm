@@ -9,7 +9,10 @@ use App\Http\Controllers\Dashboard\Account\Task\TaskController;
 use App\Http\Controllers\Dashboard\Account\Team\TeamController;
 use App\Http\Controllers\Dashboard\Account\TimeKeeping\TimeKeepingController;
 use App\Http\Controllers\Dashboard\Account\Tranning\Document\DocumentController;
+use App\Http\Controllers\Dashboard\Accounting\Category\TransactionCategoryController;
 use App\Http\Controllers\Dashboard\Accounting\DepositReceipt\DepositReceiptController;
+use App\Http\Controllers\Dashboard\Accounting\Report\ReportController;
+use App\Http\Controllers\Dashboard\Accounting\Transaction\TransactionController;
 use App\Http\Controllers\Dashboard\Assets\FileExplorerController;
 use App\Http\Controllers\Dashboard\Contract\ContractController;
 use App\Http\Controllers\Dashboard\Customer\Client\CustomerController;
@@ -304,11 +307,50 @@ Route::group(
         Route::group(
             ['namespace' => 'Accounting', 'as' => 'accounting.', 'middleware' => []],
             function () {
+                // Biên nhận cọc
                 Route::group(
                     ['namespace' => 'DepositReceipt', 'as' => 'deposit-receipt.', 'middleware' => []],
                     function () {
                         Route::get('/deposit-receipt', [DepositReceiptController::class, "index"])->name("deposit-receipt");
+                        Route::get('/deposit-receipt/data', [DepositReceiptController::class, "data"])->name("data");
+                        Route::post('/deposit-receipt/create', [DepositReceiptController::class, "create"])->name("create");
+                        Route::post('/deposit-receipt/update', [DepositReceiptController::class, "update"])->name("update");
+                        Route::post('/deposit-receipt/cancel', [DepositReceiptController::class, "cancel"])->name("cancel");
                         Route::get('/deposit-receipt/{id}/export-pdf', [DepositReceiptController::class, "exportPaymentReceipt"])->name("export-pdf");
+                    }
+                );
+        
+                // Phiếu thu chi
+                Route::group(
+                    ['namespace' => 'Transaction', 'as' => 'transaction.', 'middleware' => []],
+                    function () {
+                        Route::get('/transaction', [TransactionController::class, "index"])->name("transaction");
+                        Route::get('/transaction/data', [TransactionController::class, "data"])->name("data");
+                        Route::post('/transaction/create', [TransactionController::class, "create"])->name("create");
+                        Route::post('/transaction/update', [TransactionController::class, "update"])->name("update");
+                        Route::post('/transaction/cancel', [TransactionController::class, "cancel"])->name("cancel");
+                        Route::get('/transaction/{id}/export-pdf', [TransactionController::class, "exportTransactionReceipt"])->name("export-pdf");
+                    }
+                );
+        
+                // Danh mục thu chi
+                Route::group(
+                    ['namespace' => 'Category', 'as' => 'category.', 'middleware' => []],
+                    function () {
+                        Route::get('/transaction-category', [TransactionCategoryController::class, "index"])->name("category");
+                        Route::get('/transaction-category/data', [TransactionCategoryController::class, "data"])->name("data");
+                        Route::post('/transaction-category/create', [TransactionCategoryController::class, "create"])->name("create");
+                        Route::post('/transaction-category/update', [TransactionCategoryController::class, "update"])->name("update");
+                    }
+                );
+        
+                // Báo cáo tổng hợp
+                Route::group(
+                    ['namespace' => 'Report', 'as' => 'report.', 'middleware' => []],
+                    function () {
+                        Route::get('/financial-report', [ReportController::class, "index"])->name("financial");
+                        Route::get('/financial-report/data', [ReportController::class, "getFinancialReport"])->name("financial-data");
+                        Route::get('/financial-report/export', [ReportController::class, "exportReport"])->name("financial-export");
                     }
                 );
             }

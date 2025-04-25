@@ -122,7 +122,7 @@ class ContractController extends Controller
 
         return response()->json([
             'status' => 200,
-            'content' => view('dashboard.contract.ajax-index', ['data' => $result])->render(),
+            'content' => isset($request['json']) && $request['json'] == 1 ? $result : view('dashboard.contract.ajax-index', ['data' => $result])->render(),
             'sorter' => $paginationResult['sorter'],
         ]);
     }
