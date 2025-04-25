@@ -504,8 +504,16 @@ class TaskController extends Controller
         $priorities = TaskConfig::where('type', 0)->orderBy('sort')->get()->toArray();
         $statuses = TaskConfig::where('type', 1)->orderBy('sort')->get()->toArray();
         $issues = TaskConfig::where('type', 2)->orderBy('sort')->get()->toArray();
+        
+        // Thêm danh sách nhiệm vụ
+        $missions = TaskMission::orderBy('name')->get()->toArray();
 
-        return view("dashboard.account.task.config", ['priorities' => $priorities, 'statuses' => $statuses, 'issues' => $issues]);
+        return view("dashboard.account.task.config", [
+            'priorities' => $priorities, 
+            'statuses' => $statuses, 
+            'issues' => $issues,
+            'missions' => $missions
+        ]);
     }
 
     public function configPost(Request $request)

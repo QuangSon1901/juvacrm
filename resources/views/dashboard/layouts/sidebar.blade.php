@@ -172,7 +172,7 @@
                                 </a>
                             </div>
                             <div class="menu-item">
-                                <a class="menu-link" href="{{route('dashboard.account.task.config')}}">
+                                <a class="menu-link" href="{{route('dashboard.account.task.task.config')}}">
                                     <span class="menu-title">
                                         Thiết lập công việc
                                     </span>

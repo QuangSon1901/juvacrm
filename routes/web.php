@@ -5,7 +5,9 @@ use App\Http\Controllers\BizFlyController;
 use App\Http\Controllers\CloudinaryController;
 use App\Http\Controllers\Dashboard\Account\Member\MemberController;
 use App\Http\Controllers\Dashboard\Account\Role\RoleController;
+use App\Http\Controllers\Dashboard\Account\Task\TaskConfigController;
 use App\Http\Controllers\Dashboard\Account\Task\TaskController;
+use App\Http\Controllers\Dashboard\Account\Task\TaskMissionController;
 use App\Http\Controllers\Dashboard\Account\Team\TeamController;
 use App\Http\Controllers\Dashboard\Account\TimeKeeping\TimeKeepingController;
 use App\Http\Controllers\Dashboard\Account\Tranning\Document\DocumentController;
@@ -236,6 +238,20 @@ Route::group(
                 Route::group(
                     ['namespace' => 'Task', 'as' => 'task.', 'middleware' => []],
                     function () {
+                        // Routes cho quản lý cấu hình công việc
+                        Route::prefix('task-config')->group(function () {
+                            Route::get('/', [TaskConfigController::class, 'index'])->name('task.config');
+                            Route::post('/update', [TaskConfigController::class, 'update']);
+                            Route::post('/change-status', [TaskConfigController::class, 'changeStatus']);
+                        });
+
+                        // Routes cho quản lý nhiệm vụ
+                        Route::prefix('task-mission')->group(function () {
+                            Route::get('/{id}', [TaskMissionController::class, 'show']);
+                            Route::post('/update', [TaskMissionController::class, 'update']);
+                            Route::post('/change-status', [TaskMissionController::class, 'changeStatus']);
+                        });
+
                         Route::get('/task', [TaskController::class, "index"])->name("task");
                         Route::get('/task-data', [TaskController::class, "data"])->name("task-data");
                         Route::get('/task/create', [TaskController::class, "createView"])->name("task-create-view");
