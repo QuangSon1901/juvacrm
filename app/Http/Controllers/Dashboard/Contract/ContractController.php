@@ -1684,6 +1684,7 @@ class ContractController extends Controller
                         'id' => $service->id,
                         'name' => $service->name,
                         'type' => $serviceType,
+                        'service_type' => $service->service_type,
                         'quantity' => $service->quantity,
                         'price' => $service->price,
                         'total' => $service->quantity * $service->price,
@@ -1964,23 +1965,27 @@ public function exportExcel($id)
                     // Thiết lập chiều cao dòng phù hợp cho ảnh
                     $sheet->getRowDimension($currentRow)->setRowHeight($rowHeight);
                     
-                    // Thêm ảnh mẫu nếu có
+                   // Thêm ảnh mẫu nếu có
                     if ($service->sample_image_id) {
-                        $sampleImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $service->sample_image_id;
-                        $this->addImageToCell($sheet, $sampleImageUrl, 'D', $currentRow, $imageIndex, $tempDir);
-                        $imageIndex++;
-                    } else {
-                        $sheet->setCellValue('D' . $currentRow, 'Không có ảnh');
-                    }
-                    
-                    // Thêm ảnh kết quả nếu có
-                    if ($service->result_image_id) {
-                        $resultImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $service->result_image_id;
-                        $this->addImageToCell($sheet, $resultImageUrl, 'E', $currentRow, $imageIndex, $tempDir);
-                        $imageIndex++;
-                    } else {
-                        $sheet->setCellValue('E' . $currentRow, 'Không có ảnh');
-                    }
+                            foreach(explode('|', $service->sample_image_id) as $item) {
+                                $sampleImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $item;
+                                $this->addImageToCell($sheet, $sampleImageUrl, 'D', $currentRow, $imageIndex, $tempDir);
+                                $imageIndex++;
+                            }
+                        } else {
+                            $sheet->setCellValue('D' . $currentRow, 'Không có ảnh');
+                        }
+                        
+                        // Thêm ảnh kết quả nếu có
+                        if ($service->result_image_id) {
+                            foreach(explode('|', $service->result_image_id) as $item) {
+                                $resultImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $item;
+                                $this->addImageToCell($sheet, $resultImageUrl, 'E', $currentRow, $imageIndex, $tempDir);
+                                $imageIndex++;
+                            }
+                        } else {
+                            $sheet->setCellValue('E' . $currentRow, 'Không có ảnh');
+                        }
 
                     $sheet->setCellValue('F' . $currentRow, $service->quantity);
                     $sheet->setCellValue('G' . $currentRow, number_format($service->price, 0, ',', '.'));
@@ -2013,18 +2018,22 @@ public function exportExcel($id)
                         
                         // Thêm ảnh mẫu nếu có
                         if ($subService->sample_image_id) {
-                            $sampleImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $subService->sample_image_id;
-                            $this->addImageToCell($sheet, $sampleImageUrl, 'D', $currentRow, $imageIndex, $tempDir);
-                            $imageIndex++;
+                            foreach(explode('|', $subService->sample_image_id) as $item) {
+                                $sampleImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $item;
+                                $this->addImageToCell($sheet, $sampleImageUrl, 'D', $currentRow, $imageIndex, $tempDir);
+                                $imageIndex++;
+                            }
                         } else {
                             $sheet->setCellValue('D' . $currentRow, 'Không có ảnh');
                         }
                         
                         // Thêm ảnh kết quả nếu có
                         if ($subService->result_image_id) {
-                            $resultImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $subService->result_image_id;
-                            $this->addImageToCell($sheet, $resultImageUrl, 'E', $currentRow, $imageIndex, $tempDir);
-                            $imageIndex++;
+                            foreach(explode('|', $subService->result_image_id) as $item) {
+                                $resultImageUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/q_auto,f_auto/uploads/" . $item;
+                                $this->addImageToCell($sheet, $resultImageUrl, 'E', $currentRow, $imageIndex, $tempDir);
+                                $imageIndex++;
+                            }
                         } else {
                             $sheet->setCellValue('E' . $currentRow, 'Không có ảnh');
                         }
@@ -2273,17 +2282,21 @@ private function removeDirectory($dir)
         $services = $contract->services()->where('is_active', 1)->get();
 
         $totalValue = 0;
-
+        
         // Tính giá trị từ góc máy (dịch vụ con)
         $subServices = $services->where('type', 'sub_service');
         foreach ($subServices as $subService) {
-            $totalValue += $subService->price;
+            if ($subService->parent->service_type == 'individual') {
+                $totalValue += $subService->price;
+            }
         }
 
         // Cộng thêm giá trị từ các mục customized
         $customItems = $services->whereIn('type', ['custom', 'discount'])->whereNull('parent_id');
         foreach ($customItems as $item) {
-            $totalValue += $item->price;
+            if ($subService->parent->service_type == 'individual') {
+                $totalValue += $item->price;
+            }
         }
 
         // Cập nhật tổng giá trị hợp đồng

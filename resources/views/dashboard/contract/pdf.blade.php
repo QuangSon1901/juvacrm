@@ -375,9 +375,9 @@
                                     <div class="note">{{ $service['note'] }}</div>
                                 @endif
                             </td>
-                            <td class="quantity">{{ number_format($service['quantity'], 0, ',', '.') }}</td>
-                            <td class="price">{{ number_format($service['price'], 0, ',', '.') }}</td>
-                            <td class="total">{{ number_format($service['total'], 0, ',', '.') }}</td>
+                            <td class="quantity"></td>
+                            <td class="price">{{ $service['service_type'] == 'individual' ? '' : number_format($service['price'], 0, ',', '.') }}</td>
+                            <td class="total">{{ $service['service_type'] == 'individual' ? '' : number_format($service['total'], 0, ',', '.') }}</td>
                         </tr>
                         
                         {{-- Hiển thị dịch vụ con nếu có --}}
@@ -391,8 +391,8 @@
                                         @endif
                                     </td>
                                     <td class="quantity">{{ number_format($subService['quantity'], 0, ',', '.') }}</td>
-                                    <td class="price">{{ number_format($subService['price'], 0, ',', '.') }}</td>
-                                    <td class="total">{{ number_format($subService['total'], 0, ',', '.') }}</td>
+                                    <td class="price">{{ $service['service_type'] == 'individual' ? number_format($service['price'], 0, ',', '.') : 0 }}</td>
+                                    <td class="total">{{ $service['service_type'] == 'individual' ? number_format($subService['price'], 0, ',', '.') : 0 }}</td>
                                 </tr>
                             @endforeach
                         @endif
