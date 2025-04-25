@@ -10,7 +10,7 @@ class ContractService extends Model
     protected $fillable = [
         'contract_id', 'service_id', 'product_id', 'name', 'type', 
         'quantity', 'price', 'note', 'is_active', 'parent_id',
-        'sample_image_id', 'result_image_id'
+        'sample_image_id', 'result_image_id','service_type'
     ];
 
     /**

@@ -604,7 +604,7 @@ class ContractController extends Controller
             'payments.currency',
             'payments.method'
         ])->findOrFail($id);
-
+        
         // Tổ chức dịch vụ thành cấu trúc cha-con
         $services = $contract->services->where('parent_id', null)->values();
 
@@ -638,6 +638,7 @@ class ContractController extends Controller
                                 'content' => $subService->note,
                                 'sample_image_id' => $subService->sample_image_id,
                                 'result_image_id' => $subService->result_image_id,
+                                'service_type' => $service->service_type
                             ];
                         })->toArray();
 
@@ -650,6 +651,7 @@ class ContractController extends Controller
                         'sub_services' => $subServices,
                         'sample_image_id' => $service->sample_image_id,
                         'result_image_id' => $service->result_image_id,
+                        'service_type' => $service->service_type
                     ];
 
                     $productServices[$service->product_id]['services'][] = $serviceItem;
@@ -660,17 +662,18 @@ class ContractController extends Controller
                         'id' => $service->id,
                         'name' => $service->name,
                         'price' => $service->price,
-                        'note' => $service->note
+                        'note' => $service->note,
+                        'service_type' => $service->service_type
                     ];
                 }
             } elseif ($service->type === 'discount') {
-                // Mục giảm giá
                 $customItems[] = [
                     'type' => 'custom',
                     'id' => $service->id,
                     'name' => $service->name,
                     'price' => $service->price,
-                    'note' => $service->note
+                    'note' => $service->note,
+                    'service_type' => $service->service_type
                 ];
             }
         }
@@ -902,7 +905,6 @@ class ContractController extends Controller
             'currencies' => $currencies,
             'customers' => $customers,
         ];
-
         return view('dashboard.contract.show.detail', compact(
             'details',
             'data_init'
@@ -2268,19 +2270,23 @@ private function removeDirectory($dir)
     protected function updateContractTotalValue(Contract $contract)
     {
         // Lấy tất cả dịch vụ active của hợp đồng
-        $services = $contract->services()->get();
+        $services = $contract->services()->where('is_active', 1)->get();
 
         $totalValue = 0;
 
-
-        foreach ($services as $service) {
-            if ($service->type == 'service' && $service->subServices()->count() > 0) {
-                continue;
-            }
-
-            $totalValue += $service->price;
+        // Tính giá trị từ góc máy (dịch vụ con)
+        $subServices = $services->where('type', 'sub_service');
+        foreach ($subServices as $subService) {
+            $totalValue += $subService->price;
         }
 
+        // Cộng thêm giá trị từ các mục customized
+        $customItems = $services->whereIn('type', ['custom', 'discount'])->whereNull('parent_id');
+        foreach ($customItems as $item) {
+            $totalValue += $item->price;
+        }
+
+        // Cập nhật tổng giá trị hợp đồng
         $contract->update(['total_value' => $totalValue]);
 
         return $totalValue;
@@ -2328,9 +2334,6 @@ private function removeDirectory($dir)
             $totalServiceValue = 0;
             $totalDiscountValue = 0;
 
-            // Mảng lưu các task cần tạo mới sau khi cập nhật
-            $newTasksToCreate = [];
-
             // Xử lý từng item trong request
             foreach ($contractItemsData as $item) {
                 $itemType = $item['type'];
@@ -2343,13 +2346,14 @@ private function removeDirectory($dir)
                     if (!empty($item['services'])) {
                         foreach ($item['services'] as $service) {
                             $serviceId = null;
-                            $serviceType = 'service';
+                            $pricingModel = $service['service_type'] ?? 'individual'; // Model tính giá (individual/combo)
                             $serviceName = null;
                             $contractServiceId = isset($service['id']) ? $service['id'] : null;
+                            $serviceType = 'service'; // Type mặc định là service
     
-                            // Xác định loại dịch vụ và lấy thông tin
+                            // Xác định loại dịch vụ (type) và lấy thông tin
                             if ($service['service_id'] === 'custom') {
-                                $serviceType = 'custom';
+                                $serviceType = 'custom'; // Type là custom
                                 $serviceName = $service['custom_name'];
                             } else {
                                 $serviceId = $service['service_id'];
@@ -2358,7 +2362,6 @@ private function removeDirectory($dir)
                             }
     
                             $servicePrice = (float) $service['price'];
-                            $serviceQuantity = 1; // Mặc định là 1
     
                             // Tìm dịch vụ hiện tại nếu có ID
                             $currentService = null;
@@ -2372,11 +2375,10 @@ private function removeDirectory($dir)
                                 $currentService->update([
                                     'service_id' => $serviceId,
                                     'name' => $serviceName,
-                                    'type' => $serviceType,
+                                    'type' => $serviceType, // Type: service hoặc custom
+                                    'service_type' => $pricingModel, // Model tính giá: individual hoặc combo
                                     'price' => $servicePrice,
                                     'note' => $service['note'] ?? null,
-                                    'sample_image_id' => $service['sample_image_id'] ?? null, // Thêm trường mới
-                                    'result_image_id' => $service['result_image_id'] ?? null, // Thêm trường mới
                                 ]);
     
                                 // Lưu ID vào danh sách đã xử lý
@@ -2388,12 +2390,11 @@ private function removeDirectory($dir)
                                     'service_id' => $serviceId,
                                     'product_id' => $productId,
                                     'name' => $serviceName,
-                                    'type' => $serviceType,
-                                    'quantity' => $serviceQuantity,
+                                    'type' => $serviceType, // Type: service hoặc custom
+                                    'service_type' => $pricingModel, // Model tính giá: individual hoặc combo
+                                    'quantity' => 1,
                                     'price' => $servicePrice,
                                     'note' => $service['note'] ?? null,
-                                    'sample_image_id' => $service['sample_image_id'] ?? null, // Thêm trường mới
-                                    'result_image_id' => $service['result_image_id'] ?? null, // Thêm trường mới
                                     'is_active' => 1,
                                 ]);
     
@@ -2402,16 +2403,20 @@ private function removeDirectory($dir)
                                 $currentService = $newService;
                             }
     
-                            // Xử lý các dịch vụ con
+                            // Xử lý các dịch vụ con (góc máy)
                             if (!empty($service['sub_services'])) {
                                 $processedSubServiceIds = [];
     
                                 foreach ($service['sub_services'] as $subService) {
                                     $subServiceName = $subService['name'];
                                     $subServiceQuantity = (float) $subService['quantity'];
-                                    $subServicePrice = (float) $subService['total'];
+                                    $subServiceTotal = (float) preg_replace('/[^\d]/', '', $subService['total']);
                                     $subServiceNote = $subService['content'] ?? null;
                                     $contractSubServiceId = isset($subService['id']) ? $subService['id'] : null;
+                                    
+                                    // Xử lý danh sách ảnh
+                                    $sampleImageId = $subService['sample_image_id'] ?? '';
+                                    $resultImageId = $subService['result_image_id'] ?? '';
     
                                     // Tìm dịch vụ con hiện tại nếu có ID
                                     $currentSubService = null;
@@ -2424,10 +2429,11 @@ private function removeDirectory($dir)
                                         $currentSubService->update([
                                             'name' => $subServiceName,
                                             'quantity' => $subServiceQuantity,
-                                            'price' => $subServicePrice,
+                                            'price' => $subServiceTotal,
                                             'note' => $subServiceNote,
-                                            'sample_image_id' => $subService['sample_image_id'] ?? null, // Thêm trường mới
-                                            'result_image_id' => $subService['result_image_id'] ?? null, // Thêm trường mới
+                                            'sample_image_id' => $sampleImageId,
+                                            'result_image_id' => $resultImageId,
+                                            // Không thay đổi type và service_type
                                         ]);
     
                                         // Lưu ID vào danh sách đã xử lý
@@ -2439,13 +2445,14 @@ private function removeDirectory($dir)
                                             'contract_id' => $contractId,
                                             'product_id' => $productId,
                                             'name' => $subServiceName,
-                                            'type' => 'sub_service',
+                                            'type' => 'sub_service', // Type luôn là sub_service
+                                            'service_type' => 'individual', // Góc máy luôn tính theo individual
                                             'quantity' => $subServiceQuantity,
-                                            'price' => $subServicePrice,
+                                            'price' => $subServiceTotal,
                                             'note' => $subServiceNote,
                                             'parent_id' => $currentService->id,
-                                            'sample_image_id' => $subService['sample_image_id'] ?? null, // Thêm trường mới
-                                            'result_image_id' => $subService['result_image_id'] ?? null, // Thêm trường mới
+                                            'sample_image_id' => $sampleImageId,
+                                            'result_image_id' => $resultImageId,
                                             'is_active' => 1,
                                         ]);
     
@@ -2470,21 +2477,13 @@ private function removeDirectory($dir)
                     $itemName = $item['name'];
                     $itemPrice = (float) $item['price'];
                     $itemNote = $item['note'] ?? null;
-                    $customItemType = ($itemPrice < 0) ? 'discount' : 'custom';
-
-                    // Cập nhật tổng giá trị dịch vụ hoặc giảm giá
-                    if ($customItemType === 'discount') {
-                        $totalDiscountValue += abs($itemPrice);
-                    } else {
-                        $totalServiceValue += $itemPrice;
-                    }
+                    $itemType = ($itemPrice < 0) ? 'discount' : 'custom'; // Type dựa vào giá trị
+                    $customItemId = isset($item['id']) ? $item['id'] : null;
 
                     // Tìm mục tùy chỉnh hiện tại nếu có ID trong request
                     $currentCustomItem = null;
-                    $customItemDbId = isset($item['id']) ? $item['id'] : null;
-
-                    if ($customItemDbId) {
-                        $currentCustomItem = $currentServices->where('id', $customItemDbId)->first();
+                    if ($customItemId) {
+                        $currentCustomItem = $currentServices->where('id', $customItemId)->first();
                     }
 
                     // Nếu mục tùy chỉnh đã tồn tại thì cập nhật, nếu không thì tạo mới
@@ -2492,9 +2491,10 @@ private function removeDirectory($dir)
                         // Cập nhật thông tin mục tùy chỉnh
                         $currentCustomItem->update([
                             'name' => $itemName,
-                            'type' => $customItemType,
+                            'type' => $itemType, // Type: custom hoặc discount
                             'price' => $itemPrice,
                             'note' => $itemNote,
+                            // Không thay đổi service_type
                         ]);
 
                         // Lưu ID vào danh sách đã xử lý
@@ -2504,7 +2504,8 @@ private function removeDirectory($dir)
                         $newCustomItem = ContractService::create([
                             'contract_id' => $contractId,
                             'name' => $itemName,
-                            'type' => $customItemType,
+                            'type' => $itemType, // Type: custom hoặc discount
+                            'service_type' => 'individual', // Mặc định là individual
                             'quantity' => 1,
                             'price' => $itemPrice,
                             'note' => $itemNote,
@@ -2513,18 +2514,6 @@ private function removeDirectory($dir)
 
                         // Lưu ID vào danh sách đã xử lý
                         $processedServiceIds[] = $newCustomItem->id;
-
-                        // Nếu hợp đồng đang triển khai và không phải discount, tạo task cho mục tùy chỉnh mới
-                        if ($contract->status == 1 && $customItemType !== 'discount') {
-                            $newTasksToCreate[] = [
-                                'serviceId' => $newCustomItem->id,
-                                'serviceName' => $itemName,
-                                'contractId' => $contractId,
-                                'serviceType' => 'SERVICE',
-                                'price' => $itemPrice,
-                                'quantity' => 1,
-                            ];
-                        }
                     }
                 }
             }
@@ -2537,14 +2526,10 @@ private function removeDirectory($dir)
                 }
             }
 
-            // Cập nhật tổng giá trị hợp đồng
+            // Cập nhật tổng giá trị hợp đồng bằng cách tính lại toàn bộ
             $this->updateContractTotalValue($contract);
-            // Tạo các task mới nếu cần
-            // if (!empty($newTasksToCreate)) {
-            //     $this->createNewTasksForServices($newTasksToCreate, $contract);
-            // }
 
-            // Đồng bộ lại toàn bộ task sau các thay đổi - thêm dòng này
+            // Đồng bộ lại toàn bộ task sau các thay đổi
             if ($contract->status == 1) {
                 $this->syncContractTasksInternal($contract->id);
             }
