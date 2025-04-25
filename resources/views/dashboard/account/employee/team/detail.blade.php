@@ -204,7 +204,7 @@
                                 <div class="flex items-center grow gap-2.5">
                                     @include("dashboard.layouts.icons.gear")
                                     <div class="flex flex-col">
-                                        <a class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px" href="/role/{{ $level['id'] }}/{{ $level['department_id'] }}">
+                                        <a class="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px" href="/role/{{ $level['id'] }}/{{ $level['department_id'] }}/permissions">
                                             {{ $level['name'] }}
                                         </a>
                                         <span class="text-xs font-semibold text-gray-600">

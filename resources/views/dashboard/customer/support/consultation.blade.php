@@ -1,11 +1,74 @@
 @extends('dashboard.layouts.layout')
 @section('dashboard_content')
+<style>
+    /* Styling cho phần upload file */
+    .file-item-preview {
+        transition: all 0.2s ease;
+    }
+    .file-item-preview:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .message-container {
+        position: relative;
+    }
+    
+    .message-action-buttons {
+        display: none;
+        position: absolute;
+        right: 10px;
+        top: 5px;
+    }
+    
+    .message-container:hover .message-action-buttons {
+        display: flex;
+    }
+    
+    /* Loader styling */
+    .spinner-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+    
+    .attachments-droppable {
+        border: 2px dashed #e2e8f0;
+        transition: all 0.2s ease;
+    }
+    
+    .attachments-droppable.highlight {
+        border-color: #3b82f6;
+        background-color: rgba(59, 130, 246, 0.05);
+    }
+    
+    /* Fix responsive design issues */
+    @media (max-width: 768px) {
+        .grid-cols-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="spinner-overlay !hidden">
+    <div class="flex flex-col items-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p class="mt-3 text-gray-800 font-medium">Đang xử lý...</p>
+    </div>
+</div>
+
 <div class="pb-5">
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
-            <h1 class="font-medium text-base text-gray-900">
-                Quy trình tư vấn
-            </h1>
+            <h1 class="font-medium text-base text-gray-900">Quy trình tư vấn</h1>
             <nav class="flex" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3">
                     <li class="inline-flex items-center">
@@ -84,7 +147,7 @@
                 </div>
                 
                 <!-- Lịch hẹn sắp tới -->
-                @if(count($upcoming_appointments) > 0)
+                @if(isset($upcoming_appointments) && count($upcoming_appointments) > 0)
                 <div class="card bg-light-primary border border-primary-100">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -111,12 +174,12 @@
                                 </div>
                                 <div>
                                     <span class="badge badge-{{$appointment['color']}}">
-                                        @if($appointment['days_away'] == 1)
+                                        @if($appointment['days_away'] == 0)
                                             Hôm nay
-                                        @elseif($appointment['days_away'] == 2)
+                                        @elseif($appointment['days_away'] == 1)
                                             Ngày mai
                                         @else
-                                            Còn {{$appointment['days_away'] - 1}} ngày
+                                            Còn {{$appointment['days_away']}} ngày
                                         @endif
                                     </span>
                                 </div>
@@ -158,7 +221,7 @@
                     <div class="card-body">
                         <div class="grid gap-2.5">
                             @foreach ($details['consultations'] as $cons)
-                            <div data-id="{{$cons['id']}}" class="consultation-tab flex items-center gap-3 cursor-pointer py-2 px-4 rounded-lg {{$cons['index']==1?'bg-gray-100 border border-blue-500':'hover:bg-gray-100'}}">
+                            <div data-id="{{$cons['id']}}" data-action-code="{{$cons['action_code']}}" class="consultation-tab flex items-center gap-3 cursor-pointer py-2 px-4 rounded-lg {{$cons['index']==1?'bg-gray-100 border border-blue-500':'hover:bg-gray-100'}}">
                                 <div class="flex items-center grow gap-2.5">
                                     <div class="flex flex-col">
                                         <div class="flex items-center gap-2">
@@ -238,7 +301,9 @@
                     <div class="card-footer">
                         <div class="flex flex-col w-full">
                             <form id="add-log-form" class="relative grow">
-                                <div id="attachment-preview" class="grid gap-2 py-2"></div>
+                                <!-- Phần hiển thị file đính kèm -->
+                                <div id="attachment-preview" class="attachments-droppable grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 py-2 px-4 rounded mb-3"></div>
+                                
                                 <div class="flex flex-wrap gap-2 mb-3">
                                     <select class="select select-sm w-full lg:w-auto" name="action">
                                         <option value="0">Hỏi nhu cầu khách hàng</option>
@@ -264,16 +329,25 @@
                                     </div>
                                 </div>
                                 
-                                <div class="flex input h-auto ps-4 bg-transparent rounded-lg">
-                                    <div style="flex: 1;"><textarea class="py-4 outline-none w-full" name="message" rows="1" placeholder="Bổ sung quá trình tư vấn..." type="text"></textarea></div>
-                                    <div class="flex items-center gap-2.5">
-                                        <label type="button" class="btn btn-sm btn-icon btn-light btn-clear">
-                                            <i class="ki-filled ki-exit-up"></i>
-                                            <input id="attachment-input" type="file" class="hidden">
-                                        </label>
-                                        <button type="submit" class="btn btn-primary btn-sm">
-                                            Đăng
-                                        </button>
+                                <div class="flex flex-col">
+                                    <div class="input h-auto ps-4 bg-transparent rounded-lg">
+                                        <div style="flex: 1;">
+                                            <textarea class="py-4 outline-none w-full" name="message" rows="2" placeholder="Bổ sung quá trình tư vấn..." type="text"></textarea>
+                                        </div>
+                                        <div class="flex items-center gap-2.5 py-1">
+                                            <div class="relative overflow-hidden">
+                                                <button type="button" class="btn btn-sm btn-light btn-clear" id="file-upload-btn">
+                                                    <i class="ki-filled ki-file-added"></i>
+                                                </button>
+                                                <input type="file" id="attachment-input" class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer" multiple>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-sm" id="send-message-btn">
+                                                Đăng
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-gray-500 italic mt-1">
+                                        * Kéo thả file vào vùng trên hoặc nhấn nút để đính kèm file
                                     </div>
                                 </div>
                             </form>
@@ -285,6 +359,7 @@
     </div>
 </div>
 
+<!-- Các modal cần thiết giữ nguyên -->
 <!-- Modal thêm nhật ký tư vấn mới -->
 <div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="create-consultation-modal" style="z-index: 90;">
     <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
@@ -392,15 +467,37 @@
         </div>
     </div>
 </div>
+
+<!-- Template cho file preview -->
+<template id="file-preview-template">
+    <div class="file-item-preview relative flex items-center p-2 rounded-lg border border-gray-200 bg-white shadow-sm" data-file-id="">
+        <div class="mr-3 w-10 h-10 flex items-center justify-center shrink-0">
+            <img src="" class="max-w-full max-h-full object-contain" alt="File preview">
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 truncate"></p>
+            <p class="text-xs text-gray-500"></p>
+        </div>
+        <button type="button" class="remove-file-btn ml-2 p-1 text-red-500 hover:text-red-700 transition-colors duration-200">
+            <i class="ki-filled ki-trash"></i>
+        </button>
+    </div>
+</template>
 @endsection
 
 @push('scripts')
 <script>
     let consulationDelete = 0;
     let consulationActive = 0;
+    let uploadedFiles = [];  // Mảng lưu trữ các file đã upload
+    const cloudinaryName = '{{env("CLOUDINARY_CLOUD_NAME")}}';
+    
     $(function() {
         // Khởi tạo Flatpickr cho trường follow_up_date
         flatpickrMake($("input[name=follow_up_date]"), 'datetime');
+        
+        // Setup drag and drop cho upload file
+        setupFileDragDrop();
         
         // Hiển thị/ẩn trường follow_up_date khi chọn action = 5 (đặt lịch tư vấn lại)
         $('select[name=action]').on('change', function() {
@@ -416,6 +513,9 @@
             $(this).addClass('bg-gray-100 border border-blue-500');
             consulationActive = $(this).attr('data-id');
             getConsultationLog($(this).attr('data-id'));
+            
+            // Cập nhật trạng thái
+            updateConsultationStatus($(this).data('action-code'));
         });
 
         $('[data-modal-toggle="#update-name-consultation-modal"]').on('click', function() {
@@ -445,12 +545,47 @@
             );
         });
 
-        $('#attachment-input').on('change', function() {
-            postUploadAttachment(this);
+        // Xử lý upload file
+        $('#attachment-input').on('change', function(e) {
+            handleSelectedFiles(e.target.files);
         });
-
-        $(document).on('click', '.attachment-remove-btn', function() {
-            $(this).closest('.attachment-preview-item').remove();
+        
+        // Xóa file đính kèm
+        $(document).on('click', '.remove-file-btn', function() {
+            const fileId = $(this).closest('.file-item-preview').data('file-id');
+            removeUploadedFile(fileId);
+        });
+        
+        // Tạo lịch hẹn trực tiếp từ log message
+        $(document).on('click', '.create-appointment-from-log', function() {
+            const messageText = $(this).data('message');
+            const messageDate = $(this).data('date');
+            
+            // Set giá trị vào form
+            $('select[name=action]').val(5).trigger('change');
+            
+            // Lấy ngày giờ từ tin nhắn hoặc sử dụng ngày hiện tại + 1 ngày
+            const appointmentDate = messageDate ? new Date(messageDate) : new Date();
+            appointmentDate.setDate(appointmentDate.getDate() + 1);
+            appointmentDate.setHours(9, 0, 0, 0);
+            
+            // Format datetime
+            const formattedDate = appointmentDate.toISOString().slice(0, 16).replace('T', ' ');
+            $('input[name=follow_up_date]').val(formattedDate);
+            
+            // Checked tạo lịch hẹn
+            $('input[name=create_appointment]').prop('checked', true);
+            
+            // Set message có thông tin từ tin nhắn cũ
+            $('textarea[name=message]').val('Hẹn lịch tư vấn: ' + messageText.substring(0, 100) + '...');
+            
+            // Cuộn đến form để người dùng có thể thấy
+            $('html, body').animate({
+                scrollTop: $("#add-log-form").offset().top - 100
+            }, 500);
+            
+            // Focus vào textarea
+            $('textarea[name=message]').focus();
         });
 
         $('#add-log-form').on('submit', function(e) {
@@ -481,18 +616,236 @@
             e.preventDefault();
             let phoneIs = $('#confirm-phone-consultation-modal input[type=radio]:checked');
             let phoneNumber = '';
-            if (phoneIs.is('.no-phone'))
+            if (phoneIs.is('.no-phone')) {
                 phoneNumber = '';
-            else if (phoneIs.is('.other-phone-radio'))
+            } else if (phoneIs.is('.other-phone-radio')) {
                 phoneNumber = $('#confirm-phone-consultation-modal .other-phone').val();
-            else if (phoneIs.is('.has-phone'))
+            } else if (phoneIs.is('.has-phone')) {
                 phoneNumber = phoneIs.val();
+            }
             postAddLog(document.getElementById('add-log-form'), phoneNumber);
         });
 
         // Hiển thị tab đầu tiên mặc định
         $('.consultation-tab:eq(0)').trigger('click');
     });
+    
+    // Thiết lập Drag & Drop
+    function setupFileDragDrop() {
+        const dropArea = document.getElementById('attachment-preview');
+        
+        // Ngăn chặn hành vi mặc định
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        // Highlight khi drag over
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('highlight');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+        
+        // Xử lý khi drop
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            handleSelectedFiles(files);
+        }
+    }
+    
+    // Xử lý các file được chọn (từ input hoặc drag & drop)
+    function handleSelectedFiles(files) {
+        if (!files || files.length === 0) return;
+        
+        Array.from(files).forEach(file => {
+            uploadFile(file);
+        });
+        
+        // Reset input để có thể chọn lại file
+        $('#attachment-input').val('');
+    }
+    
+    // Upload file lên server
+    async function uploadFile(file) {
+        // Tạo preview ngay lập tức
+        const previewId = 'temp-' + Date.now();
+        addFilePreview({
+            id: previewId,
+            name: file.name,
+            size: formatFileSize(file.size),
+            type: file.type,
+            isImage: file.type.startsWith('image/'),
+            url: file.type.startsWith('image/') ? URL.createObjectURL(file) : getFileIconPath(file.name)
+        }, true);
+        
+        // Hiển thị loading
+        showLoading();
+        
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch('/consultation/upload-file', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 200) {
+                // Thay thế preview tạm thời bằng file thật
+                replaceFilePreview(previewId, {
+                    id: result.data.driver_id,
+                    name: result.data.name,
+                    size: result.data.size,
+                    type: result.data.type,
+                    isImage: result.data.is_image,
+                    url: result.data.preview_url
+                });
+                
+                // Thêm vào danh sách file đã upload
+                uploadedFiles.push(result.data.driver_id);
+            } else {
+                // Xóa preview nếu upload thất bại
+                removeFilePreview(previewId);
+                showAlert('error', result.message || 'Lỗi khi tải file');
+            }
+        } catch (error) {
+            // Xóa preview nếu có lỗi
+            removeFilePreview(previewId);
+            showAlert('error', 'Lỗi khi tải file: ' + error.message);
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    // Thêm preview file
+    function addFilePreview(fileData, isTemporary = false) {
+        const template = document.getElementById('file-preview-template');
+        const clone = document.importNode(template.content, true);
+        
+        const container = clone.querySelector('.file-item-preview');
+        container.dataset.fileId = fileData.id;
+        
+        if (isTemporary) {
+            container.classList.add('opacity-60');
+            const loadingIcon = document.createElement('div');
+            loadingIcon.className = 'absolute inset-0 flex items-center justify-center bg-white bg-opacity-50';
+            loadingIcon.innerHTML = '<i class="ki-filled ki-loading animate-spin text-primary"></i>';
+            container.appendChild(loadingIcon);
+        }
+        
+        const img = clone.querySelector('img');
+        img.src = fileData.url;
+        img.alt = fileData.name;
+        
+        const filename = clone.querySelector('p.text-sm');
+        filename.textContent = fileData.name;
+        
+        const fileInfo = clone.querySelector('p.text-xs');
+        fileInfo.textContent = fileData.size;
+        
+        document.getElementById('attachment-preview').appendChild(clone);
+    }
+    
+    // Thay thế preview tạm thời
+    function replaceFilePreview(tempId, fileData) {
+        const tempPreview = document.querySelector(`.file-item-preview[data-file-id="${tempId}"]`);
+        if (!tempPreview) return;
+        
+        tempPreview.dataset.fileId = fileData.id;
+        tempPreview.classList.remove('opacity-60');
+        
+        const loadingIcon = tempPreview.querySelector('.absolute');
+        if (loadingIcon) loadingIcon.remove();
+        
+        const img = tempPreview.querySelector('img');
+        img.src = fileData.url;
+        img.alt = fileData.name;
+        
+        const filename = tempPreview.querySelector('p.text-sm');
+        filename.textContent = fileData.name;
+        
+        const fileInfo = tempPreview.querySelector('p.text-xs');
+        fileInfo.textContent = fileData.size;
+    }
+    
+    // Xóa file preview
+    function removeFilePreview(fileId) {
+        const preview = document.querySelector(`.file-item-preview[data-file-id="${fileId}"]`);
+        if (preview) preview.remove();
+    }
+    
+    // Xóa file đã upload
+    function removeUploadedFile(fileId) {
+        // Xóa khỏi danh sách
+        const index = uploadedFiles.indexOf(fileId);
+        if (index > -1) {
+            uploadedFiles.splice(index, 1);
+        }
+        
+        // Xóa preview
+        removeFilePreview(fileId);
+    }
+    
+    // Format kích thước file
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // Lấy đường dẫn icon theo loại file
+    function getFileIconPath(filename) {
+        const extension = filename.split('.').pop().toLowerCase();
+        
+        // Danh sách các extension phổ biến
+        const commonExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rar'];
+        
+        if (commonExtensions.includes(extension)) {
+            return `/assets/images/file-types/${extension}.svg`;
+        }
+        
+        return '/assets/images/file-types/file.svg';
+    }
+    
+    // Hiển thị loading overlay
+    function showLoading() {
+        console.log(1);
+        
+        document.getElementById('loading-overlay').classList.remove('!hidden');
+    }
+    
+    // Ẩn loading overlay
+    function hideLoading() {
+        document.getElementById('loading-overlay').classList.add('!hidden');
+    }
 
     // Hiển thị trạng thái tư vấn của nhật ký hiện tại
     function updateConsultationStatus(actionCode) {
@@ -536,97 +889,160 @@
     }
 
     async function postAddLog(_this, phoneNumber = '') {
+        // Disable button và hiển thị loading
+        $('#send-message-btn').prop('disabled', true).html('<i class="ki-filled ki-loading animate-spin mr-1"></i> Đang gửi...');
+        showLoading();
+        
         let method = "post",
             url = "/consultation/add-log",
             params = null,
-            data = $(_this).serialize() + '&consultation_id=' + consulationActive
+            data = $(_this).serialize() + '&consultation_id=' + consulationActive;
 
+        // Thêm danh sách file đính kèm
+        uploadedFiles.forEach(fileId => {
+            data += `&attachment[]=${fileId}`;
+        });
+        
         if (phoneNumber) {
             data += '&phone=' + phoneNumber;
         }
             
-        let res = await axiosTemplate(method, url, params, data);
-        switch (res.data.status) {
-            case 200:
+        try {
+            let res = await axiosTemplate(method, url, params, data);
+            
+            if (res.data.status === 200) {
+                // Cập nhật UI
                 $(`.consultation-tab[data-id=${consulationActive}]`).trigger('click');
+                
+                // Reset form
                 $('#attachment-preview').html('');
+                uploadedFiles = [];
                 $('#add-log-form textarea').val('');
                 $('input[name=follow_up_date]').val('');
                 $('input[name=create_appointment]').prop('checked', false);
                 $('.follow-up-container').hide();
+                
+                // Xử lý modal số điện thoại
                 $('#confirm-phone-consultation-modal button[data-modal-dismiss]').trigger('click');
+                
+                // Cập nhật số điện thoại hiển thị nếu có
                 if (phoneNumber != '') $('.details-phone-customer').text(phoneNumber);
+                
+                // Hiển thị thông báo thành công
                 showAlert('success', res.data.message);
-                break;
-            default:
+                
+                // Nếu có tạo lịch hẹn, hiển thị thông báo
+                if (res.data.data.appointment_id) {
+                    setTimeout(() => {
+                        showAlert('info', 'Đã tạo lịch hẹn thành công! <a href="/appointment/detail/' + res.data.data.customer_id + '" class="text-primary font-bold">Xem lịch hẹn</a>');
+                    }, 1000);
+                }
+            } else {
                 showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-                break;
+            }
+        } catch (error) {
+            console.error(error);
+            showAlert('error', 'Đã có lỗi xảy ra: ' + error.message);
+        } finally {
+            // Re-enable button
+            $('#send-message-btn').prop('disabled', false).html('Đăng');
+            hideLoading();
         }
     }
 
     async function postCreateConsultation(_this) {
+        showLoading();
+        
         let method = "post",
             url = "/consultation/create",
             params = null,
             data = $(_this).serialize() + "&customer_id={{$details['id']}}";
-        let res = await axiosTemplate(method, url, params, data);
-        switch (res.data.status) {
-            case 200:
+            
+        try {
+            let res = await axiosTemplate(method, url, params, data);
+            
+            if (res.data.status === 200) {
                 showAlert('success', res.data.message);
                 window.location.reload();
-                break;
-            default:
+            } else {
                 showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-                break;
+            }
+        } catch (error) {
+            showAlert('error', 'Đã có lỗi xảy ra: ' + error.message);
+        } finally {
+            hideLoading();
         }
     }
 
     async function postUpdateNameConsultation(_this) {
+        showLoading();
+        
         let method = "post",
             url = "/consultation/update",
             params = null,
             data = $(_this).serialize() + "&id=" + consulationDelete;
-        let res = await axiosTemplate(method, url, params, data);
-        switch (res.data.status) {
-            case 200:
+            
+        try {
+            let res = await axiosTemplate(method, url, params, data);
+            
+            if (res.data.status === 200) {
                 showAlert('success', res.data.message);
                 window.location.reload();
-                break;
-            default:
+            } else {
                 showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-                break;
+            }
+        } catch (error) {
+            showAlert('error', 'Đã có lỗi xảy ra: ' + error.message);
+        } finally {
+            hideLoading();
         }
     }
 
     async function postRemoveConsultation(id) {
+        showLoading();
+        
         let method = "post",
             url = "/consultation/remove",
             params = null,
             data = {
                 id
             };
-        let res = await axiosTemplate(method, url, params, data);
-        switch (res.data.status) {
-            case 200:
+            
+        try {
+            let res = await axiosTemplate(method, url, params, data);
+            
+            if (res.data.status === 200) {
                 showAlert('success', res.data.message);
                 window.location.reload();
-                break;
-            default:
+            } else {
                 showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-                break;
+            }
+        } catch (error) {
+            showAlert('error', 'Đã có lỗi xảy ra: ' + error.message);
+        } finally {
+            hideLoading();
         }
     }
 
     async function getConsultationLog(id) {
+        // Hiển thị trạng thái loading
+        $('#consoltation-logs-body').html(`
+            <div class="flex items-center justify-center p-6">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+        `);
+        
         let method = "get",
             url = "/consultation/log",
             params = {
                 id
             },
             data = null;
-        let res = await axiosTemplate(method, url, params, data);
-        switch (res.data.status) {
-            case 200:
+            
+        try {
+            let res = await axiosTemplate(method, url, params, data);
+            
+            if (res.data.status === 200) {
                 $('#consoltation-logs-body').html(res.data.content);
                 
                 // Cập nhật trạng thái hiện tại
@@ -634,48 +1050,59 @@
                 const actionCode = activeTab.data('action-code');
                 updateConsultationStatus(actionCode);
                 
-                break;
-            default:
+                // Thêm chức năng tạo lịch hẹn từ tin nhắn
+                setupMessageActions();
+            } else {
+                $('#consoltation-logs-body').html(`
+                    <div class="flex flex-col items-center justify-center p-6">
+                        <i class="ki-filled ki-cross-circle text-red-500 text-3xl mb-2"></i>
+                        <p class="text-gray-700">Không thể tải dữ liệu. Vui lòng thử lại sau.</p>
+                    </div>
+                `);
                 showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-                break;
-        }
-    }
-
-    async function postUploadAttachment(_this) {
-        try {
-            let file = $(_this).prop("files")[0];
-            if (file) {
-                let url = URL.createObjectURL(file);
-                let res = await uploadFileTemplate(file);
-                if (res.data.status == 200) {
-                    let img = '';
-                    if (res.data.data.type.startsWith('image/') && res.data.data.extension !== 'svg') {
-                        img = `<img class="w-[30px]" alt="${res.data.data.extension}" src="https://drive.google.com/thumbnail?id=${res.data.data.driver_id}&sz=w56">`;
-                    } else {
-                        img = `<img class="w-[30px]" alt="${res.data.data.extension}" src="/assets/images/file-types/${res.data.data.extension}.svg">`;
-                    }
-
-                    $('#attachment-preview').append(`<div class="attachment-preview-item flex items-center gap-4">
-                            <input name="attachment[]" value="${res.data.data.driver_id}" type="text" class="hidden">
-                            <div class="flex items-center gap-2.5">
-                                ${img}
-                                <div class="flex flex-col">
-                                    <a href="https://drive.google.com/file/d/${res.data.data.driver_id}/view" target="_blank" style="overflow-wrap: anywhere;" class="text-sm font-medium text-gray-900 cursor-pointer hover:text-primary mb-px">
-                                        ${res.data.data.name}
-                                    </a>
-                                    <span class="text-xs text-gray-700">
-                                        ${res.data.data.size} - <span class="attachment-remove-btn text-danger text-xs font-semibold cursor-pointer">Xoá</span>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>`);
-                } else {
-                    showAlert('error', 'Upload failed!');
-                }
             }
         } catch (error) {
-            showAlert('error', error);
+            $('#consoltation-logs-body').html(`
+                <div class="flex flex-col items-center justify-center p-6">
+                    <i class="ki-filled ki-cross-circle text-red-500 text-3xl mb-2"></i>
+                    <p class="text-gray-700">Đã xảy ra lỗi. Vui lòng thử lại sau.</p>
+                </div>
+            `);
+            showAlert('error', 'Đã có lỗi xảy ra: ' + error.message);
         }
+    }
+    
+    // Thiết lập các action khi hover vào message
+    function setupMessageActions() {
+        // Tìm tất cả phần tử message
+        const messageContainers = document.querySelectorAll('.message-container');
+        
+        messageContainers.forEach(container => {
+            // Tạo buttons container nếu chưa có
+            if (!container.querySelector('.message-action-buttons')) {
+                const message = container.querySelector('.text-sm:not(.text-gray-500)');
+                const messageDate = container.querySelector('.text-xs.text-gray-600');
+                
+                if (message && messageDate) {
+                    const dateText = messageDate.textContent.trim();
+                    const messageText = message.textContent.trim();
+                    
+                    const buttonsContainer = document.createElement('div');
+                    buttonsContainer.className = 'message-action-buttons gap-1';
+                    
+                    // Thêm nút tạo lịch hẹn
+                    const createAppointmentBtn = document.createElement('button');
+                    createAppointmentBtn.className = 'btn btn-xs btn-light create-appointment-from-log';
+                    createAppointmentBtn.innerHTML = '<i class="ki-filled ki-calendar-add text-primary"></i>';
+                    createAppointmentBtn.setAttribute('title', 'Tạo lịch hẹn từ tin nhắn này');
+                    createAppointmentBtn.dataset.message = messageText;
+                    createAppointmentBtn.dataset.date = dateText;
+                    
+                    buttonsContainer.appendChild(createAppointmentBtn);
+                    container.appendChild(buttonsContainer);
+                }
+            }
+        });
     }
 </script>
 @endpush

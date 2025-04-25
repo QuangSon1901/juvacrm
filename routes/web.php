@@ -114,6 +114,7 @@ Route::group(
                         Route::get('/consultation/log', [CustomerSupportController::class, "consultationLog"])->name("consultation-log");
                         Route::post('/consultation/remove', [CustomerSupportController::class, "consultationRemove"])->name("consultation-remove");
                         Route::post('/consultation/add-log', [CustomerSupportController::class, "consultationAddLog"])->name("consultation-add-log");
+                        Route::post('/consultation/upload-file', [CustomerSupportController::class, 'uploadFile'])->name('consultation-upload-file');
 
                         Route::get('/appointment/appointment-data', [AppointmentController::class, "dataAppointment"])->name("appointment-data");
                         Route::get('/appointment/detail/{id?}', [AppointmentController::class, "detail"])->name("appointment-detail");

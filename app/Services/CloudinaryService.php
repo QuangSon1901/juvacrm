@@ -8,7 +8,8 @@ use Cloudinary\Api\Upload\UploadApi;
 
 class CloudinaryService
 {
-    private $cloudinary;
+    protected $uploadApi;
+
 
     public function __construct()
     {
@@ -23,19 +24,33 @@ class CloudinaryService
             ]
         ]);
 
-        $this->cloudinary = new Cloudinary();
+        $this->uploadApi = new UploadApi();
     }
 
     public function uploadFile($file)
     {
-        $upload = (new UploadApi())->upload($file->getRealPath(), [
-            'folder' => 'uploads', // Thư mục lưu trữ trên Cloudinary
-            'eager' => []
+        $fileType = $file->getClientMimeType();
+        $extension = $file->getClientOriginalExtension();
+        
+        // Xác định resource_type dựa trên MIME type
+        $resourceType = 'auto'; // Auto sẽ tự phát hiện loại file
+        
+        // Có thể thêm các định dạng đặc biệt nếu cần
+        if (in_array($extension, ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar'])) {
+            $resourceType = 'raw';
+        }
+        
+        $response = $this->uploadApi->upload($file->getRealPath(), [
+            'folder' => 'uploads',
+            'resource_type' => $resourceType,
+            'use_filename' => true,
+            'unique_filename' => true,
         ]);
 
         return [
-            'url' => $upload['url'],
-            'secure_url' => $upload['secure_url']
+            'url' => $response['url'],
+            'secure_url' => $response['secure_url'],
+            'public_id' => $response['public_id'],
         ];
     }
 }

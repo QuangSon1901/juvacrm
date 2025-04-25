@@ -11,6 +11,7 @@ use App\Models\CustomerClass;
 use App\Models\CustomerLead;
 use App\Models\Service;
 use App\Models\Upload;
+use App\Services\CloudinaryService;
 use App\Services\LogService;
 use App\Services\PaginationService;
 use App\Services\ValidatorService;
@@ -20,6 +21,13 @@ use Illuminate\Support\Facades\Session;
 
 class CustomerSupportController extends Controller
 {
+    protected $cloudinaryService;
+
+    public function __construct(CloudinaryService $cloudinaryService)
+    {
+        $this->cloudinaryService = $cloudinaryService;
+    }
+
     public function index()
     {
         $services = Service::select('id', 'name')->where('is_active', 1)->get()->toArray();
@@ -435,6 +443,8 @@ class CustomerSupportController extends Controller
             'phone' => 'nullable|string|max:10',
             'consultation_id' => 'required|integer|exists:tbl_consultations,id',
             'follow_up_date' => 'nullable|date',
+            'attachment' => 'nullable|array',
+            'attachment.*' => 'nullable|string',
             'create_appointment' => 'nullable|boolean'
         ]);
 
@@ -452,10 +462,13 @@ class CustomerSupportController extends Controller
 
             // Xử lý tệp đính kèm
             if (isset($request['attachment']) && count($request['attachment']) > 0) {
-                foreach ($request['attachment'] as $attachment) {
-                    $upload = Upload::where('driver_id', $attachment)->first();
+                foreach ($request['attachment'] as $attachmentId) {
+                    $upload = Upload::where('driver_id', $attachmentId)->first();
                     if ($upload) {
-                        $upload->update(['fk_key' => 'tbl_logs|id', 'fk_value' => $consultationLog->id]);
+                        $upload->update([
+                            'fk_key' => 'tbl_consultation_logs|id', 
+                            'fk_value' => $consultationLog->id
+                        ]);
                     }
                 }
             }
@@ -472,13 +485,14 @@ class CustomerSupportController extends Controller
             $customer->updateLastInteraction();
             
             // Tạo lịch hẹn nếu có yêu cầu
+            $appointmentId = null;
             if ($request->has('create_appointment') && $request->create_appointment && $request->follow_up_date) {
                 $followUpDate = Carbon::parse($request->follow_up_date);
                 
                 // Mặc định hẹn 1 tiếng
                 $endTime = (clone $followUpDate)->addHour();
                 
-                Appointment::create([
+                $appointment = Appointment::create([
                     'customer_id' => $customer->id,
                     'user_id' => $data['user_id'],
                     'name' => 'Tư vấn: ' . substr($request->message, 0, 30) . (strlen($request->message) > 30 ? '...' : ''),
@@ -488,6 +502,8 @@ class CustomerSupportController extends Controller
                     'color' => 'primary',
                     'is_active' => 1
                 ]);
+                
+                $appointmentId = $appointment->id;
             }
 
             return response()->json([
@@ -495,7 +511,8 @@ class CustomerSupportController extends Controller
                 'message' => 'Lưu thành công!',
                 'data' => [
                     'id' => $consultationLog->id,
-                    'customer_id' => $consultation->customer_id
+                    'customer_id' => $consultation->customer_id,
+                    'appointment_id' => $appointmentId
                 ]
             ]);
         }, function ($request, $response) {
@@ -508,6 +525,7 @@ class CustomerSupportController extends Controller
             ]);
         });
     }
+    
     public function getCustomersNeedingAttention()
     {
         $result = [
@@ -538,5 +556,87 @@ class CustomerSupportController extends Controller
             'status' => 200,
             'data' => $result
         ]);
+    }
+
+    public function uploadFile(Request $request)
+    {
+        $validator = ValidatorService::make($request, [
+            'file' => 'required|file|max:10240', // Giới hạn file 10MB
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        try {
+            $file = $request->file('file');
+            $userId = Session::get(ACCOUNT_CURRENT_SESSION)['id'] ?? 0;
+            
+            // Upload file lên Cloudinary
+            $uploadedFile = $this->cloudinaryService->uploadFile($file);
+            
+            // Lưu thông tin file vào database
+            $upload = Upload::create([
+                'user_id'    => $userId,
+                'type'       => $file->getClientMimeType(),
+                'details'    => json_encode([
+                    'original_name' => $file->getClientOriginalName(),
+                    'extension'     => $file->getClientOriginalExtension(),
+                ]),
+                'name'       => $file->getClientOriginalName(),
+                'size'       => $file->getSize(),
+                'extension'  => $file->getClientOriginalExtension(),
+                'driver_id'  => explode('/uploads/', $uploadedFile['url'])[1],
+                'action'     => $request['action'] ?? MEDIA_DRIVER_UPLOAD,
+                'fk_key'     => $request['fk_key'] ?? null,
+                'fk_value'   => $request['fk_value'] ?? null,
+            ]);
+
+            // Lưu log
+            LogService::saveLog([
+                'action' => MEDIA_DRIVER_UPLOAD,
+                'ip' => $request->getClientIp(),
+                'details' => 'Đã tải lên file ' . $file->getClientOriginalName(),
+                'fk_key' => 'tbl_uploads|id',
+                'fk_value' => $upload->id,
+            ]);
+
+            // Chuẩn bị thông tin preview tùy theo loại file
+            $previewUrl = null;
+            $isImage = strpos($file->getClientMimeType(), 'image/') === 0 && $file->getClientOriginalExtension() !== 'svg';
+            
+            if ($isImage) {
+                // Nếu là hình ảnh, sử dụng Cloudinary để tạo thumbnail
+                $previewUrl = "https://res.cloudinary.com/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload/w_80,h_80,c_fill,q_auto,f_auto/uploads/" . $upload->driver_id;
+            } else {
+                // Nếu không phải hình ảnh, sử dụng icon theo loại file
+                $previewUrl = "/assets/images/file-types/" . $file->getClientOriginalExtension() . ".svg";
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Tải lên thành công.',
+                'data' => [
+                    'id' => $upload->id,
+                    'name' => $file->getClientOriginalName(),
+                    'url' => $uploadedFile['url'],
+                    'driver_id' => $upload->driver_id,
+                    'secure_url' => $uploadedFile['secure_url'],
+                    'extension' => $file->getClientOriginalExtension(),
+                    'type' => $file->getClientMimeType(),
+                    'size' => formatBytes($file->getSize()),
+                    'preview_url' => $previewUrl,
+                    'is_image' => $isImage,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Lỗi khi tải file: ' . $e->getMessage()
+            ]);
+        }
     }
 }
