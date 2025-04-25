@@ -107,6 +107,7 @@ Route::group(
                         Route::get('/customer-support-data', [CustomerSupportController::class, "data"])->name("customer-support-data");
                         Route::get('/customer-support/customers-needing-attention', [CustomerSupportController::class, "getCustomersNeedingAttention"])->name("customers-needing-attention");
                         Route::get('/customer-support/{id}', [CustomerSupportController::class, "detail"])->name("customer-support-detail");
+
                         Route::get('/customer-consultation/{id}', [CustomerSupportController::class, "consultation"])->name("customer-consultation");
                         Route::post('/consultation/create', [CustomerSupportController::class, "consultationCreate"])->name("consultation-create");
                         Route::post('/consultation/update', [CustomerSupportController::class, "consultationUpdate"])->name("consultation-update");
@@ -115,7 +116,11 @@ Route::group(
                         Route::post('/consultation/add-log', [CustomerSupportController::class, "consultationAddLog"])->name("consultation-add-log");
 
                         Route::get('/appointment/appointment-data', [AppointmentController::class, "dataAppointment"])->name("appointment-data");
-                        Route::get('/appointment/detail/{id}', [AppointmentController::class, "detail"])->name("appointment-detail");
+                        Route::get('/appointment/detail/{id?}', [AppointmentController::class, "detail"])->name("appointment-detail");
+                        Route::post('/appointment/create', [AppointmentController::class, "create"])->name("appointment-create");
+                        Route::post('/appointment/update', [AppointmentController::class, "update"])->name("appointment-update");
+                        Route::post('/appointment/delete', [AppointmentController::class, "delete"])->name("appointment-delete");
+                        Route::get('/appointment/customer/{customer_id}', [AppointmentController::class, "getCustomerAppointments"])->name("appointment-customer");
                     }
                 );
 

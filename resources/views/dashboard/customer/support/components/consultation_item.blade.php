@@ -9,33 +9,58 @@
     </div>
     <div class="ps-2.5 mb-5 text-md grow">
         <div class="flex flex-col gap-1">
-            <div class="text-sm text-gray-800">
-                <span class="badge badge-sm badge-outline">
-                    @if ($log['status'] == 0)
-                    Hỏi nhu cầu khách hàng
-                    @elseif ($log['status'] == 1)
-                    Tư vấn gói
-                    @elseif ($log['status'] == 2)
-                    Lập hợp đồng
-                    @elseif ($log['status'] == 3)
-                    Gửi bảng giá
-                    @elseif ($log['status'] == 4)
-                    Khách từ chối
-                    @elseif ($log['status'] == 5)
-                    Đặt lịch tư vấn lại
-                    @else
-                    Hành động không xác định
-                    @endif
-                </span>
-                <span style="overflow-wrap: anywhere;">{{$log['message']}}</span>
+            <div class="flex items-center gap-2">
+                <div class="text-sm text-gray-800">
+                    <span class="badge badge-sm 
+                        @if ($log['status'] == 0) badge-primary
+                        @elseif ($log['status'] == 1) badge-warning
+                        @elseif ($log['status'] == 2) badge-success
+                        @elseif ($log['status'] == 3) badge-info
+                        @elseif ($log['status'] == 4) badge-danger
+                        @elseif ($log['status'] == 5) badge-gray
+                        @else badge-neutral @endif">
+                        @if ($log['status'] == 0)
+                        Hỏi nhu cầu khách hàng
+                        @elseif ($log['status'] == 1)
+                        Tư vấn gói
+                        @elseif ($log['status'] == 2)
+                        Lập hợp đồng
+                        @elseif ($log['status'] == 3)
+                        Gửi bảng giá
+                        @elseif ($log['status'] == 4)
+                        Khách từ chối
+                        @elseif ($log['status'] == 5)
+                        Đặt lịch tư vấn lại
+                        @else
+                        Hành động không xác định
+                        @endif
+                    </span>
+                </div>
+                <div class="text-xs text-gray-500">
+                    Bởi: {{$log['user']['name'] ?? 'Nhân viên'}}
+                </div>
             </div>
-            <span class="text-xs text-gray-600">
-                {{date('H:i:s d-m-Y', strtotime($log['created_at']))}}
-            </span>
+            <div class="mt-1">
+                <span style="overflow-wrap: anywhere;" class="text-sm">{{$log['message']}}</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 mt-1">
+                <span class="text-xs text-gray-600">
+                    {{date('H:i:s d-m-Y', strtotime($log['created_at']))}}
+                </span>
+                
+                @if($log['has_follow_up'])
+                <span class="badge badge-sm badge-light-warning">
+                    <i class="ki-filled ki-calendar-tick text-xs mr-1"></i>
+                    Hẹn: {{date('d/m/Y H:i', strtotime($log['follow_up_date']))}}
+                </span>
+                @endif
+            </div>
         </div>
+        
+        <!-- Phần đính kèm tệp -->
         @if (count($log['attachments']) > 0)
         <div class="card shadow-none mt-2">
-            <div class="card-body">
+            <div class="card-body p-3">
                 <div class="grid gap-2">
                     @foreach ($log['attachments'] as $attachment)
                     <div class="flex items-center gap-4">
@@ -60,7 +85,6 @@
             </div>
         </div>
         @endif
-
     </div>
 </div>
 @endforeach

@@ -20,8 +20,22 @@ class Consultation extends Model
         'is_deleted',
     ];
 
-    public function consultation_logs()
+    // Quan hệ với Customer
+    public function customer()
     {
-        return $this->hasMany(ConsultationLog::class)->orderBy('created_at', 'asc');;
+        return $this->belongsTo(Customer::class, 'customer_id');
+    }
+    
+    // Quan hệ với ConsultationLog
+    public function logs()
+    {
+        return $this->hasMany(ConsultationLog::class, 'consultation_id')
+            ->orderBy('created_at', 'desc');
+    }
+    
+    // Lấy trạng thái mới nhất của cuộc tư vấn
+    public function getLatestStatus()
+    {
+        return $this->logs()->first();
     }
 }

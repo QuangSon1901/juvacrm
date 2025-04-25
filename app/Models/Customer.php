@@ -60,6 +60,10 @@ class Customer extends Model
     {
         return $this->hasMany(Consultation::class)->where('is_deleted', 0)->orderBy('created_at', 'asc');
     }
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class, 'customer_id');
+    }
 
     /**
      * Lấy các hợp đồng mà khách hàng là nhà cung cấp
