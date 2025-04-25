@@ -19,4 +19,9 @@ class PaymentMethod extends Model
     {
         return $this->hasMany(ContractPayment::class, 'method_id');
     }
+
+    public static function getActivePaymentMethods()
+    {
+        return self::where('is_active', 1)->get();
+    }
 }

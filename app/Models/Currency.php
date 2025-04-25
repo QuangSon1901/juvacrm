@@ -19,4 +19,8 @@ class Currency extends Model
     {
         return $this->hasMany(ContractPayment::class);
     }
+    public static function getActiveCurrencies()
+    {
+        return self::where('is_active', 1)->get();
+    }
 }

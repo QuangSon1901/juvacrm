@@ -10,7 +10,9 @@ use App\Http\Controllers\Dashboard\Account\Team\TeamController;
 use App\Http\Controllers\Dashboard\Account\TimeKeeping\TimeKeepingController;
 use App\Http\Controllers\Dashboard\Account\Tranning\Document\DocumentController;
 use App\Http\Controllers\Dashboard\Accounting\Category\TransactionCategoryController;
+use App\Http\Controllers\Dashboard\Accounting\Currency\CurrencyController;
 use App\Http\Controllers\Dashboard\Accounting\DepositReceipt\DepositReceiptController;
+use App\Http\Controllers\Dashboard\Accounting\PaymentMethod\PaymentMethodController;
 use App\Http\Controllers\Dashboard\Accounting\Report\ReportController;
 use App\Http\Controllers\Dashboard\Accounting\Transaction\TransactionController;
 use App\Http\Controllers\Dashboard\Assets\FileExplorerController;
@@ -351,6 +353,28 @@ Route::group(
                         Route::get('/financial-report', [ReportController::class, "index"])->name("financial");
                         Route::get('/financial-report/data', [ReportController::class, "getFinancialReport"])->name("financial-data");
                         Route::get('/financial-report/export', [ReportController::class, "exportReport"])->name("financial-export");
+                    }
+                );
+
+                // Phương thức thanh toán
+                Route::group(
+                    ['namespace' => 'PaymentMethod', 'as' => 'payment-method.', 'middleware' => []],
+                    function () {
+                        Route::get('/payment-method', [PaymentMethodController::class, "index"])->name("payment-method");
+                        Route::get('/payment-method/data', [PaymentMethodController::class, "data"])->name("data");
+                        Route::post('/payment-method/create', [PaymentMethodController::class, "create"])->name("create");
+                        Route::post('/payment-method/update', [PaymentMethodController::class, "update"])->name("update");
+                    }
+                );
+
+                // Đơn vị tiền tệ
+                Route::group(
+                    ['namespace' => 'Currency', 'as' => 'currency.', 'middleware' => []],
+                    function () {
+                        Route::get('/currency', [CurrencyController::class, "index"])->name("currency");
+                        Route::get('/currency/data', [CurrencyController::class, "data"])->name("data");
+                        Route::post('/currency/create', [CurrencyController::class, "create"])->name("create");
+                        Route::post('/currency/update', [CurrencyController::class, "update"])->name("update");
                     }
                 );
             }

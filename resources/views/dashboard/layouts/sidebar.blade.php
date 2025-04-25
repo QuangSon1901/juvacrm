@@ -341,23 +341,16 @@
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.accounting.payment-method.payment-method')}}">
                                     <span class="menu-title">
                                         Phương thức thanh toán
                                     </span>
                                 </a>
                             </div>
                             <div class="menu-item">
-                                <a class="menu-link" href="/">
+                                <a class="menu-link" href="{{route('dashboard.accounting.currency.currency')}}">
                                     <span class="menu-title">
                                         Đơn vị tiền tệ
-                                    </span>
-                                </a>
-                            </div>
-                            <div class="menu-item">
-                                <a class="menu-link" href="/">
-                                    <span class="menu-title">
-                                        Ngôn ngữ
                                     </span>
                                 </a>
                             </div>
