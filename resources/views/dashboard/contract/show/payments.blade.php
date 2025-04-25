@@ -100,7 +100,7 @@
                                                     </div>
                                                     <div class="menu-separator"></div>
                                                     <div class="menu-item">
-                                                        <a class="menu-link" href="{{ route('dashboard.accounting.deposit-receipt.export-pdf', $details['id']) }}">
+                                                        <a class="menu-link" href="{{ route('dashboard.accounting.deposit-receipt.export-pdf', $payment['id']) }}">
                                                             <span class="menu-icon">
                                                                 <i class="ki-filled ki-file-down"></i>
                                                             </span>

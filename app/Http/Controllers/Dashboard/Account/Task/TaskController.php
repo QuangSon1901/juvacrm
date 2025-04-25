@@ -155,10 +155,31 @@ class TaskController extends Controller
     public function getTaskByIDs(Request $request) {
         $ids = explode(',', $request['ids']); // Chuyển chuỗi thành mảng
         $query = Task::whereIn('parent_id', $ids)->get(); // Lấy danh sách tasks
-
+        
+        // Lấy danh sách task IDs
+        $taskIds = $query->pluck('id')->toArray();
+        
+        // Lấy thông tin nhiệm vụ cho tất cả các task
+        $missionAssignments = TaskMissionAssignment::whereIn('task_id', $taskIds)
+            ->with('mission')
+            ->get()
+            ->groupBy('task_id');
+    
         return response()->json([
             'status' => 200,
-            'data' => $query->map(function ($item) {
+            'data' => $query->map(function ($item) use ($missionAssignments) {
+                // Lấy thông tin nhiệm vụ của task
+                $taskMissions = $missionAssignments->get($item->id, collect());
+                
+                // Tạo mảng thông tin nhiệm vụ
+                $missionsInfo = $taskMissions->map(function ($assignment) {
+                    return [
+                        'name' => $assignment->mission->name,
+                        'completed' => $assignment->quantity_completed,
+                        'required' => $assignment->quantity_required
+                    ];
+                })->toArray();
+                
                 return [
                     'id' => $item->id,
                     'name' => $item->name,
@@ -169,6 +190,7 @@ class TaskController extends Controller
                     'qty_request' => $item->qty_request,
                     'sample_image_id' => $item->sample_image_id,
                     'result_image_id' => $item->result_image_id,
+                    'missions' => $missionsInfo
                 ];
             })
         ]);
@@ -2359,16 +2381,13 @@ private function updateTaskStatus($taskId, $statusId)
         return $tasks->update(['due_date' => $contract->expiry_date]);
     }
 
-    /**
-     * Báo cáo hoàn thành nhiệm vụ
-     */
     public function reportMission(Request $request)
     {
         $validator = Validator::make(
             $request->all(),
             [
                 'quantities' => 'required|array',
-                'quantities.*' => 'required|integer|min:1',
+                'quantities.*' => 'required|integer|min:0', // Changed from min:1 to min:0
                 'notes' => 'nullable|array',
                 'notes.*' => 'nullable|string|max:500',
             ],
@@ -2401,7 +2420,7 @@ private function updateTaskStatus($taskId, $statusId)
             $task = null;
 
             foreach ($request->quantities as $assignmentId => $quantity) {
-                if ($quantity < 1) continue;
+                if ($quantity <= 0) continue; // Skip if quantity is 0 - we don't create reports for zero quantities
 
                 $assignment = TaskMissionAssignment::find($assignmentId);
                 if (!$assignment) {
@@ -3654,9 +3673,6 @@ public function getFeedbackItemDetails(Request $request)
     }
 }
 
-/**
- * Lấy trạng thái hiện tại của task
- */
 public function getTaskStatus($id)
 {
     try {
@@ -3700,6 +3716,19 @@ public function getTaskStatus($id)
             }
         }
         
+        // Lấy thông tin nhiệm vụ của task
+        $missionAssignments = TaskMissionAssignment::where('task_id', $id)
+            ->with('mission')
+            ->get();
+        
+        $missions = $missionAssignments->map(function ($assignment) {
+            return [
+                'name' => $assignment->mission->name,
+                'completed' => $assignment->quantity_completed,
+                'required' => $assignment->quantity_required
+            ];
+        });
+        
         return response()->json([
             'status' => 200,
             'data' => [
@@ -3712,7 +3741,8 @@ public function getTaskStatus($id)
                 'qty_completed' => $task->qty_completed,
                 'qty_request' => $task->qty_request,
                 'progress' => $progress,
-                'parent_updated' => $parentUpdated
+                'parent_updated' => $parentUpdated,
+                'missions' => $missions // Thêm thông tin nhiệm vụ
             ]
         ]);
     } catch (\Exception $e) {

@@ -36,14 +36,6 @@ class DepositReceiptController extends Controller
                 }
             ])->findOrFail($id);
 
-            // Kiểm tra nếu thanh toán chưa được thực hiện
-            if ($payment->status != 1) {
-                return response()->json([
-                    'status' => 400,
-                    'message' => 'Không thể xuất biên nhận cho khoản thanh toán chưa hoàn thành.',
-                ]);
-            }
-
             // Chuẩn bị dữ liệu cho PDF
             $data = [
                 'payment' => $payment,

@@ -297,21 +297,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Image preview section -->
-                    <div class="flex justify-end gap-2 mt-3 image-preview-container">
-                        <div class="flex flex-col">
-                            <span class="text-xs text-gray-800 mb-1">Ảnh mẫu</span>
-                            <div class="h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 sample-image-container">
-                                <img src="/assets/images/default.svg" alt="Ảnh mẫu" class="w-20 h-20 object-cover sample-image">
-                            </div>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="text-xs text-gray-800 mb-1">Ảnh kết quả</span>
-                            <div class="h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 result-image-container">
-                                <img src="/assets/images/default.svg" alt="Ảnh kết quả" class="w-20 h-20 object-cover result-image">
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             <!-- Action buttons -->
@@ -371,15 +356,11 @@
                     <div class="flex justify-end gap-2 mt-2 image-preview-container">
                         <div class="flex flex-col">
                             <span class="text-xs text-gray-800 mb-1">Ảnh mẫu</span>
-                            <div class="h-16 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 subtask-sample-image-container">
-                                <img src="/assets/images/default.svg" alt="Ảnh mẫu" class="w-20 h-20 object-cover subtask-sample-image">
-                            </div>
+                            <div class="h-16 flex gap-1 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 subtask-sample-image-container"></div>
                         </div>
                         <div class="flex flex-col">
                             <span class="text-xs text-gray-800 mb-1">Ảnh kết quả</span>
-                            <div class="h-16 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 subtask-result-image-container">
-                                <img src="/assets/images/default.svg" alt="Ảnh kết quả" class="w-20 h-20 object-cover subtask-result-image">
-                            </div>
+                            <div class="h-16 flex gap-1 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 subtask-result-image-container"></div>
                         </div>
                     </div>
                 </div>
@@ -557,17 +538,6 @@
             // Set status badge color
             setStatusBadge($taskCard.find('.task-status-badge'), task.statusId);
             
-            // Set images if available
-            if (task.sampleImage) {
-                const sampleImageUrl = `https://res.cloudinary.com/${cloudinaryName}/image/upload/w_80,h_80,q_auto,f_auto/uploads/${task.sampleImage}`;
-                $taskCard.find('.sample-image').attr('src', sampleImageUrl);
-            }
-            
-            if (task.resultImage) {
-                const resultImageUrl = `https://res.cloudinary.com/${cloudinaryName}/image/upload/w_80,h_80,q_auto,f_auto/uploads/${task.resultImage}`;
-                $taskCard.find('.result-image').attr('src', resultImageUrl);
-            }
-            
             // Configure action buttons based on task status
             configureBulkActionButtons($taskCard, task);
             
@@ -576,38 +546,62 @@
 
         // Create a subtask item from template
         function createSubtaskItem(task) {
-            const $template = $('#subtask-item-template').html();
-            const $subtaskItem = $($.parseHTML($template));
-            
-            $subtaskItem.attr('data-task-id', task.id);
-            $subtaskItem.find('.subtask-id-badge').text('#' + task.id);
-            $subtaskItem.find('.subtask-name').text(task.name);
-            $subtaskItem.find('.subtask-qty').text('SL: ' + task.qtyCompleted + '/' + task.qtyRequest);
-            
-            // Calculate progress
-            const progress = task.qtyRequest > 0 ? Math.min(100, Math.round((task.qtyCompleted / task.qtyRequest) * 100)) : 0;
-            $subtaskItem.find('.subtask-progress-bar').css('width', progress + '%');
-            $subtaskItem.find('.subtask-progress-text').text(progress + '%');
-            
-            // Set status badge color
-            setStatusBadge($subtaskItem.find('.subtask-status-badge'), task.statusId);
-            
-            // Set images if available
-            if (task.sampleImage) {
-                const sampleImageUrl = `https://res.cloudinary.com/${cloudinaryName}/image/upload/w_80,h_80,q_auto,f_auto/uploads/${task.sampleImage}`;
-                $subtaskItem.find('.subtask-sample-image').attr('src', sampleImageUrl);
+    const $template = $('#subtask-item-template').html();
+    const $subtaskItem = $($.parseHTML($template));
+    
+    $subtaskItem.attr('data-task-id', task.id);
+    $subtaskItem.find('.subtask-id-badge').text('#' + task.id);
+    $subtaskItem.find('.subtask-name').text(task.name);
+    
+    // Hiển thị thông tin nhiệm vụ nếu có
+    if (task.missions && task.missions.length > 0) {
+        let missionsText = '';
+        task.missions.forEach((mission, index) => {
+            missionsText += `${mission.name}: ${mission.completed}/${mission.required}`;
+            if (index < task.missions.length - 1) {
+                missionsText += '<br>';
             }
-            
-            if (task.resultImage) {
-                const resultImageUrl = `https://res.cloudinary.com/${cloudinaryName}/image/upload/w_80,h_80,q_auto,f_auto/uploads/${task.resultImage}`;
-                $subtaskItem.find('.subtask-result-image').attr('src', resultImageUrl);
-            }
-            
-            // Configure action buttons based on task status
-            configureBulkActionButtons($subtaskItem, task, true);
-            
-            return $subtaskItem;
-        }
+        });
+        $subtaskItem.find('.subtask-qty').html(missionsText);
+    } else {
+        // Fallback về hiển thị SL tổng nếu không có thông tin nhiệm vụ
+        $subtaskItem.find('.subtask-qty').text('SL: ' + task.qtyCompleted + '/' + task.qtyRequest);
+    }
+    
+    // Calculate progress
+    const progress = task.qtyRequest > 0 ? Math.min(100, Math.round((task.qtyCompleted / task.qtyRequest) * 100)) : 0;
+    $subtaskItem.find('.subtask-progress-bar').css('width', progress + '%');
+    $subtaskItem.find('.subtask-progress-text').text(progress + '%');
+    
+    // Set status badge color
+    setStatusBadge($subtaskItem.find('.subtask-status-badge'), task.statusId);
+    
+    // Set images if available
+    if (task.sampleImage) {
+        $image = ''
+        $(task.sampleImage.split('|')).each((_, item) => {
+            $image += `
+            <img src="https://res.cloudinary.com/${cloudinaryName}/image/upload/w_80,h_80,q_auto,f_auto/uploads/${item}" alt="Ảnh mẫu" class="w-20 h-20 object-cover sample-image">
+            `;
+        })
+        $subtaskItem.find('.subtask-sample-image-container').html($image);
+    }
+    
+    if (task.resultImage) {
+        $image = ''
+        $(task.resultImage.split('|')).each((_, item) => {
+            $image += `
+            <img src="https://res.cloudinary.com/${cloudinaryName}/image/upload/w_80,h_80,q_auto,f_auto/uploads/${item}" alt="Ảnh mẫu" class="w-20 h-20 object-cover result-image">
+            `;
+        })
+        $subtaskItem.find('.subtask-result-image-container').html($image);
+    }
+    
+    // Configure action buttons based on task status
+    configureBulkActionButtons($subtaskItem, task, true);
+    
+    return $subtaskItem;
+}
 
         // Set status badge color and text based on status ID
         function setStatusBadge($badge, statusId) {
@@ -843,7 +837,9 @@
                         // Update task data
                         task.statusId = updatedTask.status_id;
                         task.qtyCompleted = updatedTask.qty_completed;
+                        task.qtyRequest = updatedTask.qty_request;
                         task.progress = updatedTask.progress;
+                        task.missions = updatedTask.missions || []; // Cập nhật thông tin nhiệm vụ
                         
                         // Calculate progress
                         const progress = task.progress;
@@ -853,8 +849,19 @@
                             // Update status badge
                             setStatusBadge($subtaskElement.find('.subtask-status-badge'), task.statusId);
                             
-                            // Update quantity
-                            $subtaskElement.find('.subtask-qty').text(`SL: ${task.qtyCompleted}/${task.qtyRequest}`);
+                            // Update mission information
+                            if (task.missions && task.missions.length > 0) {
+                                let missionsText = '';
+                                task.missions.forEach((mission, index) => {
+                                    missionsText += `${mission.name}: ${mission.completed}/${mission.required}`;
+                                    if (index < task.missions.length - 1) {
+                                        missionsText += '<br>';
+                                    }
+                                });
+                                $subtaskElement.find('.subtask-qty').html(missionsText);
+                            } else {
+                                $subtaskElement.find('.subtask-qty').text(`SL: ${task.qtyCompleted}/${task.qtyRequest}`);
+                            }
                             
                             // Update progress bar
                             $subtaskElement.find('.subtask-progress-bar').css('width', progress + '%');
@@ -863,23 +870,6 @@
                             // Configure buttons based on new status
                             configureBulkActionButtons($subtaskElement, task, true);
                         } 
-                        // If this is a task in the main bulk modal
-                        else {
-                            const $taskCard = $(`.task-card[data-task-id="${taskId}"]`);
-                            
-                            // Update status badge
-                            setStatusBadge($taskCard.find('.task-status-badge'), task.statusId);
-                            
-                            // Update quantity
-                            $taskCard.find('.task-qty').text(`SL: ${task.qtyCompleted}/${task.qtyRequest}`);
-                            
-                            // Update progress bar
-                            $taskCard.find('.task-progress-bar').css('width', progress + '%');
-                            $taskCard.find('.task-progress-text').text(progress + '%');
-                            
-                            // Configure buttons based on new status
-                            configureBulkActionButtons($taskCard, task);
-                        }
                         
                         // Update in the main table as well
                         const $tableRow = $(`.task-checkbox[data-task-id="${taskId}"]`).closest('tr');
@@ -925,6 +915,7 @@
                             const task = tasksData.get(parentId.toString());
                             task.statusId = parentTask.status_id;
                             task.progress = parentTask.progress;
+                            task.missions = parentTask.missions || []; 
                         }
                         
                         // Update parent in the main table
@@ -1031,7 +1022,7 @@
                                     <div class="grid grid-cols-1 gap-2">
                                         <div class="form-group">
                                             <label class="form-label text-sm">Số lượng báo cáo (tối đa: ${remaining})</label>
-                                            <input type="number" name="quantities[${assignment.id}]" class="input" min="1" max="${remaining}" value="1">
+                                            <input type="number" name="quantities[${assignment.id}]" class="input" min="0" max="${remaining}" value="0">
                                         </div>
                                         <div class="form-group">
                                             <label class="form-label text-sm">Ghi chú (nếu có)</label>
@@ -1180,7 +1171,8 @@
                     qtyCompleted: item.qty_completed,
                     qtyRequest: item.qty_request,
                     sampleImage: item.sample_image_id,
-                    resultImage: item.result_image_id
+                    resultImage: item.result_image_id,
+                    missions: item.missions || []
                 });
 
                 if (item.parent_id) {

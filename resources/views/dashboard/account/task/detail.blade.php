@@ -277,7 +277,7 @@
                         </div>
 
                         <!-- PHẦN 3: DANH SÁCH FEEDBACK (nếu là công việc hợp đồng) -->
-                        @if ($details['type'] == 'CONTRACT')
+                        {{--@if ($details['type'] == 'CONTRACT')
                         <div class="menu-separator simple"></div>
                         <div class="flex flex-col gap-2.5">
                             <div class="flex items-center justify-between">
@@ -297,7 +297,7 @@
                                 <div class="text-center text-gray-500 py-3">Đang tải...</div>
                             </div>
                         </div>
-                        @endif
+                        @endif--}}
 
                         <!-- PHẦN 4: DANH SÁCH CÔNG VIỆC DỊCH VỤ (nếu là công việc hợp đồng) -->
                         @if ($details['type'] == 'CONTRACT' && isset($details['service_tasks']))
