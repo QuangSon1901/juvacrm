@@ -93,7 +93,7 @@
                                                                 $icon = '<i class="ki-filled ki-check-circle text-success me-1"></i>';
                                                                 break;
                                                             case 'assign':
-                                                                $icon = '<i class="ki-filled ki-send text-primary me-1"></i>';
+                                                                $icon = '<i class="ki-filled ki-user-tick text-primary me-1"></i>';
                                                                 break;
                                                             case 'configure':
                                                                 $icon = '<i class="ki-filled ki-setting-2 text-info me-1"></i>';
@@ -330,9 +330,7 @@
         // Save permissions
         $('#save-permissions').on('click', async function(e) {
             e.preventDefault();
-            
-            Notiflix.Block.dots('#permissions-form', 'Đang lưu quyền...');
-            
+            Notiflix.Loading.circle('Đang lưu quyền...');
             let permissions = [];
             $('input[name="permissions[]"]:checked').each(function() {
                 permissions.push($(this).val());
@@ -346,16 +344,16 @@
                     { permissions: permissions }
                 );
                 
-                Notiflix.Block.remove('#permissions-form');
+                Notiflix.Loading.remove();
                 
                 if (res.data.status === 200) {
-                    Notiflix.Notify.success(res.data.message);
+                    showAlert('success', res.data.message);
                 } else {
-                    Notiflix.Notify.warning(res.data.message || "Đã có lỗi xảy ra khi lưu quyền!");
+                    showAlert('warning', res.data.message || "Đã có lỗi xảy ra khi lưu quyền!");
                 }
             } catch (error) {
-                Notiflix.Block.remove('#permissions-form');
-                Notiflix.Notify.failure("Đã có lỗi xảy ra khi lưu quyền!");
+                Notiflix.Loading.remove();
+                showAlert('error', "Đã có lỗi xảy ra khi lưu quyền!");
                 console.error(error);
             }
         });
