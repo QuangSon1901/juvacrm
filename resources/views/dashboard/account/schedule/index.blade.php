@@ -83,10 +83,12 @@
                     Lịch làm việc
                 </h3>
                 <div class="flex flex-wrap gap-2">
-                    <button class="btn btn-primary btn-sm" data-modal-toggle="#create-schedule-modal">
-                        <i class="ki-filled ki-plus me-1"></i>
-                        Tạo lịch làm việc
-                    </button>
+                @if(hasPermission('create-schedule'))
+<button class="btn btn-primary btn-sm" data-modal-toggle="#create-schedule-modal">
+    <i class="ki-filled ki-plus me-1"></i>
+    Tạo lịch làm việc
+</button>
+@endif
                 </div>
             </div>
             <div class="card-body !p-5">

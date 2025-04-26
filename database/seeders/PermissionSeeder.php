@@ -14,241 +14,126 @@ class PermissionSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('tbl_permissions')->insert([
-            [
-                'id' => 1,
-                'name' => 'View Dashboard',
-                'slug' => 'view-dashboard',
-                'description' => 'Quyền view dashboard',
-                'module' => 'Dashboard',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 2,
-                'name' => 'View Member',
-                'slug' => 'view-member',
-                'description' => 'Quyền view member',
-                'module' => 'Member',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Create Member',
-                'slug' => 'create-member',
-                'description' => 'Quyền create member',
-                'module' => 'Member',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 4,
-                'name' => 'Edit Member',
-                'slug' => 'edit-member',
-                'description' => 'Quyền edit member',
-                'module' => 'Member',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 5,
-                'name' => 'Delete Member',
-                'slug' => 'delete-member',
-                'description' => 'Quyền delete member',
-                'module' => 'Member',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 6,
-                'name' => 'View Team',
-                'slug' => 'view-team',
-                'description' => 'Quyền view team',
-                'module' => 'Team',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 7,
-                'name' => 'Create Team',
-                'slug' => 'create-team',
-                'description' => 'Quyền create team',
-                'module' => 'Team',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 8,
-                'name' => 'Edit Team',
-                'slug' => 'edit-team',
-                'description' => 'Quyền edit team',
-                'module' => 'Team',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 9,
-                'name' => 'Delete Team',
-                'slug' => 'delete-team',
-                'description' => 'Quyền delete team',
-                'module' => 'Team',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 10,
-                'name' => 'View Role',
-                'slug' => 'view-role',
-                'description' => 'Quyền view role',
-                'module' => 'Role',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 11,
-                'name' => 'Edit Role',
-                'slug' => 'edit-role',
-                'description' => 'Quyền edit role',
-                'module' => 'Role',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 12,
-                'name' => 'View Task',
-                'slug' => 'view-task',
-                'description' => 'Quyền view task',
-                'module' => 'Task',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 13,
-                'name' => 'Create Task',
-                'slug' => 'create-task',
-                'description' => 'Quyền create task',
-                'module' => 'Task',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 14,
-                'name' => 'Edit Task',
-                'slug' => 'edit-task',
-                'description' => 'Quyền edit task',
-                'module' => 'Task',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 15,
-                'name' => 'Delete Task',
-                'slug' => 'delete-task',
-                'description' => 'Quyền delete task',
-                'module' => 'Task',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 16,
-                'name' => 'Assign Task',
-                'slug' => 'assign-task',
-                'description' => 'Quyền assign task',
-                'module' => 'Task',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 17,
-                'name' => 'View Customer',
-                'slug' => 'view-customer',
-                'description' => 'Quyền view customer',
-                'module' => 'Customer',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 18,
-                'name' => 'Create Customer',
-                'slug' => 'create-customer',
-                'description' => 'Quyền create customer',
-                'module' => 'Customer',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 19,
-                'name' => 'Edit Customer',
-                'slug' => 'edit-customer',
-                'description' => 'Quyền edit customer',
-                'module' => 'Customer',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 20,
-                'name' => 'Delete Customer',
-                'slug' => 'delete-customer',
-                'description' => 'Quyền delete customer',
-                'module' => 'Customer',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 21,
-                'name' => 'Support Customer',
-                'slug' => 'support-customer',
-                'description' => 'Quyền support customer',
-                'module' => 'Customer',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 22,
-                'name' => 'View Contract',
-                'slug' => 'view-contract',
-                'description' => 'Quyền view contract',
-                'module' => 'Contract',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 23,
-                'name' => 'Create Contract',
-                'slug' => 'create-contract',
-                'description' => 'Quyền create contract',
-                'module' => 'Contract',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 24,
-                'name' => 'Edit Contract',
-                'slug' => 'edit-contract',
-                'description' => 'Quyền edit contract',
-                'module' => 'Contract',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 25,
-                'name' => 'Delete Contract',
-                'slug' => 'delete-contract',
-                'description' => 'Quyền delete contract',
-                'module' => 'Contract',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ],
-            [
-                'id' => 26,
-                'name' => 'Approve Contract',
-                'slug' => 'approve-contract',
-                'description' => 'Quyền approve contract',
-                'module' => 'Contract',
-                'created_at' => '2025-04-25 07:57:35',
-                'updated_at' => '2025-04-25 07:57:35'
-            ]
-        ]);
+        $permissions = [
+            // Dashboard permissions
+            ['name' => 'View Dashboard', 'slug' => 'view-dashboard', 'description' => 'Quyền xem dashboard', 'module' => 'Dashboard'],
+            
+            // Member permissions
+            ['name' => 'View Member', 'slug' => 'view-member', 'description' => 'Quyền xem thành viên', 'module' => 'Member'],
+            ['name' => 'Create Member', 'slug' => 'create-member', 'description' => 'Quyền tạo thành viên', 'module' => 'Member'],
+            ['name' => 'Edit Member', 'slug' => 'edit-member', 'description' => 'Quyền chỉnh sửa thành viên', 'module' => 'Member'],
+            ['name' => 'Delete Member', 'slug' => 'delete-member', 'description' => 'Quyền xóa thành viên', 'module' => 'Member'],
+            
+            // Team permissions
+            ['name' => 'View Team', 'slug' => 'view-team', 'description' => 'Quyền xem nhóm', 'module' => 'Team'],
+            ['name' => 'Create Team', 'slug' => 'create-team', 'description' => 'Quyền tạo nhóm', 'module' => 'Team'],
+            ['name' => 'Edit Team', 'slug' => 'edit-team', 'description' => 'Quyền chỉnh sửa nhóm', 'module' => 'Team'],
+            ['name' => 'Delete Team', 'slug' => 'delete-team', 'description' => 'Quyền xóa nhóm', 'module' => 'Team'],
+            
+            // Role permissions
+            ['name' => 'View Role', 'slug' => 'view-role', 'description' => 'Quyền xem vai trò', 'module' => 'Role'],
+            ['name' => 'Edit Role', 'slug' => 'edit-role', 'description' => 'Quyền phân quyền', 'module' => 'Role'],
+            
+            // Task permissions
+            ['name' => 'View Task', 'slug' => 'view-task', 'description' => 'Quyền xem công việc', 'module' => 'Task'],
+            ['name' => 'Create Task', 'slug' => 'create-task', 'description' => 'Quyền tạo công việc', 'module' => 'Task'],
+            ['name' => 'Edit Task', 'slug' => 'edit-task', 'description' => 'Quyền chỉnh sửa công việc', 'module' => 'Task'],
+            ['name' => 'Delete Task', 'slug' => 'delete-task', 'description' => 'Quyền xóa công việc', 'module' => 'Task'],
+            ['name' => 'Assign Task', 'slug' => 'assign-task', 'description' => 'Quyền gán công việc', 'module' => 'Task'],
+            
+            // Customer permissions
+            ['name' => 'View Customer', 'slug' => 'view-customer', 'description' => 'Quyền xem khách hàng', 'module' => 'Customer'],
+            ['name' => 'Create Customer', 'slug' => 'create-customer', 'description' => 'Quyền tạo khách hàng', 'module' => 'Customer'],
+            ['name' => 'Edit Customer', 'slug' => 'edit-customer', 'description' => 'Quyền chỉnh sửa khách hàng', 'module' => 'Customer'],
+            ['name' => 'Delete Customer', 'slug' => 'delete-customer', 'description' => 'Quyền xóa khách hàng', 'module' => 'Customer'],
+            ['name' => 'Support Customer', 'slug' => 'support-customer', 'description' => 'Quyền hỗ trợ khách hàng', 'module' => 'Customer'],
+            
+            // Contract permissions
+            ['name' => 'View Contract', 'slug' => 'view-contract', 'description' => 'Quyền xem hợp đồng', 'module' => 'Contract'],
+            ['name' => 'Create Contract', 'slug' => 'create-contract', 'description' => 'Quyền tạo hợp đồng', 'module' => 'Contract'],
+            ['name' => 'Edit Contract', 'slug' => 'edit-contract', 'description' => 'Quyền chỉnh sửa hợp đồng', 'module' => 'Contract'],
+            ['name' => 'Delete Contract', 'slug' => 'delete-contract', 'description' => 'Quyền xóa hợp đồng', 'module' => 'Contract'],
+            ['name' => 'Approve Contract', 'slug' => 'approve-contract', 'description' => 'Quyền duyệt hợp đồng', 'module' => 'Contract'],
+            
+            // Timekeeping permissions
+            ['name' => 'View Timekeeping', 'slug' => 'view-timekeeping', 'description' => 'Quyền xem chấm công', 'module' => 'Timekeeping'],
+            ['name' => 'Edit Timekeeping', 'slug' => 'edit-timekeeping', 'description' => 'Quyền sửa chấm công', 'module' => 'Timekeeping'],
+            ['name' => 'Approve Timekeeping', 'slug' => 'approve-timekeeping', 'description' => 'Quyền duyệt chấm công', 'module' => 'Timekeeping'],
+            
+            // Schedule permissions
+            ['name' => 'View Schedule', 'slug' => 'view-schedule', 'description' => 'Quyền xem lịch làm việc', 'module' => 'Schedule'],
+            ['name' => 'Create Schedule', 'slug' => 'create-schedule', 'description' => 'Quyền tạo lịch làm việc', 'module' => 'Schedule'],
+            ['name' => 'Edit Schedule', 'slug' => 'edit-schedule', 'description' => 'Quyền sửa lịch làm việc', 'module' => 'Schedule'],
+            ['name' => 'Approve Schedule', 'slug' => 'approve-schedule', 'description' => 'Quyền duyệt lịch làm việc', 'module' => 'Schedule'],
+            
+            // Salary permissions
+            ['name' => 'View Salary', 'slug' => 'view-salary', 'description' => 'Quyền xem lương', 'module' => 'Salary'],
+            ['name' => 'Edit Salary', 'slug' => 'edit-salary', 'description' => 'Quyền sửa lương', 'module' => 'Salary'],
+            ['name' => 'Approve Salary', 'slug' => 'approve-salary', 'description' => 'Quyền duyệt lương', 'module' => 'Salary'],
+            ['name' => 'Configure Salary', 'slug' => 'configure-salary', 'description' => 'Quyền cấu hình lương', 'module' => 'Salary'],
+            
+            // Accounting permissions
+            ['name' => 'View Transaction', 'slug' => 'view-transaction', 'description' => 'Quyền xem giao dịch', 'module' => 'Accounting'],
+            ['name' => 'Create Transaction', 'slug' => 'create-transaction', 'description' => 'Quyền tạo giao dịch', 'module' => 'Accounting'],
+            ['name' => 'Edit Transaction', 'slug' => 'edit-transaction', 'description' => 'Quyền sửa giao dịch', 'module' => 'Accounting'],
+            ['name' => 'Delete Transaction', 'slug' => 'delete-transaction', 'description' => 'Quyền xóa giao dịch', 'module' => 'Accounting'],
+            ['name' => 'View Report', 'slug' => 'view-report', 'description' => 'Quyền xem báo cáo', 'module' => 'Accounting'],
+            
+            // Service permissions
+            ['name' => 'View Service', 'slug' => 'view-service', 'description' => 'Quyền xem dịch vụ', 'module' => 'Service'],
+            ['name' => 'Create Service', 'slug' => 'create-service', 'description' => 'Quyền tạo dịch vụ', 'module' => 'Service'],
+            ['name' => 'Edit Service', 'slug' => 'edit-service', 'description' => 'Quyền sửa dịch vụ', 'module' => 'Service'],
+            ['name' => 'Delete Service', 'slug' => 'delete-service', 'description' => 'Quyền xóa dịch vụ', 'module' => 'Service'],
+            
+            // Setting permissions
+            ['name' => 'View Setting', 'slug' => 'view-setting', 'description' => 'Quyền xem cài đặt', 'module' => 'Setting'],
+            ['name' => 'Edit Setting', 'slug' => 'edit-setting', 'description' => 'Quyền sửa cài đặt', 'module' => 'Setting'],
+        ];
+
+        // Insert permissions
+        foreach ($permissions as $permission) {
+            // Don't insert duplicates
+            $exists = DB::table('tbl_permissions')
+                ->where('slug', $permission['slug'])
+                ->exists();
+                
+            if (!$exists) {
+                DB::table('tbl_permissions')->insert([
+                    'name' => $permission['name'],
+                    'slug' => $permission['slug'],
+                    'description' => $permission['description'],
+                    'module' => $permission['module'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+        
+        // Default permissions for Owner/Admin role
+        $adminLevelId = 1; // Assume level ID 1 is Admin/Owner
+        $ownerDepartmentId = 1; // Assume department ID 1 is Owner department
+        
+        // Get all permission IDs
+        $permissionIds = DB::table('tbl_permissions')->pluck('id')->toArray();
+        
+        // Assign all permissions to Owner/Admin
+        foreach ($permissionIds as $permissionId) {
+            // Don't insert duplicates
+            $exists = DB::table('tbl_role_permissions')
+                ->where('level_id', $adminLevelId)
+                ->where('department_id', $ownerDepartmentId)
+                ->where('permission_id', $permissionId)
+                ->exists();
+                
+            if (!$exists) {
+                DB::table('tbl_role_permissions')->insert([
+                    'level_id' => $adminLevelId,
+                    'department_id' => $ownerDepartmentId,
+                    'permission_id' => $permissionId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
     }
 }

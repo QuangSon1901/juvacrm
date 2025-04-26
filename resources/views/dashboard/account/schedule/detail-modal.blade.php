@@ -55,7 +55,7 @@
     </div>
     @endif
     
-    @if($schedule->status == 'pending')
+    @if(hasPermission('approve-schedule') && $schedule->status == 'pending')
     <div class="grid grid-cols-2 gap-4 mt-4">
         <button class="btn btn-success" onclick="approveSchedule({{ $schedule->id }})">
             <i class="ki-filled ki-check me-2"></i>Duyệt lịch

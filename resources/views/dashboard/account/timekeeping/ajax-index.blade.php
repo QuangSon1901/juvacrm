@@ -42,6 +42,7 @@
     </td>
     <td>{{ $item['note'] }}</td>
     <td>
+    @if(hasPermission('edit-timekeeping'))
         <div class="menu" data-menu="true">
             <div class="menu-item" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
                 <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
@@ -61,6 +62,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </td>
 </tr>
 @endforeach

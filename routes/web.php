@@ -181,32 +181,43 @@ Route::group(
                 Route::group(
                     ['namespace' => 'Team', 'as' => 'team.', 'middleware' => []],
                     function () {
-                        Route::get('/team', [TeamController::class, "index"])->name("team");
-                        Route::get('/team/data', [TeamController::class, "data"])->name("data");
-                        Route::get('/team/employee-by-department/{id}', [TeamController::class, "employeeByDepartment"])->name("employeeByDepartment");
-                        Route::get('/team/create', [TeamController::class, "create"])->name("create");
-                        Route::post('/team/create', [TeamController::class, "createPost"])->name("createPost");
-                        Route::post('/team/change-status/{id}', [TeamController::class, "changeStatus"])->name("changeStatus");
-
-                        Route::get('/team/add-member/{id}', [TeamController::class, "addMemberView"])->name("addMemberView");
-                        Route::post('/team/add-member', [TeamController::class, "addMemberSave"])->name("addMemberSave");
-                        Route::post('/team/remove-member', [TeamController::class, 'removeMember']);
-
-                        Route::post('/team/update', [TeamController::class, 'update']);
-
-                        Route::get('/team/{id}', [TeamController::class, "detail"])->name("detail");
+                        Route::group(['middleware' => ['permission:view-team']], function () {
+                            Route::get('/team', [TeamController::class, "index"])->name("team");
+                            Route::get('/team/data', [TeamController::class, "data"])->name("data");
+                            Route::get('/team/employee-by-department/{id}', [TeamController::class, "employeeByDepartment"])->name("employeeByDepartment");
+                            Route::get('/team/{id}', [TeamController::class, "detail"])->name("detail");
+                        });
+                        
+                        Route::group(['middleware' => ['permission:create-team']], function () {
+                            Route::get('/team/create', [TeamController::class, "create"])->name("create");
+                            Route::post('/team/create', [TeamController::class, "createPost"])->name("createPost");
+                            Route::get('/team/add-member/{id}', [TeamController::class, "addMemberView"])->name("addMemberView");
+                            Route::post('/team/add-member', [TeamController::class, "addMemberSave"])->name("addMemberSave");
+                        });
+                        
+                        Route::group(['middleware' => ['permission:edit-team']], function () {
+                            Route::post('/team/change-status/{id}', [TeamController::class, "changeStatus"])->name("changeStatus");
+                            Route::post('/team/update', [TeamController::class, 'update']);
+                        });
+                        
+                        Route::group(['middleware' => ['permission:delete-team']], function () {
+                            Route::post('/team/remove-member', [TeamController::class, 'removeMember']);
+                        });
                     }
                 );
 
                 Route::group(
                     ['namespace' => 'Role', 'as' => 'role.', 'middleware' => []],
                     function () {
-                        Route::get('/role/{level_id}/{department_id}', [RoleController::class, "detail"])->name("detail");
-                        Route::get('/role/employee-in-role', [RoleController::class, "memberInRole"])->name("memberInRole");
+                        Route::group(['middleware' => ['permission:view-role']], function () {
+                            Route::get('/role/{level_id}/{department_id}', [RoleController::class, "detail"])->name("detail");
+                            Route::get('/role/employee-in-role', [RoleController::class, "memberInRole"])->name("memberInRole");
+                        });
                         
-                        // Thêm routes mới
-                        Route::get('/role/{level_id}/{department_id}/permissions', [RoleController::class, "getPermissions"])->name("permissions");
-                        Route::post('/role/{level_id}/{department_id}/permissions', [RoleController::class, "savePermissions"])->name("savePermissions");
+                        Route::group(['middleware' => ['permission:edit-role']], function () {
+                            Route::get('/role/{level_id}/{department_id}/permissions', [RoleController::class, "getPermissions"])->name("permissions");
+                            Route::post('/role/{level_id}/{department_id}/permissions', [RoleController::class, "savePermissions"])->name("savePermissions");
+                        });
                     }
                 );
 
@@ -236,56 +247,76 @@ Route::group(
                 Route::group(
                     ['namespace' => 'TimeKeeping', 'as' => 'timekeeping.', 'middleware' => []],
                     function () {
-                        // Route::get('/timekeeping', [TimeKeepingController::class, "index"])->name("timekeeping");
-                        Route::get('/account/timekeeping', [AttendanceController::class, "timekeeping"])->name("timekeeping");
-                        Route::get('/account/timekeeping/data', [AttendanceController::class, "attendanceData"])->name("data");
-                        Route::post('/account/timekeeping/update', [AttendanceController::class, "updateAttendance"])->name("update");
+                        Route::group(['middleware' => ['permission:view-timekeeping']], function () {
+                            Route::get('/account/timekeeping', [AttendanceController::class, "timekeeping"])->name("timekeeping");
+                            Route::get('/account/timekeeping/data', [AttendanceController::class, "attendanceData"])->name("data");
+                            Route::get('/account/timekeeping/check-in-out', [AttendanceController::class, "checkInOut"])->name("check-in-out");
+                        });
                         
-                        Route::get('/account/timekeeping/check-in-out', [AttendanceController::class, "checkInOut"])->name("check-in-out");
                         Route::post('/account/timekeeping/do-check-in', [AttendanceController::class, "doCheckIn"])->name("do-check-in");
                         Route::post('/account/timekeeping/do-check-out', [AttendanceController::class, "doCheckOut"])->name("do-check-out");
+                        
+                        Route::group(['middleware' => ['permission:edit-timekeeping']], function () {
+                            Route::post('/account/timekeeping/update', [AttendanceController::class, "updateAttendance"])->name("update");
+                        });
                     }
                 );
 
                 Route::group(
                     ['namespace' => 'Schedule', 'as' => 'schedule.', 'middleware' => []],
                     function () {
-                        Route::get('/account/schedule', [ScheduleController::class, "schedule"])->name("schedule");
-                        Route::get('/account/schedule/data', [ScheduleController::class, "scheduleData"])->name("data");
-                        Route::post('/account/schedule/create', [ScheduleController::class, "createSchedule"])->name("create");
-                        Route::post('/account/schedule/update-status', [ScheduleController::class, "updateScheduleStatus"])->name("update-status");
+                        Route::group(['middleware' => ['permission:view-schedule']], function () {
+                            Route::get('/account/schedule', [ScheduleController::class, "schedule"])->name("schedule");
+                            Route::get('/account/schedule/data', [ScheduleController::class, "scheduleData"])->name("data");
+                            Route::get('/account/schedule/part-time', [ScheduleController::class, "partTime"])->name("part-time");
+                            Route::get('/account/schedule/statistics', [ScheduleController::class, "getStatistics"])->name("statistics");
+                            Route::get('/account/schedule/users-list', [ScheduleController::class, "getUsersList"])->name("users-list");
+                            Route::get('/account/schedule/calendar-data', [ScheduleController::class, "getCalendarData"])->name("calendar-data");
+                            Route::get('/account/schedule/{id}/detail', [ScheduleController::class, "getScheduleDetail"])->name("detail");
+                            Route::get('/account/schedule/{id}/edit', [ScheduleController::class, "getScheduleEdit"])->name("edit");
+                        });
                         
-                        Route::get('/account/schedule/part-time', [ScheduleController::class, "partTime"])->name("part-time");
-                        Route::get('/account/schedule/statistics', [ScheduleController::class, "getStatistics"])->name("statistics");
-                        Route::get('/account/schedule/users-list', [ScheduleController::class, "getUsersList"])->name("users-list");
-                        Route::get('/account/schedule/calendar-data', [ScheduleController::class, "getCalendarData"])->name("calendar-data");
-                        Route::post('/account/schedule/cancel', [ScheduleController::class, "cancelSchedule"])->name("cancel");
-                        Route::post('/account/schedule/delete', [ScheduleController::class, "deleteSchedule"])->name("delete");
-                        Route::get('/account/schedule/{id}/detail', [ScheduleController::class, "getScheduleDetail"])->name("detail");
-                        Route::get('/account/schedule/{id}/edit', [ScheduleController::class, "getScheduleEdit"])->name("edit");
+                        Route::group(['middleware' => ['permission:create-schedule']], function () {
+                            Route::post('/account/schedule/create', [ScheduleController::class, "createSchedule"])->name("create");
+                        });
+                        
+                        Route::group(['middleware' => ['permission:edit-schedule']], function () {
+                            Route::post('/account/schedule/delete', [ScheduleController::class, "deleteSchedule"])->name("delete");
+                            Route::post('/account/schedule/cancel', [ScheduleController::class, "cancelSchedule"])->name("cancel");
+                        });
+                        
+                        Route::group(['middleware' => ['permission:approve-schedule']], function () {
+                            Route::post('/account/schedule/update-status', [ScheduleController::class, "updateScheduleStatus"])->name("update-status");
+                        });
                     }
                 );
 
                 Route::group(
                     ['namespace' => 'Salary', 'as' => 'salary.', 'middleware' => []],
                     function () {
-                        // Cấu hình tính lương
-                        Route::get('/account/configuration', [SalaryConfigurationController::class, "index"])->name("configuration");
-                        Route::get('/account/user-config', [SalaryConfigurationController::class, "getUserConfig"])->name("user-config");
-                        Route::post('/account/salary/save-config', [SalaryConfigurationController::class, "saveConfig"])->name("save-config");
+                        Route::group(['middleware' => ['permission:view-salary']], function () {
+                            Route::get('/account/salary/payroll', [SalaryController::class, "payroll"])->name("payroll");
+                            Route::get('/account/salary/payroll-data', [SalaryController::class, "payrollData"])->name("payroll-data");
+                            Route::get('/account/salary/advance', [SalaryAdvanceController::class, "index"])->name("advance");
+                            Route::get('/account/salary/advance-data', [SalaryAdvanceController::class, "advanceData"])->name("advance-data");
+                        });
                         
-                        // Bảng lương nhân viên
-                        Route::get('/account/salary/payroll', [SalaryController::class, "payroll"])->name("payroll");
-                        Route::get('/account/salary/payroll-data', [SalaryController::class, "payrollData"])->name("payroll-data");
-                        Route::get('/account/salary/calculate', [SalaryController::class, "calculateSalary"])->name("calculate");
-                        Route::post('/account/salary/save-salary', [SalaryController::class, "saveSalary"])->name("save-salary");
-                        Route::post('/account/salary/process-salary', [SalaryController::class, "processSalary"])->name("process-salary");
+                        Route::group(['middleware' => ['permission:edit-salary']], function () {
+                            Route::get('/account/salary/calculate', [SalaryController::class, "calculateSalary"])->name("calculate");
+                            Route::post('/account/salary/save-salary', [SalaryController::class, "saveSalary"])->name("save-salary");
+                            Route::post('/account/salary/create-advance', [SalaryAdvanceController::class, "createAdvance"])->name("create-advance");
+                        });
                         
-                        // Tạm ứng lương
-                        Route::get('/account/salary/advance', [SalaryAdvanceController::class, "index"])->name("advance");
-                        Route::get('/account/salary/advance-data', [SalaryAdvanceController::class, "advanceData"])->name("advance-data");
-                        Route::post('/account/salary/create-advance', [SalaryAdvanceController::class, "createAdvance"])->name("create-advance");
-                        Route::post('/account/salary/update-advance-status', [SalaryAdvanceController::class, "updateAdvanceStatus"])->name("update-advance-status");
+                        Route::group(['middleware' => ['permission:approve-salary']], function () {
+                            Route::post('/account/salary/process-salary', [SalaryController::class, "processSalary"])->name("process-salary");
+                            Route::post('/account/salary/update-advance-status', [SalaryAdvanceController::class, "updateAdvanceStatus"])->name("update-advance-status");
+                        });
+                        
+                        Route::group(['middleware' => ['permission:configure-salary']], function () {
+                            Route::get('/account/configuration', [SalaryConfigurationController::class, "index"])->name("configuration");
+                            Route::get('/account/user-config', [SalaryConfigurationController::class, "getUserConfig"])->name("user-config");
+                            Route::post('/account/salary/save-config', [SalaryConfigurationController::class, "saveConfig"])->name("save-config");
+                        });
                     }
                 );
 

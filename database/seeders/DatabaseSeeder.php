@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             CustomerLeadSeeder::class,
             PaymentMethodSeeder::class,
             PermissionSeeder::class,
+            RoleSeeder::class,
             ProductSeeder::class,
             ServiceCategorySeeder::class,
             ServiceSeeder::class,

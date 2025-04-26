@@ -10,6 +10,7 @@ use App\Models\RolePermission;
 use App\Models\UserDepartment;
 use App\Services\PaginationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class RoleController extends Controller
 {
@@ -114,6 +115,11 @@ class RoleController extends Controller
 
             // Thêm quyền mới
             $permissions = $request->input('permissions', []);
+            $permissionCount = count($permissions);
+            
+            // Log hành động
+            Log::info("Cập nhật phân quyền cho chức vụ {$level->name} của phòng ban {$department->name}: {$permissionCount} quyền");
+            
             foreach ($permissions as $permissionId) {
                 RolePermission::create([
                     'level_id' => $level_id,
@@ -124,9 +130,10 @@ class RoleController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Phân quyền thành công!',
+                'message' => "Phân quyền thành công! Đã cấp {$permissionCount} quyền cho chức vụ {$level->name}.",
             ]);
         } catch (\Exception $e) {
+            Log::error("Lỗi khi phân quyền cho chức vụ {$level->name} của phòng ban {$department->name}: " . $e->getMessage());
             return response()->json([
                 'status' => 500,
                 'message' => 'Đã xảy ra lỗi khi phân quyền: ' . $e->getMessage()

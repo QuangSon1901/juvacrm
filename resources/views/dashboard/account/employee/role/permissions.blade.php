@@ -11,147 +11,284 @@
 </div>
 <div class="container-fixed">
     <div class="grid gap-5">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    Phân quyền
-                </h3>
+        <!-- Quick actions buttons -->
+        <div class="flex justify-end gap-3">
+            <button class="btn btn-sm btn-light" id="select-all-permissions">
+                <i class="ki-duotone ki-check-circle fs-2"></i> Chọn tất cả
+            </button>
+            <button class="btn btn-sm btn-light" id="unselect-all-permissions">
+                <i class="ki-duotone ki-cross-circle fs-2"></i> Bỏ chọn tất cả
+            </button>
+        </div>
+
+        <form id="permissions-form">
+            <!-- Overall progress -->
+            <div class="card mb-5">
+                <div class="card-body">
+                    <h3 class="card-title mb-3">Tổng quan phân quyền</h3>
+                    <div class="progress h-5px mb-3">
+                        <div class="progress-bar bg-primary" role="progressbar" id="permission-progress-bar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted fs-7">Số quyền đã chọn: <span id="selected-count">0</span>/<span id="total-count">0</span></span>
+                        <span class="text-muted fs-7">Tỷ lệ: <span id="selected-percentage">0%</span></span>
+                    </div>
+                </div>
             </div>
-            <div class="card-table scrollable-x-auto">
-                <form id="permissions-form">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th class="text-left text-gray-300 font-normal min-w-[300px]">
-                                    Mô-đun
-                                </th>
-                                <th class="min-w-24 text-gray-700 font-normal text-center">
-                                    Xem
-                                </th>
-                                <th class="min-w-24 text-gray-700 font-normal text-center">
-                                    Thêm
-                                </th>
-                                <th class="min-w-24 text-gray-700 font-normal text-center">
-                                    Chỉnh sửa
-                                </th>
-                                <th class="min-w-24 text-gray-700 font-normal text-center">
-                                    Xoá
-                                </th>
-                                <th class="min-w-24 text-gray-700 font-normal text-center">
-                                    Khác
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-900 font-medium">
-                            @foreach ($permissions as $module => $modulePermissions)
-                            <tr>
-                                <td class="!py-5.5">
-                                    {{ $module }}
-                                </td>
-                                <td class="!py-5.5 text-center">
-                                    @if($viewPerm = $modulePermissions->firstWhere('slug', 'like', 'view-' . strtolower($module)))
-                                        <input {{ in_array($viewPerm->id, $assignedPermissions) ? 'checked' : '' }} 
-                                               class="checkbox checkbox-sm" 
-                                               name="permissions[]" 
-                                               type="checkbox" 
-                                               value="{{ $viewPerm->id }}">
-                                    @endif
-                                </td>
-                                <td class="!py-5.5 text-center">
-                                    @if($createPerm = $modulePermissions->firstWhere('slug', 'like', 'create-' . strtolower($module)))
-                                        <input {{ in_array($createPerm->id, $assignedPermissions) ? 'checked' : '' }} 
-                                               class="checkbox checkbox-sm" 
-                                               name="permissions[]" 
-                                               type="checkbox" 
-                                               value="{{ $createPerm->id }}">
-                                    @endif
-                                </td>
-                                <td class="!py-5.5 text-center">
-                                    @if($editPerm = $modulePermissions->firstWhere('slug', 'like', 'edit-' . strtolower($module)))
-                                        <input {{ in_array($editPerm->id, $assignedPermissions) ? 'checked' : '' }} 
-                                               class="checkbox checkbox-sm" 
-                                               name="permissions[]" 
-                                               type="checkbox" 
-                                               value="{{ $editPerm->id }}">
-                                    @endif
-                                </td>
-                                <td class="!py-5.5 text-center">
-                                    @if($deletePerm = $modulePermissions->firstWhere('slug', 'like', 'delete-' . strtolower($module)))
-                                        <input {{ in_array($deletePerm->id, $assignedPermissions) ? 'checked' : '' }} 
-                                               class="checkbox checkbox-sm" 
-                                               name="permissions[]" 
-                                               type="checkbox" 
-                                               value="{{ $deletePerm->id }}">
-                                    @endif
-                                </td>
-                                <td class="!py-5.5 text-center">
-                                    @foreach($modulePermissions->filter(function($item) use ($module) {
-                                        return !in_array(explode('-', $item->slug)[0], ['view', 'create', 'edit', 'delete']);
-                                    }) as $otherPerm)
-                                        <div class="flex items-center gap-2 mb-2">
-                                            <input {{ in_array($otherPerm->id, $assignedPermissions) ? 'checked' : '' }} 
-                                                   class="checkbox checkbox-sm" 
-                                                   name="permissions[]" 
-                                                   type="checkbox" 
-                                                   value="{{ $otherPerm->id }}">
-                                            <span class="text-xs">{{ ucfirst(explode('-', $otherPerm->slug)[0]) }}</span>
-                                        </div>
-                                    @endforeach
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </form>
+
+            @foreach ($permissions as $module => $modulePermissions)
+            <div class="card mb-5">
+                <div class="card-header d-flex align-items-center">
+                    <h3 class="card-title flex-grow-1">{{ $module }}</h3>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-light select-module" data-module="{{ $module }}">
+                            <i class="ki-duotone ki-check fs-2"></i> Chọn module này
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light unselect-module" data-module="{{ $module }}">
+                            <i class="ki-duotone ki-cross fs-2"></i> Bỏ chọn
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <!-- CRUD permissions -->
+                        <div class="col-md-6">
+                            <h4 class="mb-3 fs-6 fw-semibold">Quyền cơ bản</h4>
+                            <div class="d-flex flex-column gap-3">
+                                @if($viewPerm = $modulePermissions->firstWhere('slug', 'like', 'view-' . strtolower($module)))
+                                <div class="form-check form-check-custom form-check-solid">
+                                    <input class="form-check-input module-{{ $module }}" type="checkbox" 
+                                           name="permissions[]" value="{{ $viewPerm->id }}"
+                                           id="perm_{{ $viewPerm->id }}"
+                                           {{ in_array($viewPerm->id, $assignedPermissions) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="perm_{{ $viewPerm->id }}">
+                                        <i class="ki-duotone ki-eye text-primary me-2"></i> Xem {{ $module }}
+                                        <small class="d-block text-muted">{{ $viewPerm->description }}</small>
+                                    </label>
+                                </div>
+                                @endif
+
+                                @if($createPerm = $modulePermissions->firstWhere('slug', 'like', 'create-' . strtolower($module)))
+                                <div class="form-check form-check-custom form-check-solid">
+                                    <input class="form-check-input module-{{ $module }}" type="checkbox" 
+                                           name="permissions[]" value="{{ $createPerm->id }}"
+                                           id="perm_{{ $createPerm->id }}"
+                                           data-dependency="{{ $viewPerm->id ?? '' }}"
+                                           {{ in_array($createPerm->id, $assignedPermissions) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="perm_{{ $createPerm->id }}">
+                                        <i class="ki-duotone ki-plus-square text-success me-2"></i> Thêm {{ $module }}
+                                        <small class="d-block text-muted">{{ $createPerm->description }}</small>
+                                    </label>
+                                </div>
+                                @endif
+
+                                @if($editPerm = $modulePermissions->firstWhere('slug', 'like', 'edit-' . strtolower($module)))
+                                <div class="form-check form-check-custom form-check-solid">
+                                    <input class="form-check-input module-{{ $module }}" type="checkbox" 
+                                           name="permissions[]" value="{{ $editPerm->id }}"
+                                           id="perm_{{ $editPerm->id }}"
+                                           data-dependency="{{ $viewPerm->id ?? '' }}"
+                                           {{ in_array($editPerm->id, $assignedPermissions) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="perm_{{ $editPerm->id }}">
+                                        <i class="ki-duotone ki-notepad-edit text-warning me-2"></i> Chỉnh sửa {{ $module }}
+                                        <small class="d-block text-muted">{{ $editPerm->description }}</small>
+                                    </label>
+                                </div>
+                                @endif
+
+                                @if($deletePerm = $modulePermissions->firstWhere('slug', 'like', 'delete-' . strtolower($module)))
+                                <div class="form-check form-check-custom form-check-solid">
+                                    <input class="form-check-input module-{{ $module }}" type="checkbox" 
+                                           name="permissions[]" value="{{ $deletePerm->id }}"
+                                           id="perm_{{ $deletePerm->id }}"
+                                           data-dependency="{{ $viewPerm->id ?? '' }}"
+                                           {{ in_array($deletePerm->id, $assignedPermissions) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="perm_{{ $deletePerm->id }}">
+                                        <i class="ki-duotone ki-trash text-danger me-2"></i> Xoá {{ $module }}
+                                        <small class="d-block text-muted">{{ $deletePerm->description }}</small>
+                                    </label>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Special permissions -->
+                        @if($modulePermissions->filter(function($item) use ($module) {
+                            return !in_array(explode('-', $item->slug)[0], ['view', 'create', 'edit', 'delete']);
+                        })->count() > 0)
+                        <div class="col-md-6">
+                            <h4 class="mb-3 fs-6 fw-semibold">Quyền nâng cao</h4>
+                            <div class="d-flex flex-column gap-3">
+                                @foreach($modulePermissions->filter(function($item) use ($module) {
+                                    return !in_array(explode('-', $item->slug)[0], ['view', 'create', 'edit', 'delete']);
+                                }) as $otherPerm)
+                                <div class="form-check form-check-custom form-check-solid">
+                                    <input class="form-check-input module-{{ $module }}" type="checkbox" 
+                                           name="permissions[]" value="{{ $otherPerm->id }}"
+                                           id="perm_{{ $otherPerm->id }}"
+                                           data-dependency="{{ $viewPerm->id ?? '' }}"
+                                           {{ in_array($otherPerm->id, $assignedPermissions) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="perm_{{ $otherPerm->id }}">
+                                        @php
+                                            $action = explode('-', $otherPerm->slug)[0];
+                                            $icon = match($action) {
+                                                'approve' => '<i class="ki-duotone ki-check-circle text-success me-2"></i>',
+                                                'assign' => '<i class="ki-duotone ki-send text-primary me-2"></i>',
+                                                'configure' => '<i class="ki-duotone ki-setting-2 text-info me-2"></i>',
+                                                'support' => '<i class="ki-duotone ki-message-text-2 text-warning me-2"></i>',
+                                                default => '<i class="ki-duotone ki-shield-tick text-primary me-2"></i>'
+                                            };
+                                        @endphp
+                                        {!! $icon !!} {{ ucfirst($action) }} {{ $module }}
+                                        <small class="d-block text-muted">{{ $otherPerm->description }}</small>
+                                    </label>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
             </div>
+            @endforeach
+
             <div class="card-footer justify-end py-7.5 gap-2.5">
-                <button class="btn btn-light btn-outline" id="reset-permissions">
+                <button type="button" class="btn btn-light btn-outline" id="reset-permissions">
                     Mặc định
                 </button>
-                <button class="btn btn-primary" id="save-permissions">
+                <button type="button" class="btn btn-primary" id="save-permissions">
                     Lưu thay đổi
                 </button>
             </div>
-        </div>
+        </form>
     </div>
 </div>
+
 @endsection
 
 @push("scripts")
 <script>
     $(function() {
-        // Reset về quyền mặc định
-        $('#reset-permissions').on('click', function() {
-            // Bỏ chọn tất cả
-            $('input[name="permissions[]"]').prop('checked', false);
+        // Calculate total permissions
+        const totalPermissions = $('input[name="permissions[]"]').length;
+        $('#total-count').text(totalPermissions);
+        
+        // Update permissions count
+        function updatePermissionsCount() {
+            const selectedPermissions = $('input[name="permissions[]"]:checked').length;
+            $('#selected-count').text(selectedPermissions);
             
-            // Chọn các quyền mặc định (có thể tùy chỉnh)
-            $('input[value="1"]').prop('checked', true); // giả sử quyền xem dashboard có id = 1
+            const percentage = Math.round((selectedPermissions / totalPermissions) * 100);
+            $('#selected-percentage').text(percentage + '%');
+            $('#permission-progress-bar').css('width', percentage + '%').attr('aria-valuenow', percentage);
+        }
+        
+        // Initial update
+        updatePermissionsCount();
+        
+        // Handle dependencies
+        $('input[name="permissions[]"]').on('change', function() {
+            const isChecked = $(this).prop('checked');
+            const permId = $(this).val();
+            
+            // If unchecked, uncheck all permissions that depend on this one
+            if (!isChecked) {
+                $(`input[data-dependency="${permId}"]`).prop('checked', false);
+            }
+            
+            // If checked, make sure the dependency is also checked
+            if (isChecked) {
+                const dependencyId = $(this).data('dependency');
+                if (dependencyId) {
+                    $(`#perm_${dependencyId}`).prop('checked', true);
+                }
+            }
+            
+            updatePermissionsCount();
         });
         
-        // Lưu thay đổi
-        $('#save-permissions').on('click', async function() {
+        // Select all permissions
+        $('#select-all-permissions').on('click', function(e) {
+            e.preventDefault();
+            $('input[name="permissions[]"]').prop('checked', true);
+            updatePermissionsCount();
+        });
+        
+        // Unselect all permissions
+        $('#unselect-all-permissions').on('click', function(e) {
+            e.preventDefault();
+            $('input[name="permissions[]"]').prop('checked', false);
+            updatePermissionsCount();
+        });
+        
+        // Select module permissions
+        $('.select-module').on('click', function(e) {
+            e.preventDefault();
+            const module = $(this).data('module');
+            $(`.module-${module}`).prop('checked', true);
+            updatePermissionsCount();
+        });
+        
+        // Unselect module permissions
+        $('.unselect-module').on('click', function(e) {
+            e.preventDefault();
+            const module = $(this).data('module');
+            $(`.module-${module}`).prop('checked', false);
+            updatePermissionsCount();
+        });
+        
+        // Reset to default permissions
+        $('#reset-permissions').on('click', function(e) {
+            e.preventDefault();
+            // Uncheck all
+            $('input[name="permissions[]"]').prop('checked', false);
+            
+            // Check basic default permissions
+            // Basic viewing permissions for common modules
+            const defaultPermissions = [
+                'view-dashboard', 'view-member', 'view-team', 'view-task', 
+                'view-customer', 'view-contract'
+            ];
+            
+            defaultPermissions.forEach(slug => {
+                $(`input[name="permissions[]"]`).filter(function() {
+                    return $(this).siblings('label').text().toLowerCase().includes(slug);
+                }).prop('checked', true);
+            });
+            
+            updatePermissionsCount();
+        });
+        
+        // Save permissions
+        $('#save-permissions').on('click', async function(e) {
+            e.preventDefault();
+            
+            Notiflix.Block.dots('#permissions-form', 'Đang lưu quyền...');
+            
             let permissions = [];
             $('input[name="permissions[]"]:checked').each(function() {
                 permissions.push($(this).val());
             });
             
-            let method = "post",
-                url = "/role/{{ $details['level']->id }}/{{ $details['department']->id }}/permissions",
-                params = null,
-                data = {
-                    permissions: permissions
-                };
+            try {
+                let res = await axiosTemplate(
+                    "post",
+                    "/role/{{ $details['level']->id }}/{{ $details['department']->id }}/permissions",
+                    null,
+                    { permissions: permissions }
+                );
                 
-            let res = await axiosTemplate(method, url, params, data);
-            
-            switch (res.data.status) {
-                case 200:
-                    showAlert('success', res.data.message);
-                    break;
-                default:
-                    showAlert('warning', res?.data?.message ? res.data.message : "Đã có lỗi xảy ra!");
-                    break;
+                Notiflix.Block.remove('#permissions-form');
+                
+                if (res.data.status === 200) {
+                    Notiflix.Notify.success(res.data.message);
+                } else {
+                    Notiflix.Notify.warning(res.data.message || "Đã có lỗi xảy ra khi lưu quyền!");
+                }
+            } catch (error) {
+                Notiflix.Block.remove('#permissions-form');
+                Notiflix.Notify.failure("Đã có lỗi xảy ra khi lưu quyền!");
+                console.error(error);
             }
         });
     });

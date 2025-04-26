@@ -61,6 +61,7 @@
                     <i class="ki-filled ki-dots-vertical"></i>
                 </button>
                 <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
+                @if(hasPermission('approve-salary'))
                     @if($item['status'] === 'pending')
                     <div class="menu-item">
                         <button class="menu-link" onclick="openProcessModal({{ $item['id'] }}, 'approved')">
@@ -96,7 +97,7 @@
                         </button>
                     </div>
                     @endif
-                    
+                    @endif
                     @if($item['transaction'])
                     <div class="menu-item">
                         <a class="menu-link" href="/accounting/transaction/{{ $item['transaction']['id'] }}/export-pdf" target="_blank">

@@ -110,10 +110,12 @@
                         <input class="input input-sm" type="text" id="date-to-filter" data-filter="date_to" data-flatpickr="true" placeholder="Đến ngày">
                     </div>
                     
+                    @if(hasPermission('edit-salary'))
                     <button class="btn btn-primary btn-sm" data-modal-toggle="#create-advance-modal">
                         <i class="ki-filled ki-plus me-1"></i>
                         Tạo yêu cầu
                     </button>
+                    @endif
                 </div>
             </div>
             <div class="card-body">

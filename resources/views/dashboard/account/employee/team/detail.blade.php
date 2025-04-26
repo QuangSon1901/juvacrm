@@ -119,9 +119,11 @@
                             Danh sách thành viên
                         </h3>
                         <div class="flex flex-wrap gap-2">
-                            <a href="/team/add-member/{{$details['department']->id}}" class="btn btn-primary btn-sm">
-                                Thêm nhân viên
-                            </a>
+                            @if(hasPermission('create-team'))
+                                <a href="/team/add-member/{{$details['department']->id}}" class="btn btn-primary btn-sm">
+                                    Thêm nhân viên
+                                </a>
+                            @endif
                         </div>
                     </div>
                     <div class="card-body">
