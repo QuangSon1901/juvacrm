@@ -10,6 +10,9 @@ function flatpickrMake(_element, type = 'date') {
         case 'time':
             dateFormat = 'H:i:m';
             break;
+        default:
+            dateFormat = type;
+            break;
     }
     _element.flatpickr({
         dateFormat,
