@@ -254,7 +254,7 @@
             <div class="menu-item" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
                 <div class="menu-link rounded-[9px] border border-transparent menu-item-here:border-gray-200 menu-item-here:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2 grow">
                     <span class="menu-icon menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary text-gray-600">
-                        <i class="ki-filled ki-lots-shopping text-1.5xl">
+                        <i class="ki-filled ki-office-bag text-1.5xl">
                         </i>
                     </span>
                     <span class="menu-title menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary font-medium text-xs text-gray-600 w-max">
@@ -514,7 +514,7 @@
         {{--<div class="menu w-full px-3" data-menu="true">
             <div class="menu-item">
                 <a href="{{route('dashboard.account.timekeeping.check-in-out')}}" class="btn btn-primary btn-sm w-full justify-center">
-                    <i class="ki-filled ki-time-check me-1"></i>
+                    <i class="ki-filled ki-calendar-tick me-1"></i>
                     Check In/Out
                 </a>
             </div>
@@ -546,7 +546,7 @@
                         <div class="menu-item">
                             <a class="menu-link" href="{{route('dashboard.profile.profile')}}">
                                 <span class="menu-icon">
-                                    <i class="ki-filled ki-profile-circle">
+                                    <i class="ki-filled ki-user">
                                     </i>
                                 </span>
                                 <span class="menu-title">

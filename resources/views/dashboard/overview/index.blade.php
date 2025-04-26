@@ -85,7 +85,7 @@
                         <p class="text-xs text-gray-500">Hôm nay: {{ $customerStats['new_today'] }} mới</p>
                     </div>
                     <div class="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
-                        <i class="ki-filled ki-profile-user text-orange-500 text-2xl"></i>
+                        <i class="ki-filled ki-user-square text-orange-500 text-2xl"></i>
                     </div>
                 </div>
             </div>
@@ -260,7 +260,7 @@
     <div class="card mb-7">
         <div class="card-header">
             <h3 class="card-title">
-                <i class="ki-filled ki-calendar-edit text-green-900 text-2xl"></i>&nbsp;<span>Tổng quan công việc</span>
+                <i class="ki-filled ki-kanban text-green-900 text-2xl"></i>&nbsp;<span>Tổng quan công việc</span>
             </h3>
             <a class="btn btn-sm btn-light" href="{{ route('dashboard.account.task.task') }}">
                 Xem tất cả
@@ -289,7 +289,7 @@
                 <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl bg-orange-50 gap-2 p-3.5">
                     <div class="flex items-center flex-wrap gap-3.5">
                         <div class="h-8 w-8 flex items-center justify-center bg-orange-100 rounded-full">
-                            <i class="ki-filled ki-calendar-clock text-orange-600"></i>
+                            <i class="ki-filled ki-timer text-orange-600"></i>
                         </div>
                         <div class="flex flex-col">
                             <div class="flex items-center gap-1.5">
@@ -325,7 +325,7 @@
                 <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl bg-purple-50 gap-2 p-3.5">
                     <div class="flex items-center flex-wrap gap-3.5">
                         <div class="h-8 w-8 flex items-center justify-center bg-purple-100 rounded-full">
-                            <i class="ki-filled ki-arrow-repeat text-purple-600"></i>
+                            <i class="ki-filled ki-arrow-up-down text-purple-600"></i>
                         </div>
                         <div class="flex flex-col">
                             <div class="flex items-center gap-1.5">
