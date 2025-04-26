@@ -238,13 +238,6 @@ Route::group(
                 Route::group(
                     ['namespace' => 'Team', 'as' => 'team.', 'middleware' => []],
                     function () {
-                        Route::group(['middleware' => ['permission:view-team']], function () {
-                            Route::get('/team', [TeamController::class, "index"])->name("team");
-                            Route::get('/team/data', [TeamController::class, "data"])->name("data");
-                            Route::get('/team/employee-by-department/{id}', [TeamController::class, "employeeByDepartment"])->name("employeeByDepartment");
-                            Route::get('/team/{id}', [TeamController::class, "detail"])->name("detail");
-                        });
-                        
                         Route::group(['middleware' => ['permission:create-team']], function () {
                             Route::get('/team/create', [TeamController::class, "create"])->name("create");
                             Route::post('/team/create', [TeamController::class, "createPost"])->name("createPost");
@@ -260,6 +253,13 @@ Route::group(
                         Route::group(['middleware' => ['permission:delete-team']], function () {
                             Route::post('/team/remove-member', [TeamController::class, 'removeMember']);
                         });
+                        
+                        Route::group(['middleware' => ['permission:view-team']], function () {
+                            Route::get('/team', [TeamController::class, "index"])->name("team");
+                            Route::get('/team/data', [TeamController::class, "data"])->name("data");
+                            Route::get('/team/employee-by-department/{id}', [TeamController::class, "employeeByDepartment"])->name("employeeByDepartment");
+                            Route::get('/team/{id}', [TeamController::class, "detail"])->name("detail");
+                        });
                     }
                 );
 
@@ -267,8 +267,8 @@ Route::group(
                     ['namespace' => 'Role', 'as' => 'role.', 'middleware' => []],
                     function () {
                         Route::group(['middleware' => ['permission:view-role']], function () {
-                            Route::get('/role/{level_id}/{department_id}', [RoleController::class, "detail"])->name("detail");
                             Route::get('/role/employee-in-role', [RoleController::class, "memberInRole"])->name("memberInRole");
+                            Route::get('/role/{level_id}/{department_id}', [RoleController::class, "detail"])->name("detail");
                         });
                         
                         Route::group(['middleware' => ['permission:edit-role']], function () {
@@ -395,25 +395,6 @@ Route::group(
                             Route::post('/change-status', [TaskMissionController::class, 'changeStatus']);
                         });
 
-                        // View tasks
-                        Route::middleware(['permission:view-task'])->group(function() {
-                            Route::get('/task', [TaskController::class, "index"])->name("task");
-                            Route::get('/task-data', [TaskController::class, "data"])->name("task-data");
-                            Route::get('/config-task', [TaskController::class, "config"])->name("config");
-                            Route::get('/task/get-list-by-ids', [TaskController::class, 'getTaskByIDs']);
-                            Route::get('/task/available-tasks', [TaskController::class, 'getAvailableTasks'])->name('available-tasks');
-                            Route::get('/task/contributions', [TaskController::class, 'getUserContributions'])->name('user-contributions');
-                            Route::get('/task/dashboard/project/{id}', [TaskController::class, 'projectDashboard'])->name('project-dashboard');
-                            Route::get('/task/dashboard/user', [TaskController::class, 'userDashboard'])->name('user-dashboard');
-                            Route::get('/task/missions', [TaskController::class, 'getMissions'])->name('get-missions');
-                            Route::get('/task/task-missions', [TaskController::class, 'getTaskMissions'])->name('get-task-missions');
-                            Route::get('/task/show-feedback-form', [TaskController::class, 'showFeedbackForm']);
-                            Route::get('/task/feedbacks', [TaskController::class, 'getFeedbacks']);
-                            Route::get('/task/feedback-item-details', [TaskController::class, 'getFeedbackItemDetails']);
-                            Route::get('/task/get-status/{id}', [TaskController::class, 'getTaskStatus']);
-                            Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
-                        });
-
                         // Create tasks
                         Route::middleware(['permission:create-task'])->group(function() {
                             Route::get('/task/create', [TaskController::class, "createView"])->name("task-create-view");
@@ -446,6 +427,25 @@ Route::group(
                             Route::post('/task/remove-attachment-task', [TaskController::class, "removeAttachment"])->name("task-remove-attachment-task");
                             Route::post('/task/delete-contribution', [TaskController::class, 'deleteContribution'])->name('delete-contribution');
                             Route::post('/task/delete-mission-report', [TaskController::class, 'deleteMissionReport'])->name('delete-mission-report');
+                        });
+
+                        // View tasks
+                        Route::middleware(['permission:view-task'])->group(function() {
+                            Route::get('/task', [TaskController::class, "index"])->name("task");
+                            Route::get('/task-data', [TaskController::class, "data"])->name("task-data");
+                            Route::get('/config-task', [TaskController::class, "config"])->name("config");
+                            Route::get('/task/get-list-by-ids', [TaskController::class, 'getTaskByIDs']);
+                            Route::get('/task/available-tasks', [TaskController::class, 'getAvailableTasks'])->name('available-tasks');
+                            Route::get('/task/contributions', [TaskController::class, 'getUserContributions'])->name('user-contributions');
+                            Route::get('/task/dashboard/project/{id}', [TaskController::class, 'projectDashboard'])->name('project-dashboard');
+                            Route::get('/task/dashboard/user', [TaskController::class, 'userDashboard'])->name('user-dashboard');
+                            Route::get('/task/missions', [TaskController::class, 'getMissions'])->name('get-missions');
+                            Route::get('/task/task-missions', [TaskController::class, 'getTaskMissions'])->name('get-task-missions');
+                            Route::get('/task/show-feedback-form', [TaskController::class, 'showFeedbackForm']);
+                            Route::get('/task/feedbacks', [TaskController::class, 'getFeedbacks']);
+                            Route::get('/task/feedback-item-details', [TaskController::class, 'getFeedbackItemDetails']);
+                            Route::get('/task/get-status/{id}', [TaskController::class, 'getTaskStatus']);
+                            Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
                         });
                     }
                 );
