@@ -9,6 +9,7 @@
     <div class="scrollable-y-hover grow gap-2.5 shrink-0 flex items-center pt-5 lg:pt-0 ps-3 pe-3 lg:pe-0 flex-col" data-scrollable="true" data-scrollable-dependencies="#sidebar_header,#sidebar_footer" data-scrollable-height="auto" data-scrollable-offset="80px" data-scrollable-wrappers="#sidebar_menu_wrapper" id="sidebar_menu_wrapper">
         <!-- Sidebar Menu -->
         <div class="menu flex flex-col gap-2.5 grow" data-menu="true" id="sidebar_menu">
+            @if(hasPermission('view-dashboard') || hasPermission('view-overview'))
             <div class="menu-item {{ isActiveRoute('dashboard.overview.overview') }}">
                 <a class="menu-link rounded-[9px] border border-transparent menu-item-active:border-gray-200 menu-item-active:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2" href="{{route('dashboard.overview.overview')}}">
                     <span class="menu-icon menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary text-gray-600">
@@ -20,7 +21,9 @@
                     </span>
                 </a>
             </div>
+            @endif
             
+            @if(hasPermission('view-customer') || hasPermission('view-customer-support') || hasPermission('view-customer-leads') || hasPermission('view-customer-data'))
             <div class="menu-item {{ isActiveRoute(['dashboard.customer.support.customer-support', 'dashboard.customer.client.customer-leads', 'dashboard.customer.manage.leads', 'dashboard.customer.manage.customer-type']) }}" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
                 <div class="menu-link rounded-[9px] border border-transparent menu-item-here:border-gray-200 menu-item-here:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2 grow">
                     <span class="menu-icon menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary text-gray-600">
@@ -32,6 +35,7 @@
                     </span>
                 </div>
                 <div class="menu-default menu-dropdown gap-0.5 w-[220px] scrollable-y-auto lg:overflow-visible max-h-[50vh]">
+                    @if(hasPermission('view-customer-support'))
                     <div class="menu-item">
                         <a class="menu-link" href="{{route('dashboard.customer.support.customer-support')}}">
                             <span class="menu-title">
@@ -39,6 +43,9 @@
                             </span>
                         </a>
                     </div>
+                    @endif
+                    
+                    @if(hasPermission('view-customer-leads'))
                     <div class="menu-item">
                         <a class="menu-link" href="{{route('dashboard.customer.client.customer-leads')}}">
                             <span class="menu-title">
@@ -46,6 +53,9 @@
                             </span>
                         </a>
                     </div>
+                    @endif
+                    
+                    @if(hasPermission('view-customer-data'))
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
                             <span class="menu-title">
@@ -57,6 +67,7 @@
                             </span>
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
+                            @if(hasPermission('view-leads'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.customer.manage.leads')}}">
                                     <span class="menu-title">
@@ -64,6 +75,9 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
+                            
+                            @if(hasPermission('view-customer-type'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.customer.manage.customer-type')}}">
                                     <span class="menu-title">
@@ -71,10 +85,15 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
+            @endif
+            
+            @if(hasPermission('view-contract') || hasPermission('view-service') || hasPermission('view-deposit-receipt'))
             <div class="menu-item" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
                 <div class="menu-link rounded-[9px] border border-transparent menu-item-here:border-gray-200 menu-item-here:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2 grow">
                     <span class="menu-icon menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary text-gray-600">
@@ -86,6 +105,7 @@
                     </span>
                 </div>
                 <div class="menu-default menu-dropdown gap-0.5 w-[220px] scrollable-y-auto lg:overflow-visible max-h-[50vh]">
+                    @if(hasPermission('view-contract'))
                     <div class="menu-item">
                         <a class="menu-link" href="{{route('dashboard.contract.contract')}}">
                             <span class="menu-title">
@@ -93,6 +113,9 @@
                             </span>
                         </a>
                     </div>
+                    @endif
+                    
+                    @if(hasPermission('view-service'))
                     <div class="menu-item">
                         <a class="menu-link" href="{{route('dashboard.service.services')}}">
                             <span class="menu-title">
@@ -100,6 +123,9 @@
                             </span>
                         </a>
                     </div>
+                    @endif
+                    
+                    @if(hasPermission('view-deposit-receipt'))
                     <div class="menu-item">
                         <a class="menu-link" href="{{route('dashboard.accounting.deposit-receipt.deposit-receipt')}}">
                             <span class="menu-title">
@@ -107,9 +133,12 @@
                             </span>
                         </a>
                     </div>
+                    @endif
                 </div>
             </div>
+            @endif
             
+            @if(hasPermission('view-team') || hasPermission('view-member') || hasPermission('view-timekeeping') || hasPermission('view-schedule') || hasPermission('view-salary') || hasPermission('view-task'))
             <!-- Nhân sự - Cập nhật tính năng quản lý lương và công -->
             <div class="menu-item" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
                 <div class="menu-link rounded-[9px] border border-transparent menu-item-here:border-gray-200 menu-item-here:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2 grow">
@@ -122,6 +151,7 @@
                     </span>
                 </div>
                 <div class="menu-default menu-dropdown gap-0.5 w-[220px] scrollable-y-auto lg:overflow-visible max-h-[50vh]">
+                    @if(hasPermission('view-team') || hasPermission('view-member'))
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
                             <span class="menu-title">
@@ -133,6 +163,7 @@
                             </span>
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
+                            @if(hasPermission('view-team'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.account.team.team')}}">
                                     <span class="menu-title">
@@ -140,6 +171,9 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
+                            
+                            @if(hasPermission('view-member'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.account.member.member')}}">
                                     <span class="menu-title">
@@ -147,9 +181,12 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
                         </div>
                     </div>
+                    @endif
                     
+                    @if(hasPermission('view-timekeeping') || hasPermission('view-schedule'))
                     <!-- Quản lý chấm công và lịch làm việc -->
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
@@ -162,6 +199,7 @@
                             </span>
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
+                            @if(hasPermission('view-timekeeping'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.account.timekeeping.timekeeping')}}">
                                     <span class="menu-title">
@@ -169,6 +207,9 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
+                            
+                            @if(hasPermission('view-schedule'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.account.schedule.schedule')}}">
                                     <span class="menu-title">
@@ -176,6 +217,7 @@
                                     </span>
                                 </a>
                             </div>
+                            
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.account.schedule.part-time')}}">
                                     <span class="menu-title">
@@ -183,9 +225,12 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
                         </div>
                     </div>
+                    @endif
                     
+                    @if(hasPermission('view-salary'))
                     <!-- Quản lý lương -->
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
@@ -198,6 +243,7 @@
                             </span>
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
+                            @if(hasPermission('view-salary-configuration'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.account.salary.configuration')}}">
                                     <span class="menu-title">
@@ -205,6 +251,9 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
+                            
+                            @if(hasPermission('view-payroll'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.account.salary.payroll')}}">
                                     <span class="menu-title">
@@ -212,6 +261,9 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
+                            
+                            @if(hasPermission('view-salary-advance'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.account.salary.advance')}}">
                                     <span class="menu-title">
@@ -219,9 +271,12 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
                         </div>
                     </div>
+                    @endif
                     
+                    @if(hasPermission('view-task'))
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
                             <span class="menu-title">
@@ -240,6 +295,8 @@
                                     </span>
                                 </a>
                             </div>
+                            
+                            @if(hasPermission('configure-task'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.account.task.task.config')}}">
                                     <span class="menu-title">
@@ -247,10 +304,15 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
+            @endif
+            
+            @if(hasPermission('view-assets') || hasPermission('view-products') || hasPermission('view-media'))
             <div class="menu-item" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
                 <div class="menu-link rounded-[9px] border border-transparent menu-item-here:border-gray-200 menu-item-here:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2 grow">
                     <span class="menu-icon menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary text-gray-600">
@@ -262,6 +324,7 @@
                     </span>
                 </div>
                 <div class="menu-default menu-dropdown gap-0.5 w-[220px] scrollable-y-auto lg:overflow-visible max-h-[50vh]">
+                    @if(hasPermission('view-assets'))
                     <div class="menu-item">
                         <a class="menu-link" href="/">
                             <span class="menu-title">
@@ -269,6 +332,9 @@
                             </span>
                         </a>
                     </div>
+                    @endif
+                    
+                    @if(hasPermission('view-products'))
                     <div class="menu-item">
                         <a class="menu-link" href="/">
                             <span class="menu-title">
@@ -276,6 +342,9 @@
                             </span>
                         </a>
                     </div>
+                    @endif
+                    
+                    @if(hasPermission('view-media'))
                     <div class="menu-item">
                         <a class="menu-link" href="{{route('dashboard.assets.file-explorer.file-explorer')}}">
                             <span class="menu-title">
@@ -283,9 +352,12 @@
                             </span>
                         </a>
                     </div>
+                    @endif
                 </div>
             </div>
+            @endif
             
+            @if(hasPermission('view-transaction') || hasPermission('view-category') || hasPermission('view-financial-report') || hasPermission('view-deposit-receipt') || hasPermission('view-commission') || hasPermission('view-payment-method'))
             <!-- Kế toán - Cập nhật phần quản lý lương -->
             <div class="menu-item" data-menu-item-offset="-10px, 14px" data-menu-item-overflow="true" data-menu-item-placement="right-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
                 <div class="menu-link rounded-[9px] border border-transparent menu-item-here:border-gray-200 menu-item-here:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200 w-[62px] h-[60px] flex flex-col justify-center items-center gap-1 p-2 grow">
@@ -298,6 +370,7 @@
                     </span>
                 </div>
                 <div class="menu-default menu-dropdown gap-0.5 w-[220px] scrollable-y-auto lg:overflow-visible max-h-[50vh]">
+                    @if(hasPermission('view-transaction') || hasPermission('view-category') || hasPermission('view-financial-report'))
                     <!-- Quản lý thu chi -->
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
@@ -310,6 +383,7 @@
                             </span>
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
+                            @if(hasPermission('view-transaction'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.accounting.transaction.transaction')}}">
                                     <span class="menu-title">
@@ -317,6 +391,9 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
+                            
+                            @if(hasPermission('view-category'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.accounting.category.category')}}">
                                     <span class="menu-title">
@@ -324,6 +401,9 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
+                            
+                            @if(hasPermission('view-financial-report'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.accounting.report.financial')}}">
                                     <span class="menu-title">
@@ -331,9 +411,12 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
                         </div>
                     </div>
+                    @endif
                     
+                    @if(hasPermission('view-deposit-receipt'))
                     <!-- Biên nhận cọc/thanh toán -->
                     <div class="menu-item">
                         <a class="menu-link" href="{{route('dashboard.accounting.deposit-receipt.deposit-receipt')}}">
@@ -342,7 +425,9 @@
                             </span>
                         </a>
                     </div>
+                    @endif
 
+                    @if(hasPermission('view-commission'))
                     <!-- Quản lý hoa hồng -->
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
@@ -364,43 +449,9 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                     
-                    <!-- Lương nhân viên - Đã được cập nhật -->
-                    {{--<div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
-                        <div class="menu-link grow cursor-pointer">
-                            <span class="menu-title">
-                                Chi trả lương
-                            </span>
-                            <span class="menu-arrow">
-                                <i class="ki-filled ki-right text-3xs rtl:translate rtl:rotate-180">
-                                </i>
-                            </span>
-                        </div>
-                        <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
-                            <div class="menu-item">
-                                <a class="menu-link" href="{{route('dashboard.accounting.salary.payment')}}">
-                                    <span class="menu-title">
-                                        Chi trả lương
-                                    </span>
-                                </a>
-                            </div>
-                            <div class="menu-item">
-                                <a class="menu-link" href="{{route('dashboard.accounting.salary.advance-payment')}}">
-                                    <span class="menu-title">
-                                        Chi ứng lương
-                                    </span>
-                                </a>
-                            </div>
-                            <div class="menu-item">
-                                <a class="menu-link" href="{{route('dashboard.accounting.salary.report')}}">
-                                    <span class="menu-title">
-                                        Báo cáo chi lương
-                                    </span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>--}}
-                    
+                    @if(hasPermission('view-payment-method'))
                     <!-- Phương thức thanh toán -->
                     <div class="menu-item" data-menu-item-placement="right-start" data-menu-item-toggle="accordion|lg:dropdown" data-menu-item-trigger="click|lg:hover">
                         <div class="menu-link grow cursor-pointer">
@@ -420,6 +471,8 @@
                                     </span>
                                 </a>
                             </div>
+                            
+                            @if(hasPermission('view-currency'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.accounting.currency.currency')}}">
                                     <span class="menu-title">
@@ -427,10 +480,13 @@
                                     </span>
                                 </a>
                             </div>
+                            @endif
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
+            @endif
         </div>
         <!-- End of Sidebar Menu -->
     </div>
@@ -503,22 +559,14 @@
                     </div>
                 </div>
             </div>
+            @if(hasPermission('view-setting'))
             <a href="{{route('dashboard.setting.setting')}}" class="btn btn-icon btn-icon-xl relative rounded-md size-9 border border-transparent hover:bg-light hover:text-primary hover:border-gray-200 dropdown-open:bg-gray-200 text-gray-600">
                 <span class="menu-icon menu-item-here:text-primary menu-item-active:text-primary menu-link-hover:text-primary text-gray-600">
                     <i class="ki-filled ki-setting-2 text-1.5xl"></i>
                 </span>
             </a>
+            @endif
         </div>
-        
-        <!-- Check-in/Check-out Button -->
-        {{--<div class="menu w-full px-3" data-menu="true">
-            <div class="menu-item">
-                <a href="{{route('dashboard.account.timekeeping.check-in-out')}}" class="btn btn-primary btn-sm w-full justify-center">
-                    <i class="ki-filled ki-calendar-tick me-1"></i>
-                    Check In/Out
-                </a>
-            </div>
-        </div>--}}
         
         <div class="menu" data-menu="true">
             <div class="menu-item" data-menu-item-offset="-20px, 28px" data-menu-item-overflow="true" data-menu-item-placement="right-end" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
@@ -595,6 +643,7 @@
                                 </span>
                             </a>
                         </div>
+                        @if(hasPermission('view-activity-log'))
                         <div class="menu-item">
                             <a class="menu-link" href="{{route('dashboard.logs.activity.activity')}}">
                                 <span class="menu-icon">
@@ -606,6 +655,7 @@
                                 </span>
                             </a>
                         </div>
+                        @endif
                     </div>
                     <div class="menu-separator">
                     </div>

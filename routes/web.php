@@ -80,8 +80,8 @@ Route::group(
         Route::group(
             ['namespace' => 'Upload', 'as' => 'upload.', 'middleware' => []],
             function () {
-                Route::post('/upload-file-cloud', [CloudinaryController::class, "uploadFile"])->name("upload-file-cloud");
-                Route::post('/upload-file', [GoogleDriveController::class, "uploadFile"])->name("upload-file");
+                Route::post('/upload-file-cloud', [CloudinaryController::class, "uploadFile"])->name("upload-file-cloud")->middleware('permission:upload-file');
+                Route::post('/upload-file', [GoogleDriveController::class, "uploadFile"])->name("upload-file")->middleware('permission:upload-file');
             }
         );
 
@@ -89,7 +89,7 @@ Route::group(
         Route::group(
             ['namespace' => 'Overview', 'as' => 'overview.', 'middleware' => []],
             function () {
-                Route::get('/', [OverviewController::class, "index"])->name("overview");
+                Route::get('/', [OverviewController::class, "index"])->name("overview")->middleware('permission:view-dashboard');
             }
         );
 
@@ -99,51 +99,89 @@ Route::group(
                 Route::group(
                     ['namespace' => 'Client', 'as' => 'client.', 'middleware' => []],
                     function () {
-                        Route::get('/customer/create-view', [CustomerController::class, "createView"])->name("customer-view");
-                        Route::post('/customer/create', [CustomerController::class, "create"])->name("customer-create");
-                        Route::post('/customer/update', [CustomerController::class, "update"])->name("customer-update");
-                        Route::post('/customer/black-list', [CustomerController::class, "blackList"])->name("customer-black-list");
-                        Route::get('/customer/{id}', [CustomerController::class, "detail"])->name("customer-detail");
+                        // Create
+                        Route::middleware(['permission:create-customer'])->group(function() {
+                            Route::get('/customer/create-view', [CustomerController::class, "createView"])->name("customer-view");
+                            Route::post('/customer/create', [CustomerController::class, "create"])->name("customer-create");
+                        });
 
-                        Route::get('/customer-leads', [CustomerLeadController::class, "leads"])->name("customer-leads");
-                        Route::get('/customer-leads-data', [CustomerLeadController::class, "data"])->name("customer-leads-data");
-                        Route::post('/customer-leads/convert-to-prospect', [CustomerLeadController::class, "convertToProspect"])->name("convert-to-prospect");
-                        Route::get('/customer-leads/statistics', [CustomerLeadController::class, "getLeadStatistics"])->name("lead-statistics");
+                        // Edit
+                        Route::middleware(['permission:edit-customer'])->group(function() {
+                            Route::post('/customer/update', [CustomerController::class, "update"])->name("customer-update");
+                            Route::post('/customer-leads/convert-to-prospect', [CustomerLeadController::class, "convertToProspect"])->name("convert-to-prospect");
+                        });
+
+                        // Delete
+                        Route::middleware(['permission:delete-customer'])->group(function() {
+                            Route::post('/customer/black-list', [CustomerController::class, "blackList"])->name("customer-black-list");
+                        });
+
+                        // View
+                        Route::middleware(['permission:view-customer'])->group(function() {
+                            Route::get('/customer/{id}', [CustomerController::class, "detail"])->name("customer-detail");
+                            Route::get('/customer-leads', [CustomerLeadController::class, "leads"])->name("customer-leads");
+                            Route::get('/customer-leads-data', [CustomerLeadController::class, "data"])->name("customer-leads-data");
+                            Route::get('/customer-leads/statistics', [CustomerLeadController::class, "getLeadStatistics"])->name("lead-statistics");
+                        });
                     }
                 );
 
                 Route::group(
                     ['namespace' => 'Support', 'as' => 'support.', 'middleware' => []],
                     function () {
-                        Route::get('/customer-support', [CustomerSupportController::class, "index"])->name("customer-support");
-                        Route::get('/customer-support-data', [CustomerSupportController::class, "data"])->name("customer-support-data");
-                        Route::get('/customer-support/customers-needing-attention', [CustomerSupportController::class, "getCustomersNeedingAttention"])->name("customers-needing-attention");
-                        Route::get('/customer-support/{id}', [CustomerSupportController::class, "detail"])->name("customer-support-detail");
+                        // View
+                        Route::middleware(['permission:view-customer'])->group(function() {
+                            Route::get('/customer-support', [CustomerSupportController::class, "index"])->name("customer-support");
+                            Route::get('/customer-support-data', [CustomerSupportController::class, "data"])->name("customer-support-data");
+                            Route::get('/customer-support/customers-needing-attention', [CustomerSupportController::class, "getCustomersNeedingAttention"])->name("customers-needing-attention");
+                            Route::get('/customer-support/{id}', [CustomerSupportController::class, "detail"])->name("customer-support-detail");
+                            Route::get('/customer-consultation/{id}', [CustomerSupportController::class, "consultation"])->name("customer-consultation");
+                            Route::get('/consultation/log', [CustomerSupportController::class, "consultationLog"])->name("consultation-log");
+                            Route::get('/appointment/appointment-data', [AppointmentController::class, "dataAppointment"])->name("appointment-data");
+                            Route::get('/appointment/detail/{id?}', [AppointmentController::class, "detail"])->name("appointment-detail");
+                            Route::get('/appointment/customer/{customer_id}', [AppointmentController::class, "getCustomerAppointments"])->name("appointment-customer");
+                        });
 
-                        Route::get('/customer-consultation/{id}', [CustomerSupportController::class, "consultation"])->name("customer-consultation");
-                        Route::post('/consultation/create', [CustomerSupportController::class, "consultationCreate"])->name("consultation-create");
-                        Route::post('/consultation/update', [CustomerSupportController::class, "consultationUpdate"])->name("consultation-update");
-                        Route::get('/consultation/log', [CustomerSupportController::class, "consultationLog"])->name("consultation-log");
-                        Route::post('/consultation/remove', [CustomerSupportController::class, "consultationRemove"])->name("consultation-remove");
-                        Route::post('/consultation/add-log', [CustomerSupportController::class, "consultationAddLog"])->name("consultation-add-log");
-                        Route::post('/consultation/upload-file', [CustomerSupportController::class, 'uploadFile'])->name('consultation-upload-file');
+                        // Create
+                        Route::middleware(['permission:create-customer'])->group(function() {
+                            Route::post('/consultation/create', [CustomerSupportController::class, "consultationCreate"])->name("consultation-create");
+                            Route::post('/appointment/create', [AppointmentController::class, "create"])->name("appointment-create");
+                        });
 
-                        Route::get('/appointment/appointment-data', [AppointmentController::class, "dataAppointment"])->name("appointment-data");
-                        Route::get('/appointment/detail/{id?}', [AppointmentController::class, "detail"])->name("appointment-detail");
-                        Route::post('/appointment/create', [AppointmentController::class, "create"])->name("appointment-create");
-                        Route::post('/appointment/update', [AppointmentController::class, "update"])->name("appointment-update");
-                        Route::post('/appointment/delete', [AppointmentController::class, "delete"])->name("appointment-delete");
-                        Route::get('/appointment/customer/{customer_id}', [AppointmentController::class, "getCustomerAppointments"])->name("appointment-customer");
+                        // Edit
+                        Route::middleware(['permission:edit-customer'])->group(function() {
+                            Route::post('/consultation/update', [CustomerSupportController::class, "consultationUpdate"])->name("consultation-update");
+                            Route::post('/appointment/update', [AppointmentController::class, "update"])->name("appointment-update");
+                        });
+
+                        // Delete
+                        Route::middleware(['permission:delete-customer'])->group(function() {
+                            Route::post('/consultation/remove', [CustomerSupportController::class, "consultationRemove"])->name("consultation-remove");
+                            Route::post('/appointment/delete', [AppointmentController::class, "delete"])->name("appointment-delete");
+                        });
+
+                        // Support
+                        Route::middleware(['permission:support-customer'])->group(function() {
+                            Route::post('/consultation/add-log', [CustomerSupportController::class, "consultationAddLog"])->name("consultation-add-log");
+                            Route::post('/consultation/upload-file', [CustomerSupportController::class, 'uploadFile'])->name('consultation-upload-file');
+                        });
                     }
                 );
 
                 Route::group(
                     ['namespace' => 'Manage', 'as' => 'manage.', 'middleware' => []],
                     function () {
-                        Route::get('/leads', [LeadsController::class, "index"])->name("leads");
-                        Route::post('/leads/post', [LeadsController::class, "leadsPost"])->name("leads-post");
-                        Route::post('/leads/change-status', [LeadsController::class, "leadsChangeStatus"])->name("leads-change-status");
-                        Route::get('/customer-type', [CustomerTypeController::class, "index"])->name("customer-type");
+                        // View
+                        Route::middleware(['permission:view-customer'])->group(function() {
+                            Route::get('/leads', [LeadsController::class, "index"])->name("leads");
+                            Route::get('/customer-type', [CustomerTypeController::class, "index"])->name("customer-type");
+                        });
+
+                        // Edit
+                        Route::middleware(['permission:edit-customer'])->group(function() {
+                            Route::post('/leads/post', [LeadsController::class, "leadsPost"])->name("leads-post");
+                            Route::post('/leads/change-status', [LeadsController::class, "leadsChangeStatus"])->name("leads-change-status");
+                        });
                     }
                 );
             }
@@ -152,25 +190,44 @@ Route::group(
         Route::group(
             ['namespace' => 'Contract', 'as' => 'contract.', 'middleware' => []],
             function () {
-                Route::get('/contracts', [ContractController::class, "index"])->name("contract");
-                Route::get('/contract/create-view', [ContractController::class, "createView"])->name("create-view");
-                Route::post('/contract/create', [ContractController::class, "create"])->name("create");
-                Route::post('/contract/update-info', [ContractController::class, "update"])->name("update-info");
-                Route::post('/contract/update', [ContractController::class, "updateContractServices"])->name("update");
-                Route::post('/contract/complete', [ContractController::class, "complete"])->name("complete");
-                Route::get('/contract-data', [ContractController::class, "data"])->name("data");
-                Route::get('/contract/{id}', [ContractController::class, 'detail'])->name('contract.detail');
-                Route::post('/contract/create-task', [ContractController::class, 'createContractTasks'])->name('contract.create-task');
-                Route::post('/contract/cancel', [ContractController::class, 'cancelContract'])->name('contract.cancel');
-                Route::post('/contract/add-service', [ContractController::class, 'addService'])->name('contract.addService');
-                Route::post('/contract/update-service', [ContractController::class, 'updateService'])->name('contract.updateService');
-                Route::post('/contract/cancel-service', [ContractController::class, 'cancelService'])->name('contract.cancelService');
-                Route::post('/contract/add-payment', [ContractController::class, 'addPayment'])->name('contract.addPayment');
-                Route::post('/contract/update-payment', [ContractController::class, 'updatePayment'])->name('contract.updatePayment');
-                Route::post('/contract/cancel-payment', [ContractController::class, 'cancelPayment'])->name('contract.cancelPayment');
-                Route::get('/contract/{id}/export-pdf', [ContractController::class, 'exportPdf'])->name('export-pdf');
-                Route::get('/contract/{id}/export-excel', [ContractController::class, 'exportExcel'])->name('export-excel');
-                Route::post('/contract/sync-contract-tasks', [ContractController::class, 'syncTasks'])->name('contract.sync-contract-tasks');
+                // View
+                Route::middleware(['permission:view-contract'])->group(function() {
+                    Route::get('/contracts', [ContractController::class, "index"])->name("contract");
+                    Route::get('/contract-data', [ContractController::class, "data"])->name("data");
+                    Route::get('/contract/{id}', [ContractController::class, 'detail'])->name('contract.detail');
+                    Route::get('/contract/{id}/export-pdf', [ContractController::class, 'exportPdf'])->name('export-pdf');
+                    Route::get('/contract/{id}/export-excel', [ContractController::class, 'exportExcel'])->name('export-excel');
+                });
+
+                // Create
+                Route::middleware(['permission:create-contract'])->group(function() {
+                    Route::get('/contract/create-view', [ContractController::class, "createView"])->name("create-view");
+                    Route::post('/contract/create', [ContractController::class, "create"])->name("create");
+                    Route::post('/contract/create-task', [ContractController::class, 'createContractTasks'])->name('contract.create-task');
+                });
+
+                // Edit
+                Route::middleware(['permission:edit-contract'])->group(function() {
+                    Route::post('/contract/update-info', [ContractController::class, "update"])->name("update-info");
+                    Route::post('/contract/update', [ContractController::class, "updateContractServices"])->name("update");
+                    Route::post('/contract/add-service', [ContractController::class, 'addService'])->name('contract.addService');
+                    Route::post('/contract/update-service', [ContractController::class, 'updateService'])->name('contract.updateService');
+                    Route::post('/contract/add-payment', [ContractController::class, 'addPayment'])->name('contract.addPayment');
+                    Route::post('/contract/update-payment', [ContractController::class, 'updatePayment'])->name('contract.updatePayment');
+                    Route::post('/contract/sync-contract-tasks', [ContractController::class, 'syncTasks'])->name('contract.sync-contract-tasks');
+                });
+
+                // Delete
+                Route::middleware(['permission:delete-contract'])->group(function() {
+                    Route::post('/contract/cancel', [ContractController::class, 'cancelContract'])->name('contract.cancel');
+                    Route::post('/contract/cancel-service', [ContractController::class, 'cancelService'])->name('contract.cancelService');
+                    Route::post('/contract/cancel-payment', [ContractController::class, 'cancelPayment'])->name('contract.cancelPayment');
+                });
+
+                // Approve
+                Route::middleware(['permission:approve-contract'])->group(function() {
+                    Route::post('/contract/complete', [ContractController::class, "complete"])->name("complete");
+                });
             }
         );
 
@@ -253,6 +310,7 @@ Route::group(
                             Route::get('/account/timekeeping/check-in-out', [AttendanceController::class, "checkInOut"])->name("check-in-out");
                         });
                         
+                        // Check-in/check-out không cần quyền đặc biệt
                         Route::post('/account/timekeeping/do-check-in', [AttendanceController::class, "doCheckIn"])->name("do-check-in");
                         Route::post('/account/timekeeping/do-check-out', [AttendanceController::class, "doCheckOut"])->name("do-check-out");
                         
@@ -324,56 +382,71 @@ Route::group(
                     ['namespace' => 'Task', 'as' => 'task.', 'middleware' => []],
                     function () {
                         // Routes cho quản lý cấu hình công việc
-                        Route::prefix('task-config')->group(function () {
+                        Route::prefix('task-config')->middleware(['permission:edit-task'])->group(function () {
                             Route::get('/', [TaskConfigController::class, 'index'])->name('task.config');
                             Route::post('/update', [TaskConfigController::class, 'update']);
                             Route::post('/change-status', [TaskConfigController::class, 'changeStatus']);
                         });
 
                         // Routes cho quản lý nhiệm vụ
-                        Route::prefix('task-mission')->group(function () {
+                        Route::prefix('task-mission')->middleware(['permission:edit-task'])->group(function () {
                             Route::get('/{id}', [TaskMissionController::class, 'show']);
                             Route::post('/update', [TaskMissionController::class, 'update']);
                             Route::post('/change-status', [TaskMissionController::class, 'changeStatus']);
                         });
 
-                        Route::get('/task', [TaskController::class, "index"])->name("task");
-                        Route::get('/task-data', [TaskController::class, "data"])->name("task-data");
-                        Route::get('/task/create', [TaskController::class, "createView"])->name("task-create-view");
-                        Route::post('/task/create', [TaskController::class, "create"])->name("task-create-post");
-                        Route::post('/task/update', [TaskController::class, "update"])->name("task-update");
-                        Route::post('/task/add-comment', [TaskController::class, "addComment"])->name("task-add-comment");
-                        Route::post('/task/update-sub-task', [TaskController::class, "updateSubTask"])->name("task-update-sub-task");
-                        Route::post('/task/upload-file-task', [TaskController::class, "uploadFileTask"])->name("task-upload-file-task");
-                        Route::post('/task/remove-attachment-task', [TaskController::class, "removeAttachment"])->name("task-remove-attachment-task");
-                        Route::get('/config-task', [TaskController::class, "config"])->name("config");
-                        Route::post('/config-task/post', [TaskController::class, "configPost"])->name("config-post");
-                        Route::post('/config-task/change-status', [TaskController::class, "configChangeStatus"])->name("config-change-status");
-                        Route::post('/task/claim', [TaskController::class, "claimTask"])->name("claimTask");
-                        Route::post('/task/add-contribution', [TaskController::class, "addContribution"])->name("add-contribution");
-                        Route::post('/task/delete-contribution', [TaskController::class, 'deleteContribution'])->name('delete-contribution');
-                        Route::get('/task/available-tasks', [TaskController::class, 'getAvailableTasks'])->name('available-tasks');
-                        Route::get('/task/contributions', [TaskController::class, 'getUserContributions'])->name('user-contributions');
-                        Route::get('/task/dashboard/project/{id}', [TaskController::class, 'projectDashboard'])->name('project-dashboard');
-                        Route::get('/task/dashboard/user', [TaskController::class, 'userDashboard'])->name('user-dashboard');
+                        // View tasks
+                        Route::middleware(['permission:view-task'])->group(function() {
+                            Route::get('/task', [TaskController::class, "index"])->name("task");
+                            Route::get('/task-data', [TaskController::class, "data"])->name("task-data");
+                            Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
+                            Route::get('/config-task', [TaskController::class, "config"])->name("config");
+                            Route::get('/task/get-status/{id}', [TaskController::class, 'getTaskStatus']);
+                            Route::get('/task/get-list-by-ids', [TaskController::class, 'getTaskByIDs']);
+                            Route::get('/task/available-tasks', [TaskController::class, 'getAvailableTasks'])->name('available-tasks');
+                            Route::get('/task/contributions', [TaskController::class, 'getUserContributions'])->name('user-contributions');
+                            Route::get('/task/dashboard/project/{id}', [TaskController::class, 'projectDashboard'])->name('project-dashboard');
+                            Route::get('/task/dashboard/user', [TaskController::class, 'userDashboard'])->name('user-dashboard');
+                            Route::get('/task/missions', [TaskController::class, 'getMissions'])->name('get-missions');
+                            Route::get('/task/task-missions', [TaskController::class, 'getTaskMissions'])->name('get-task-missions');
+                            Route::get('/task/show-feedback-form', [TaskController::class, 'showFeedbackForm']);
+                            Route::get('/task/feedbacks', [TaskController::class, 'getFeedbacks']);
+                            Route::get('/task/feedback-item-details', [TaskController::class, 'getFeedbackItemDetails']);
+                        });
 
-                        Route::get('/task/missions', [TaskController::class, 'getMissions'])->name('get-missions');
-                        Route::get('/task/task-missions', [TaskController::class, 'getTaskMissions'])->name('get-task-missions');
-                        Route::post('/task/report-mission', [TaskController::class, 'reportMission'])->name('report-mission');
-                        Route::post('/task/delete-mission-report', [TaskController::class, 'deleteMissionReport'])->name('delete-mission-report');
+                        // Create tasks
+                        Route::middleware(['permission:create-task'])->group(function() {
+                            Route::get('/task/create', [TaskController::class, "createView"])->name("task-create-view");
+                            Route::post('/task/create', [TaskController::class, "create"])->name("task-create-post");
+                            Route::post('/task/add-comment', [TaskController::class, "addComment"])->name("task-add-comment");
+                            Route::post('/task/upload-file-task', [TaskController::class, "uploadFileTask"])->name("task-upload-file-task");
+                            Route::post('/task/add-feedback', [TaskController::class, 'addFeedback']);
+                            Route::post('/task/report-mission', [TaskController::class, 'reportMission'])->name('report-mission');
+                        });
 
-                        Route::get('/task/show-feedback-form', [TaskController::class, 'showFeedbackForm']);
-                        Route::get('/task/feedbacks', [TaskController::class, 'getFeedbacks']);
-                        Route::post('/task/add-feedback', [TaskController::class, 'addFeedback']);
-                        Route::post('/task/resolve-feedback-item', [TaskController::class, 'resolveFeedbackItem']);
-                        Route::post('/task/confirm-feedback-resolved', [TaskController::class, 'confirmFeedbackResolved']);
-                        Route::post('/task/request-feedback-revision', [TaskController::class, 'requestFeedbackRevision']);
-                        Route::get('/task/feedback-item-details', [TaskController::class, 'getFeedbackItemDetails']);
+                        // Edit tasks
+                        Route::middleware(['permission:edit-task'])->group(function() {
+                            Route::post('/task/update', [TaskController::class, "update"])->name("task-update");
+                            Route::post('/task/update-sub-task', [TaskController::class, "updateSubTask"])->name("task-update-sub-task");
+                            Route::post('/config-task/post', [TaskController::class, "configPost"])->name("config-post");
+                            Route::post('/config-task/change-status', [TaskController::class, "configChangeStatus"])->name("config-change-status");
+                            Route::post('/task/add-contribution', [TaskController::class, "addContribution"])->name("add-contribution");
+                            Route::post('/task/resolve-feedback-item', [TaskController::class, 'resolveFeedbackItem']);
+                            Route::post('/task/confirm-feedback-resolved', [TaskController::class, 'confirmFeedbackResolved']);
+                            Route::post('/task/request-feedback-revision', [TaskController::class, 'requestFeedbackRevision']);
+                        });
 
-                        Route::get('/task/get-status/{id}', [TaskController::class, 'getTaskStatus']);
-                        Route::get('/task/get-list-by-ids', [TaskController::class, 'getTaskByIDs']);
+                        // Assign tasks
+                        Route::middleware(['permission:assign-task'])->group(function() {
+                            Route::post('/task/claim', [TaskController::class, "claimTask"])->name("claimTask");
+                        });
 
-                        Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
+                        // Delete tasks
+                        Route::middleware(['permission:delete-task'])->group(function() {
+                            Route::post('/task/remove-attachment-task', [TaskController::class, "removeAttachment"])->name("task-remove-attachment-task");
+                            Route::post('/task/delete-contribution', [TaskController::class, 'deleteContribution'])->name('delete-contribution');
+                            Route::post('/task/delete-mission-report', [TaskController::class, 'deleteMissionReport'])->name('delete-mission-report');
+                        });
                     }
                 );
 
@@ -407,7 +480,12 @@ Route::group(
         Route::group(
             ['namespace' => 'Service', 'as' => 'service.', 'middleware' => []],
             function () {
-                Route::get('/services', [ServiceController::class, "index"])->name("services");
+                // View services
+                Route::middleware(['permission:view-service'])->group(function() {
+                    Route::get('/services', [ServiceController::class, "index"])->name("services");
+                });
+                
+                // Create, Edit, Delete routes would be added here when implemented
             }
         );
 
@@ -418,22 +496,44 @@ Route::group(
                 Route::group(
                     ['namespace' => 'DepositReceipt', 'as' => 'deposit-receipt.', 'middleware' => []],
                     function () {
-                        Route::get('/deposit-receipt', [DepositReceiptController::class, "index"])->name("deposit-receipt");
-                        Route::get('/deposit-receipt/data', [DepositReceiptController::class, "data"])->name("data");
-                        Route::post('/deposit-receipt/create', [DepositReceiptController::class, "create"])->name("create");
-                        Route::post('/deposit-receipt/update', [DepositReceiptController::class, "update"])->name("update");
-                        Route::post('/deposit-receipt/cancel', [DepositReceiptController::class, "cancel"])->name("cancel");
-                        Route::get('/deposit-receipt/{id}/export-pdf', [DepositReceiptController::class, "exportPaymentReceipt"])->name("export-pdf");
+                        // View
+                        Route::middleware(['permission:view-transaction'])->group(function() {
+                            Route::get('/deposit-receipt', [DepositReceiptController::class, "index"])->name("deposit-receipt");
+                            Route::get('/deposit-receipt/data', [DepositReceiptController::class, "data"])->name("data");
+                            Route::get('/deposit-receipt/{id}/export-pdf', [DepositReceiptController::class, "exportPaymentReceipt"])->name("export-pdf");
+                        });
+
+                        // Create
+                        Route::middleware(['permission:create-transaction'])->group(function() {
+                            Route::post('/deposit-receipt/create', [DepositReceiptController::class, "create"])->name("create");
+                        });
+
+                        // Edit
+                        Route::middleware(['permission:edit-transaction'])->group(function() {
+                            Route::post('/deposit-receipt/update', [DepositReceiptController::class, "update"])->name("update");
+                        });
+
+                        // Delete
+                        Route::middleware(['permission:delete-transaction'])->group(function() {
+                            Route::post('/deposit-receipt/cancel', [DepositReceiptController::class, "cancel"])->name("cancel");
+                        });
                     }
                 );
 
                 Route::group(
                     ['namespace' => 'Commissions', 'as' => 'commissions.', 'middleware' => []],
                     function () {
-                        Route::get('/accounting/commissions-report', [CommissionController::class, "report"])->name("report");
-                        Route::get('/accounting/commissions/report-data', [CommissionController::class, "reportData"])->name("report-data");
-                        Route::post('/accounting/commissions/pay', [CommissionController::class, "payCommission"])->name("pay");
-                        Route::post('/accounting/commissions/bulk-pay', [CommissionController::class, "bulkPayCommission"])->name("bulk-pay");
+                        // View
+                        Route::middleware(['permission:view-transaction'])->group(function() {
+                            Route::get('/accounting/commissions-report', [CommissionController::class, "report"])->name("report");
+                            Route::get('/accounting/commissions/report-data', [CommissionController::class, "reportData"])->name("report-data");
+                        });
+
+                        // Process commissions
+                        Route::middleware(['permission:create-transaction'])->group(function() {
+                            Route::post('/accounting/commissions/pay', [CommissionController::class, "payCommission"])->name("pay");
+                            Route::post('/accounting/commissions/bulk-pay', [CommissionController::class, "bulkPayCommission"])->name("bulk-pay");
+                        });
                     }
                 );
         
@@ -441,12 +541,27 @@ Route::group(
                 Route::group(
                     ['namespace' => 'Transaction', 'as' => 'transaction.', 'middleware' => []],
                     function () {
-                        Route::get('/transaction', [TransactionController::class, "index"])->name("transaction");
-                        Route::get('/transaction/data', [TransactionController::class, "data"])->name("data");
-                        Route::post('/transaction/create', [TransactionController::class, "create"])->name("create");
-                        Route::post('/transaction/update', [TransactionController::class, "update"])->name("update");
-                        Route::post('/transaction/cancel', [TransactionController::class, "cancel"])->name("cancel");
-                        Route::get('/transaction/{id}/export-pdf', [TransactionController::class, "exportTransactionReceipt"])->name("export-pdf");
+                        // View
+                        Route::middleware(['permission:view-transaction'])->group(function() {
+                            Route::get('/transaction', [TransactionController::class, "index"])->name("transaction");
+                            Route::get('/transaction/data', [TransactionController::class, "data"])->name("data");
+                            Route::get('/transaction/{id}/export-pdf', [TransactionController::class, "exportTransactionReceipt"])->name("export-pdf");
+                        });
+
+                        // Create
+                        Route::middleware(['permission:create-transaction'])->group(function() {
+                            Route::post('/transaction/create', [TransactionController::class, "create"])->name("create");
+                        });
+
+                        // Edit
+                        Route::middleware(['permission:edit-transaction'])->group(function() {
+                            Route::post('/transaction/update', [TransactionController::class, "update"])->name("update");
+                        });
+
+                        // Delete
+                        Route::middleware(['permission:delete-transaction'])->group(function() {
+                            Route::post('/transaction/cancel', [TransactionController::class, "cancel"])->name("cancel");
+                        });
                     }
                 );
         
@@ -454,10 +569,21 @@ Route::group(
                 Route::group(
                     ['namespace' => 'Category', 'as' => 'category.', 'middleware' => []],
                     function () {
-                        Route::get('/transaction-category', [TransactionCategoryController::class, "index"])->name("category");
-                        Route::get('/transaction-category/data', [TransactionCategoryController::class, "data"])->name("data");
-                        Route::post('/transaction-category/create', [TransactionCategoryController::class, "create"])->name("create");
-                        Route::post('/transaction-category/update', [TransactionCategoryController::class, "update"])->name("update");
+                        // View
+                        Route::middleware(['permission:view-transaction'])->group(function() {
+                            Route::get('/transaction-category', [TransactionCategoryController::class, "index"])->name("category");
+                            Route::get('/transaction-category/data', [TransactionCategoryController::class, "data"])->name("data");
+                        });
+
+                        // Create
+                        Route::middleware(['permission:create-transaction'])->group(function() {
+                            Route::post('/transaction-category/create', [TransactionCategoryController::class, "create"])->name("create");
+                        });
+
+                        // Edit
+                        Route::middleware(['permission:edit-transaction'])->group(function() {
+                            Route::post('/transaction-category/update', [TransactionCategoryController::class, "update"])->name("update");
+                        });
                     }
                 );
         
@@ -465,9 +591,12 @@ Route::group(
                 Route::group(
                     ['namespace' => 'Report', 'as' => 'report.', 'middleware' => []],
                     function () {
-                        Route::get('/financial-report', [ReportController::class, "index"])->name("financial");
-                        Route::get('/financial-report/data', [ReportController::class, "getFinancialReport"])->name("financial-data");
-                        Route::get('/financial-report/export', [ReportController::class, "exportReport"])->name("financial-export");
+                        // View reports
+                        Route::middleware(['permission:view-report'])->group(function() {
+                            Route::get('/financial-report', [ReportController::class, "index"])->name("financial");
+                            Route::get('/financial-report/data', [ReportController::class, "getFinancialReport"])->name("financial-data");
+                            Route::get('/financial-report/export', [ReportController::class, "exportReport"])->name("financial-export");
+                        });
                     }
                 );
 
@@ -475,10 +604,17 @@ Route::group(
                 Route::group(
                     ['namespace' => 'PaymentMethod', 'as' => 'payment-method.', 'middleware' => []],
                     function () {
-                        Route::get('/payment-method', [PaymentMethodController::class, "index"])->name("payment-method");
-                        Route::get('/payment-method/data', [PaymentMethodController::class, "data"])->name("data");
-                        Route::post('/payment-method/create', [PaymentMethodController::class, "create"])->name("create");
-                        Route::post('/payment-method/update', [PaymentMethodController::class, "update"])->name("update");
+                        // View
+                        Route::middleware(['permission:view-setting'])->group(function() {
+                            Route::get('/payment-method', [PaymentMethodController::class, "index"])->name("payment-method");
+                            Route::get('/payment-method/data', [PaymentMethodController::class, "data"])->name("data");
+                        });
+
+                        // Create
+                        Route::middleware(['permission:edit-setting'])->group(function() {
+                            Route::post('/payment-method/create', [PaymentMethodController::class, "create"])->name("create");
+                            Route::post('/payment-method/update', [PaymentMethodController::class, "update"])->name("update");
+                        });
                     }
                 );
 
@@ -486,10 +622,17 @@ Route::group(
                 Route::group(
                     ['namespace' => 'Currency', 'as' => 'currency.', 'middleware' => []],
                     function () {
-                        Route::get('/currency', [CurrencyController::class, "index"])->name("currency");
-                        Route::get('/currency/data', [CurrencyController::class, "data"])->name("data");
-                        Route::post('/currency/create', [CurrencyController::class, "create"])->name("create");
-                        Route::post('/currency/update', [CurrencyController::class, "update"])->name("update");
+                        // View
+                        Route::middleware(['permission:view-setting'])->group(function() {
+                            Route::get('/currency', [CurrencyController::class, "index"])->name("currency");
+                            Route::get('/currency/data', [CurrencyController::class, "data"])->name("data");
+                        });
+
+                        // Create/Edit
+                        Route::middleware(['permission:edit-setting'])->group(function() {
+                            Route::post('/currency/create', [CurrencyController::class, "create"])->name("create");
+                            Route::post('/currency/update', [CurrencyController::class, "update"])->name("update");
+                        });
                     }
                 );
             }
@@ -501,7 +644,9 @@ Route::group(
                 Route::group(
                     ['namespace' => 'FileExplorer', 'as' => 'file-explorer.', 'middleware' => []],
                     function () {
-                        Route::get('/file-explorer', [FileExplorerController::class, "index"])->name("file-explorer");
+                        Route::middleware(['permission:view-file-explorer'])->group(function() {
+                            Route::get('/file-explorer', [FileExplorerController::class, "index"])->name("file-explorer");
+                        });
                     }
                 );
             }
@@ -514,7 +659,9 @@ Route::group(
                 Route::group(
                     ['namespace' => 'Activity', 'as' => 'activity.', 'middleware' => []],
                     function () {
-                        Route::get('/activity', [ActivityController::class, "index"])->name("activity");
+                        Route::middleware(['permission:view-logs'])->group(function() {
+                            Route::get('/activity', [ActivityController::class, "index"])->name("activity");
+                        });
                     }
                 );
             }
@@ -523,9 +670,16 @@ Route::group(
         Route::group(
             ['namespace' => 'Setting', 'as' => 'setting.', 'middleware' => []],
             function () {
-                Route::get('/setting', [SettingController::class, "index"])->name("setting");
-                Route::post('/setting/update', [SettingController::class, "update"])->name("update");
-                Route::get('/setting/commissions', [SettingController::class, "commissions"])->name("commissions");
+                // View settings
+                Route::middleware(['permission:view-setting'])->group(function() {
+                    Route::get('/setting', [SettingController::class, "index"])->name("setting");
+                    Route::get('/setting/commissions', [SettingController::class, "commissions"])->name("commissions");
+                });
+
+                // Edit settings
+                Route::middleware(['permission:edit-setting'])->group(function() {
+                    Route::post('/setting/update', [SettingController::class, "update"])->name("update");
+                });
             }
         );
     }

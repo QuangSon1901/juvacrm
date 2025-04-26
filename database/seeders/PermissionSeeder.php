@@ -88,6 +88,22 @@ class PermissionSeeder extends Seeder
             // Setting permissions
             ['name' => 'View Setting', 'slug' => 'view-setting', 'description' => 'Quyền xem cài đặt', 'module' => 'Setting'],
             ['name' => 'Edit Setting', 'slug' => 'edit-setting', 'description' => 'Quyền sửa cài đặt', 'module' => 'Setting'],
+
+            // File Explorer permissions
+            ['name' => 'View File Explorer', 'slug' => 'view-file-explorer', 'description' => 'Quyền xem quản lý file', 'module' => 'FileExplorer'],
+            ['name' => 'Upload File', 'slug' => 'upload-file', 'description' => 'Quyền tải lên file', 'module' => 'FileExplorer'],
+            ['name' => 'Delete File', 'slug' => 'delete-file', 'description' => 'Quyền xóa file', 'module' => 'FileExplorer'],
+
+            // Activity Logs permissions
+            ['name' => 'View Activity Logs', 'slug' => 'view-logs', 'description' => 'Quyền xem nhật ký hoạt động', 'module' => 'Logs'],
+
+            // Profile permissions
+            ['name' => 'View Profile', 'slug' => 'view-profile', 'description' => 'Quyền xem thông tin cá nhân', 'module' => 'Profile'],
+            ['name' => 'Edit Profile', 'slug' => 'edit-profile', 'description' => 'Quyền chỉnh sửa thông tin cá nhân', 'module' => 'Profile'],
+
+            // Bổ sung cho module Assets
+            ['name' => 'View Assets', 'slug' => 'view-assets', 'description' => 'Quyền xem tài sản', 'module' => 'Assets'],
+            ['name' => 'Manage Assets', 'slug' => 'manage-assets', 'description' => 'Quyền quản lý tài sản', 'module' => 'Assets'],
         ];
 
         // Insert permissions
