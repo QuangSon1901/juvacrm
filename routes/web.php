@@ -190,15 +190,6 @@ Route::group(
         Route::group(
             ['namespace' => 'Contract', 'as' => 'contract.', 'middleware' => []],
             function () {
-                // View
-                Route::middleware(['permission:view-contract'])->group(function() {
-                    Route::get('/contracts', [ContractController::class, "index"])->name("contract");
-                    Route::get('/contract-data', [ContractController::class, "data"])->name("data");
-                    Route::get('/contract/{id}', [ContractController::class, 'detail'])->name('contract.detail');
-                    Route::get('/contract/{id}/export-pdf', [ContractController::class, 'exportPdf'])->name('export-pdf');
-                    Route::get('/contract/{id}/export-excel', [ContractController::class, 'exportExcel'])->name('export-excel');
-                });
-
                 // Create
                 Route::middleware(['permission:create-contract'])->group(function() {
                     Route::get('/contract/create-view', [ContractController::class, "createView"])->name("create-view");
@@ -227,6 +218,15 @@ Route::group(
                 // Approve
                 Route::middleware(['permission:approve-contract'])->group(function() {
                     Route::post('/contract/complete', [ContractController::class, "complete"])->name("complete");
+                });
+                
+                // View
+                Route::middleware(['permission:view-contract'])->group(function() {
+                    Route::get('/contracts', [ContractController::class, "index"])->name("contract");
+                    Route::get('/contract-data', [ContractController::class, "data"])->name("data");
+                    Route::get('/contract/{id}', [ContractController::class, 'detail'])->name('contract.detail');
+                    Route::get('/contract/{id}/export-pdf', [ContractController::class, 'exportPdf'])->name('export-pdf');
+                    Route::get('/contract/{id}/export-excel', [ContractController::class, 'exportExcel'])->name('export-excel');
                 });
             }
         );
@@ -399,9 +399,7 @@ Route::group(
                         Route::middleware(['permission:view-task'])->group(function() {
                             Route::get('/task', [TaskController::class, "index"])->name("task");
                             Route::get('/task-data', [TaskController::class, "data"])->name("task-data");
-                            Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
                             Route::get('/config-task', [TaskController::class, "config"])->name("config");
-                            Route::get('/task/get-status/{id}', [TaskController::class, 'getTaskStatus']);
                             Route::get('/task/get-list-by-ids', [TaskController::class, 'getTaskByIDs']);
                             Route::get('/task/available-tasks', [TaskController::class, 'getAvailableTasks'])->name('available-tasks');
                             Route::get('/task/contributions', [TaskController::class, 'getUserContributions'])->name('user-contributions');
@@ -412,6 +410,8 @@ Route::group(
                             Route::get('/task/show-feedback-form', [TaskController::class, 'showFeedbackForm']);
                             Route::get('/task/feedbacks', [TaskController::class, 'getFeedbacks']);
                             Route::get('/task/feedback-item-details', [TaskController::class, 'getFeedbackItemDetails']);
+                            Route::get('/task/get-status/{id}', [TaskController::class, 'getTaskStatus']);
+                            Route::get('/task/{id}', [TaskController::class, "detail"])->name("detail");
                         });
 
                         // Create tasks

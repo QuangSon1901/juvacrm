@@ -157,6 +157,11 @@
                                             <span class="sort-label text-gray-700 font-normal">Hoa hồng</span>
                                         </span>
                                     </th>
+                                    <th class="w-[150px]">
+                                        <span class="sort">
+                                            <span class="sort-label text-gray-700 font-normal">Tiền công nhiệm vụ</span>
+                                        </span>
+                                    </th>
                                     <th class="w-[100px]">
                                         <span class="sort">
                                             <span class="sort-label text-gray-700 font-normal">Khấu trừ</span>
@@ -291,10 +296,18 @@
                             </tr>
                             <tr>
                                 <td class="py-2 min-w-28 text-gray-600 font-medium">
-                                    Hoa hồng
+                                    Hoa hồng hợp đồng
                                 </td>
                                 <td class="py-2 text-gray-700 font-medium min-w-32 text-right">
                                     <span id="result-commission-amount"></span> VNĐ
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 min-w-28 text-gray-600 font-medium">
+                                    Tiền công hoàn thành công việc
+                                </td>
+                                <td class="py-2 text-gray-700 font-medium min-w-32 text-right">
+                                    <span id="result-task-mission-amount"></span> VNĐ
                                 </td>
                             </tr>
                             <tr>
@@ -413,6 +426,7 @@
                     $('#result-parttime-salary').text(formatNumber(calculatedSalaryData.partTimeSalary));
                     $('#result-overtime-amount').text(formatNumber(calculatedSalaryData.overtimeAmount));
                     $('#result-commission-amount').text(formatNumber(calculatedSalaryData.commissionAmount));
+                    $('#result-task-mission-amount').text(formatNumber(calculatedSalaryData.taskMissionAmount)); // Thêm dòng này
                     $('#result-advance-amount').text(formatNumber(calculatedSalaryData.advanceAmount));
                     $('#result-tax-amount').text(formatNumber(calculatedSalaryData.taxAmount));
                     $('#result-insurance-amount').text(formatNumber(calculatedSalaryData.insuranceAmount));
@@ -443,6 +457,7 @@
                     overtime_hours: calculatedSalaryData.overtimeHours,
                     overtime_amount: calculatedSalaryData.overtimeAmount,
                     commission_amount: calculatedSalaryData.commissionAmount,
+                    task_mission_amount: calculatedSalaryData.taskMissionAmount, // Thêm dòng này
                     deductions: 0,
                     tax_amount: calculatedSalaryData.taxAmount,
                     insurance_amount: calculatedSalaryData.insuranceAmount,

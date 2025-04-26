@@ -17,6 +17,7 @@ class SalaryRecord extends Model
         'overtime_hours',
         'overtime_amount',
         'commission_amount',
+        'task_mission_amount',
         'deductions',
         'tax_amount',
         'insurance_amount',
@@ -47,7 +48,8 @@ class SalaryRecord extends Model
         $this->final_amount = $this->base_salary + 
                               $this->attendance_bonus + 
                               $this->overtime_amount + 
-                              $this->commission_amount - 
+                              $this->commission_amount +
+                              $this->task_mission_amount -
                               $this->deductions - 
                               $this->tax_amount - 
                               $this->insurance_amount - 

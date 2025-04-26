@@ -18,6 +18,7 @@ class CreateSalaryRecordsTable extends Migration
             $table->decimal('overtime_hours', 8, 2)->default(0);
             $table->decimal('overtime_amount', 15, 2)->default(0);
             $table->decimal('commission_amount', 15, 2)->default(0);
+            $table->decimal('task_mission_amount', 15, 2)->default(0);
             $table->decimal('deductions', 15, 2)->default(0);
             $table->decimal('tax_amount', 15, 2)->default(0);
             $table->decimal('insurance_amount', 15, 2)->default(0);

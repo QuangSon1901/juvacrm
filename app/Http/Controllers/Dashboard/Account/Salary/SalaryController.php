@@ -9,6 +9,7 @@ use App\Models\PartTimeSchedule;
 use App\Models\SalaryAdvance;
 use App\Models\SalaryConfiguration;
 use App\Models\SalaryRecord;
+use App\Models\TaskMissionReport;
 use App\Models\Transaction;
 use App\Models\TransactionCategory;
 use App\Models\User;
@@ -77,6 +78,7 @@ class SalaryController extends Controller
                 'base_salary' => number_format($item->base_salary, 0, ',', '.'),
                 'overtime_amount' => number_format($item->overtime_amount, 0, ',', '.'),
                 'commission_amount' => number_format($item->commission_amount, 0, ',', '.'),
+                'task_mission_amount' => number_format($item->task_mission_amount, 0, ',', '.'), // Thêm dòng này
                 'deductions' => number_format($item->deductions, 0, ',', '.'),
                 'final_amount' => number_format($item->final_amount, 0, ',', '.'),
                 'status' => $item->status,
@@ -107,63 +109,63 @@ class SalaryController extends Controller
             'period_month' => 'required|integer|min:1|max:12',
             'period_year' => 'required|integer|min:2000|max:2100',
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => 422,
-                'message' => $validator->errors()->first(),
+                'message' => $validator->errors()->first()
             ]);
         }
-        
+
         $userId = $request->user_id;
         $month = $request->period_month;
         $year = $request->period_year;
-        
+
         // Kiểm tra nếu đã có bảng lương cho tháng này
         $existingSalary = SalaryRecord::where('user_id', $userId)
-                                      ->where('period_month', $month)
-                                      ->where('period_year', $year)
-                                      ->first();
-        
+                                    ->where('period_month', $month)
+                                    ->where('period_year', $year)
+                                    ->first();
+
         if ($existingSalary) {
             return response()->json([
                 'status' => 422,
                 'message' => 'Đã tồn tại bảng lương cho nhân viên này trong tháng ' . $month . '/' . $year,
             ]);
         }
-        
+
         $user = User::find($userId);
-        
+
         // Lấy cấu hình lương
         $fullTimeConfig = SalaryConfiguration::getConfiguration($userId, 'fulltime');
         $partTimeConfig = SalaryConfiguration::getConfiguration($userId, 'part-time');
-        
+
         // Thông tin chấm công
         $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
         $endDate = Carbon::createFromDate($year, $month, 1)->endOfMonth();
-        
+
         $attendanceRecords = AttendanceRecord::where('user_id', $userId)
                                             ->whereBetween('work_date', [$startDate, $endDate])
                                             ->get();
-        
+
         // Tính ngày công fulltime
         $workingDays = $attendanceRecords->filter(function($record) {
             return $record->status === 'present' && $record->total_hours >= 8;
         })->count();
-        
+
         // Tính giờ làm thêm
         $overtimeHours = $attendanceRecords->sum(function($record) {
             return $record->total_hours > 8 ? $record->total_hours - 8 : 0;
         });
-        
+
         // Tính giờ làm part-time
         $partTimeSchedules = PartTimeSchedule::where('user_id', $userId)
-                                           ->where('status', 'approved')
-                                           ->whereBetween('schedule_date', [$startDate, $endDate])
-                                           ->get();
-        
+                                        ->where('status', 'approved')
+                                        ->whereBetween('schedule_date', [$startDate, $endDate])
+                                        ->get();
+
         $partTimeHours = $partTimeSchedules->sum('total_hours');
-        
+
         // Tính lương cơ bản
         $baseSalary = 0;
         if ($fullTimeConfig && $fullTimeConfig->monthly_salary > 0) {
@@ -174,48 +176,58 @@ class SalaryController extends Controller
             
             $baseSalary = $fullTimeConfig->monthly_salary * ($workingDays / $workDaysInMonth);
         }
-        
+
         // Tính lương part-time
         $partTimeSalary = 0;
         if ($partTimeConfig && $partTimeConfig->hourly_rate > 0) {
             $partTimeSalary = $partTimeHours * $partTimeConfig->hourly_rate;
         }
-        
+
         // Tính lương làm thêm giờ
         $overtimeAmount = 0;
         if ($fullTimeConfig && $overtimeHours > 0) {
             $hourlyRate = $fullTimeConfig->monthly_salary / (8 * 22); // Giả định 22 ngày làm việc/tháng
             $overtimeAmount = $overtimeHours * $hourlyRate * $fullTimeConfig->overtime_rate;
         }
-        
+
         // Tính hoa hồng
         $commissions = ContractCommission::where('user_id', $userId)
                                         ->where('is_paid', 0)
                                         ->whereNull('transaction_id')
                                         ->get();
-        
+
         $commissionAmount = $commissions->sum('commission_amount');
-        
+
         // Tính tạm ứng
         $advances = SalaryAdvance::where('user_id', $userId)
                                 ->where('status', 'paid')
                                 ->whereMonth('request_date', $month)
                                 ->whereYear('request_date', $year)
                                 ->get();
-        
+
         $advanceAmount = $advances->sum('amount');
-        
+
+        // Tính tiền công từ báo cáo nhiệm vụ
+        $taskMissionReports = TaskMissionReport::whereHas('assignment', function($query) use ($userId) {
+                                    $query->where('user_id', $userId);
+                                })
+                                ->whereMonth('date_completed', $month)
+                                ->whereYear('date_completed', $year)
+                                ->get();
+
+        $taskMissionAmount = $taskMissionReports->sum('price');
+
         // Tính thuế, bảo hiểm
         $taxRate = $fullTimeConfig ? $fullTimeConfig->tax_rate : 0;
         $insuranceRate = $fullTimeConfig ? $fullTimeConfig->insurance_rate : 0;
-        
-        $totalEarnings = $baseSalary + $partTimeSalary + $overtimeAmount + $commissionAmount;
+
+        $totalEarnings = $baseSalary + $partTimeSalary + $overtimeAmount + $commissionAmount + $taskMissionAmount;
         $taxAmount = $totalEarnings * ($taxRate / 100);
         $insuranceAmount = $baseSalary * ($insuranceRate / 100);
-        
+
         // Tính lương cuối cùng
         $finalAmount = $totalEarnings - $taxAmount - $insuranceAmount - $advanceAmount;
-        
+
         return response()->json([
             'status' => 200,
             'data' => [
@@ -234,6 +246,7 @@ class SalaryController extends Controller
                 'partTimeSalary' => $partTimeSalary,
                 'overtimeAmount' => $overtimeAmount,
                 'commissionAmount' => $commissionAmount,
+                'taskMissionAmount' => $taskMissionAmount, // Thêm khoản tiền từ báo cáo nhiệm vụ
                 'advanceAmount' => $advanceAmount,
                 'taxAmount' => $taxAmount,
                 'insuranceAmount' => $insuranceAmount,
@@ -254,6 +267,7 @@ class SalaryController extends Controller
             'overtime_hours' => 'nullable|numeric|min:0',
             'overtime_amount' => 'nullable|numeric|min:0',
             'commission_amount' => 'nullable|numeric|min:0',
+            'task_mission_amount' => 'nullable|numeric|min:0', // Thêm validation cho trường mới
             'deductions' => 'nullable|numeric|min:0',
             'tax_amount' => 'nullable|numeric|min:0',
             'insurance_amount' => 'nullable|numeric|min:0',
@@ -262,14 +276,14 @@ class SalaryController extends Controller
             'commission_ids' => 'nullable|array',
             'commission_ids.*' => 'exists:tbl_contract_commissions,id',
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => 422,
-                'message' => $validator->errors()->first(),
+                'message' => $validator->errors()->first()
             ]);
         }
-        
+
         DB::beginTransaction();
         try {
             // Tạo bản ghi lương
@@ -282,6 +296,7 @@ class SalaryController extends Controller
                 'overtime_hours' => $request->overtime_hours ?? 0,
                 'overtime_amount' => $request->overtime_amount ?? 0,
                 'commission_amount' => $request->commission_amount ?? 0,
+                'task_mission_amount' => $request->task_mission_amount ?? 0, // Thêm trường mới
                 'deductions' => $request->deductions ?? 0,
                 'tax_amount' => $request->tax_amount ?? 0,
                 'insurance_amount' => $request->insurance_amount ?? 0,
@@ -294,7 +309,7 @@ class SalaryController extends Controller
             // Đánh dấu các hoa hồng đã tính
             if ($request->filled('commission_ids')) {
                 ContractCommission::whereIn('id', $request->commission_ids)
-                                 ->update(['processed_at' => Carbon::now()]);
+                                ->update(['processed_at' => Carbon::now()]);
             }
             
             LogService::saveLog([

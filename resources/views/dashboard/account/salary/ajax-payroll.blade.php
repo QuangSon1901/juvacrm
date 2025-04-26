@@ -14,6 +14,7 @@
     <td>{{ $item['base_salary'] }}</td>
     <td>{{ $item['overtime_amount'] }}</td>
     <td>{{ $item['commission_amount'] }}</td>
+    <td>{{ $item['task_mission_amount'] }}</td>
     <td>{{ $item['deductions'] }}</td>
     <td class="font-semibold text-success">{{ $item['final_amount'] }}</td>
     <td>
