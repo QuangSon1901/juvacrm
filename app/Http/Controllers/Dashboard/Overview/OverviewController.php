@@ -165,6 +165,13 @@ class OverviewController extends Controller
             ];
         }
 
+        $userId = auth()->user()->id;
+        $today = date('Y-m-d');
+                
+        $attendanceRecord = AttendanceRecord::where('user_id', $userId)
+            ->where('work_date', $today)
+            ->first();
+
         return view("dashboard.overview.index", compact(
             'contractStats',
             'customerStats',
@@ -172,7 +179,8 @@ class OverviewController extends Controller
             'financialStats',
             'employeeStats',
             'taskTrends',
-            'financialTrends'
+            'financialTrends',
+            'attendanceRecord'
         ));
     }
 }

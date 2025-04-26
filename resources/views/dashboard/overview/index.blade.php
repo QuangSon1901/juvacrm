@@ -7,10 +7,31 @@
             <h1 class="font-medium text-base text-gray-900">
                 Tổng quan
             </h1>
-            <button class="btn btn-sm btn-primary" data-modal-toggle="#checkin_modal">
-                <i class="ki-filled ki-time"></i>
-                Chấm công
-            </button>
+            <div class="flex items-center gap-2">
+                @if(isset($attendanceRecord) && $attendanceRecord->check_in_time && !$attendanceRecord->check_out_time)
+                    <button id="btn-attendance" class="btn btn-sm btn-danger" onclick="doCheckOut()">
+                        <i class="ki-filled ki-time me-1"></i>
+                        Check Out
+                    </button>
+                    <span class="text-xs text-success">
+                        <i class="ki-solid ki-arrow-right"></i> {{ \Carbon\Carbon::parse($attendanceRecord->check_in_time)->format('H:i') }}
+                    </span>
+                @elseif(isset($attendanceRecord) && $attendanceRecord->check_in_time && $attendanceRecord->check_out_time)
+                    <button class="btn btn-sm btn-light" disabled>
+                        <i class="ki-filled ki-check me-1"></i>
+                        Đã chấm công
+                    </button>
+                    <span class="text-xs text-gray-600">
+                        {{ \Carbon\Carbon::parse($attendanceRecord->check_in_time)->format('H:i') }} - 
+                        {{ \Carbon\Carbon::parse($attendanceRecord->check_out_time)->format('H:i') }}
+                    </span>
+                @else
+                    <button id="btn-attendance" class="btn btn-sm btn-success" onclick="doCheckIn()">
+                        <i class="ki-filled ki-time me-1"></i>
+                        Check In
+                    </button>
+                @endif
+            </div>
         </div>
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
             <span class="text-sm text-gray-600">{{ now()->format('d/m/Y') }}</span>
@@ -680,6 +701,65 @@
                 break;
             default:
                 break;
+        }
+    }
+
+    async function doCheckIn() {
+        try {
+            // Deshabilitar botón mientras procesa
+            const btn = document.getElementById('btn-attendance');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ki-solid ki-spinner ki-spin me-1"></i> Đang xử lý...';
+            
+            const res = await axiosTemplate('post', '/account/timekeeping/do-check-in', null, {});
+            
+            if (res.data.status === 200) {
+                showAlert('success', res.data.message);
+                // Recargar página después de 1.5 segundos
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showAlert('warning', res.data.message);
+                // Restaurar botón
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ki-filled ki-time me-1"></i> Check In';
+            }
+        } catch (error) {
+            showAlert('error', 'Đã xảy ra lỗi khi check in');
+            console.error(error);
+            // Restaurar botón
+            const btn = document.getElementById('btn-attendance');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ki-filled ki-time me-1"></i> Check In';
+        }
+    }
+    
+    // Función para realizar Check Out
+    async function doCheckOut() {
+        try {
+            // Deshabilitar botón mientras procesa
+            const btn = document.getElementById('btn-attendance');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ki-solid ki-spinner ki-spin me-1"></i> Đang xử lý...';
+            
+            const res = await axiosTemplate('post', '/account/timekeeping/do-check-out', null, {});
+            
+            if (res.data.status === 200) {
+                showAlert('success', res.data.message);
+                // Recargar página después de 1.5 segundos
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showAlert('warning', res.data.message);
+                // Restaurar botón
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ki-filled ki-time me-1"></i> Check Out';
+            }
+        } catch (error) {
+            showAlert('error', 'Đã xảy ra lỗi khi check out');
+            console.error(error);
+            // Restaurar botón
+            const btn = document.getElementById('btn-attendance');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ki-filled ki-time me-1"></i> Check Out';
         }
     }
     
