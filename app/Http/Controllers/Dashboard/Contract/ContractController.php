@@ -2343,6 +2343,7 @@ private function removeDirectory($dir)
         $services = $contract->services()->where('is_active', 1)->get();
 
         $totalValue = 0;
+        $totalValue += $contract->services()->where('is_active', 1)->where('service_type', 'combo')->sum('price');
         
         // Tính giá trị từ góc máy (dịch vụ con)
         $subServices = $services->where('type', 'sub_service');

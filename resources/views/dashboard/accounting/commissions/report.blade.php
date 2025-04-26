@@ -27,7 +27,7 @@
                             Tổng hoa hồng
                         </div>
                         <div class="text-2sm text-gray-700" id="total-commission">
-                            0 VNĐ
+                        {{ $commissionSummary['total_commission'] }} VNĐ
                         </div>
                     </div>
                 </div>
@@ -41,7 +41,7 @@
                             Hoa hồng chờ thanh toán
                         </div>
                         <div class="text-2sm text-gray-700" id="pending-commission">
-                            0 VNĐ
+                        {{ $commissionSummary['pending_commission'] }} VNĐ
                         </div>
                     </div>
                 </div>

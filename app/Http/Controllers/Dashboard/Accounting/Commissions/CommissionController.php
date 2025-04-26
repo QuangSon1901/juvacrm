@@ -20,18 +20,52 @@ class CommissionController extends Controller
     public function report()
     {
         $users = User::where('is_active', 1)->get();
-        return view('dashboard.accounting.commissions.report', compact('users'));
+        
+        // Tính tổng hoa hồng
+        $totalCommission = ContractCommission::sum('commission_amount');
+        
+        // Tính tổng hoa hồng chưa thanh toán
+        $pendingCommission = ContractCommission::where('is_paid', 0)->sum('commission_amount');
+        
+        // Định dạng các tổng
+        $commissionSummary = [
+            'total_commission' => number_format($totalCommission, 0, ',', '.'),
+            'pending_commission' => number_format($pendingCommission, 0, ',', '.')
+        ];
+        
+        return view('dashboard.accounting.commissions.report', compact('users', 'commissionSummary'));
     }
     
     public function myCommission()
     {
         $userId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
+        
+        // Lấy tất cả hoa hồng của người dùng
+        $allCommissions = ContractCommission::where('user_id', $userId)->get();
+        
+        // Tính tổng hoa hồng đã nhận
+        $totalPaid = $allCommissions->where('is_paid', 1)->sum('commission_amount');
+        
+        // Tính tổng hoa hồng chờ thanh toán
+        $totalPending = $allCommissions->where('is_paid', 0)->sum('commission_amount');
+        
+        // Tính tổng số hợp đồng (không trùng lặp)
+        $totalContracts = $allCommissions->pluck('contract_id')->unique()->count();
+        
+        // Tạo mảng thống kê
+        $commissionStats = [
+            'totalPaid' => $totalPaid,
+            'totalPending' => $totalPending,
+            'totalContracts' => $totalContracts
+        ];
+        
+        // Lấy danh sách hoa hồng có phân trang
         $commissions = ContractCommission::with(['contract', 'transaction'])
                                         ->where('user_id', $userId)
                                         ->orderBy('created_at', 'desc')
-                                        ->paginate(10);
+                                        ->paginate(50);
         
-        return view('dashboard.profile.my-commission', compact('commissions'));
+        return view('dashboard.profile.my-commission', compact('commissions', 'commissionStats'));
     }
     
     public function reportData(Request $request)

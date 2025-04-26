@@ -1,4 +1,3 @@
-<tbody>
     @if(count($data) > 0)
         @foreach($data as $item)
         <tr>
@@ -72,4 +71,3 @@
             </td>
         </tr>
     @endif
-</tbody>
