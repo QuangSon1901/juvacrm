@@ -5,13 +5,18 @@ use App\Http\Controllers\BizFlyController;
 use App\Http\Controllers\CloudinaryController;
 use App\Http\Controllers\Dashboard\Account\Member\MemberController;
 use App\Http\Controllers\Dashboard\Account\Role\RoleController;
+use App\Http\Controllers\Dashboard\Account\Salary\SalaryAdvanceController;
+use App\Http\Controllers\Dashboard\Account\Salary\SalaryConfigurationController;
+use App\Http\Controllers\Dashboard\Account\Salary\SalaryController;
+use App\Http\Controllers\Dashboard\Account\Schedule\ScheduleController;
 use App\Http\Controllers\Dashboard\Account\Task\TaskConfigController;
 use App\Http\Controllers\Dashboard\Account\Task\TaskController;
 use App\Http\Controllers\Dashboard\Account\Task\TaskMissionController;
 use App\Http\Controllers\Dashboard\Account\Team\TeamController;
-use App\Http\Controllers\Dashboard\Account\TimeKeeping\TimeKeepingController;
+use App\Http\Controllers\Dashboard\Account\Timekeeping\AttendanceController;
 use App\Http\Controllers\Dashboard\Account\Tranning\Document\DocumentController;
 use App\Http\Controllers\Dashboard\Accounting\Category\TransactionCategoryController;
+use App\Http\Controllers\Dashboard\Accounting\Commissions\CommissionController;
 use App\Http\Controllers\Dashboard\Accounting\Currency\CurrencyController;
 use App\Http\Controllers\Dashboard\Accounting\DepositReceipt\DepositReceiptController;
 use App\Http\Controllers\Dashboard\Accounting\PaymentMethod\PaymentMethodController;
@@ -231,7 +236,56 @@ Route::group(
                 Route::group(
                     ['namespace' => 'TimeKeeping', 'as' => 'timekeeping.', 'middleware' => []],
                     function () {
-                        Route::get('/timekeeping', [TimeKeepingController::class, "index"])->name("timekeeping");
+                        // Route::get('/timekeeping', [TimeKeepingController::class, "index"])->name("timekeeping");
+                        Route::get('/account/timekeeping', [AttendanceController::class, "timekeeping"])->name("timekeeping");
+                        Route::get('/account/timekeeping/data', [AttendanceController::class, "attendanceData"])->name("data");
+                        Route::post('/account/timekeeping/update', [AttendanceController::class, "updateAttendance"])->name("update");
+                        
+                        Route::get('/account/timekeeping/check-in-out', [AttendanceController::class, "checkInOut"])->name("check-in-out");
+                        Route::post('/account/timekeeping/do-check-in', [AttendanceController::class, "doCheckIn"])->name("do-check-in");
+                        Route::post('/account/timekeeping/do-check-out', [AttendanceController::class, "doCheckOut"])->name("do-check-out");
+                    }
+                );
+
+                Route::group(
+                    ['namespace' => 'Schedule', 'as' => 'schedule.', 'middleware' => []],
+                    function () {
+                        Route::get('/account/schedule', [ScheduleController::class, "schedule"])->name("schedule");
+                        Route::get('/account/schedule/data', [ScheduleController::class, "scheduleData"])->name("data");
+                        Route::post('/account/schedule/create', [ScheduleController::class, "createSchedule"])->name("create");
+                        Route::post('/account/schedule/update-status', [ScheduleController::class, "updateScheduleStatus"])->name("update-status");
+                        
+                        Route::get('/account/schedule/part-time', [ScheduleController::class, "partTime"])->name("part-time");
+                        Route::get('/account/schedule/statistics', [ScheduleController::class, "getStatistics"])->name("statistics");
+                        Route::get('/account/schedule/users-list', [ScheduleController::class, "getUsersList"])->name("users-list");
+                        Route::get('/account/schedule/calendar-data', [ScheduleController::class, "getCalendarData"])->name("calendar-data");
+                        Route::post('/account/schedule/cancel', [ScheduleController::class, "cancelSchedule"])->name("cancel");
+                        Route::post('/account/schedule/delete', [ScheduleController::class, "deleteSchedule"])->name("delete");
+                        Route::get('/account/schedule/{id}/detail', [ScheduleController::class, "getScheduleDetail"])->name("detail");
+                        Route::get('/account/schedule/{id}/edit', [ScheduleController::class, "getScheduleEdit"])->name("edit");
+                    }
+                );
+
+                Route::group(
+                    ['namespace' => 'Salary', 'as' => 'salary.', 'middleware' => []],
+                    function () {
+                        // Cấu hình tính lương
+                        Route::get('/account/configuration', [SalaryConfigurationController::class, "index"])->name("configuration");
+                        Route::get('/account/user-config', [SalaryConfigurationController::class, "getUserConfig"])->name("user-config");
+                        Route::post('/account/salary/save-config', [SalaryConfigurationController::class, "saveConfig"])->name("save-config");
+                        
+                        // Bảng lương nhân viên
+                        Route::get('/account/salary/payroll', [SalaryController::class, "payroll"])->name("payroll");
+                        Route::get('/account/salary/payroll-data', [SalaryController::class, "payrollData"])->name("payroll-data");
+                        Route::get('/account/salary/calculate', [SalaryController::class, "calculateSalary"])->name("calculate");
+                        Route::post('/account/salary/save-salary', [SalaryController::class, "saveSalary"])->name("save-salary");
+                        Route::post('/account/salary/process-salary', [SalaryController::class, "processSalary"])->name("process-salary");
+                        
+                        // Tạm ứng lương
+                        Route::get('/account/salary/advance', [SalaryAdvanceController::class, "index"])->name("advance");
+                        Route::get('/account/salary/advance-data', [SalaryAdvanceController::class, "advanceData"])->name("advance-data");
+                        Route::post('/account/salary/create-advance', [SalaryAdvanceController::class, "createAdvance"])->name("create-advance");
+                        Route::post('/account/salary/update-advance-status', [SalaryAdvanceController::class, "updateAdvanceStatus"])->name("update-advance-status");
                     }
                 );
 
@@ -312,6 +366,10 @@ Route::group(
             function () {
                 Route::get('/profile', [ProfileController::class, "index"])->name("profile");
                 Route::post('/profile/update', [ProfileController::class, "update"])->name("update");
+                Route::get('/profile/my-salary', [SalaryController::class, "mySalary"])->name("my-salary");
+                Route::get('/profile/my-timesheet', [AttendanceController::class, "myTimesheet"])->name("my-timesheet");
+                Route::get('/profile/my-schedule', [ScheduleController::class, "mySchedule"])->name("my-schedule");
+                Route::get('/profile/my-commission', [CommissionController::class, "myCommission"])->name("my-commission");
             }
         );
 
@@ -335,6 +393,16 @@ Route::group(
                         Route::post('/deposit-receipt/update', [DepositReceiptController::class, "update"])->name("update");
                         Route::post('/deposit-receipt/cancel', [DepositReceiptController::class, "cancel"])->name("cancel");
                         Route::get('/deposit-receipt/{id}/export-pdf', [DepositReceiptController::class, "exportPaymentReceipt"])->name("export-pdf");
+                    }
+                );
+
+                Route::group(
+                    ['namespace' => 'Commissions', 'as' => 'commissions.', 'middleware' => []],
+                    function () {
+                        Route::get('/accounting/commissions-report', [CommissionController::class, "report"])->name("report");
+                        Route::get('/accounting/commissions/report-data', [CommissionController::class, "reportData"])->name("report-data");
+                        Route::post('/accounting/commissions/pay', [CommissionController::class, "payCommission"])->name("pay");
+                        Route::post('/accounting/commissions/bulk-pay', [CommissionController::class, "bulkPayCommission"])->name("bulk-pay");
                     }
                 );
         

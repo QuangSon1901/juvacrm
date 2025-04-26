@@ -4,7 +4,7 @@
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
-                Quản lý chấm công
+                Tạm ứng lương
             </h1>
         </div>
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
@@ -17,17 +17,17 @@
 
 <div class="container-fixed">
     <div class="grid gap-5 lg:gap-7.5">
-        <!-- Bảng điều khiển thống kê -->
+        <!-- Thống kê tạm ứng -->
         <div class="grid !grid-cols-1 lg:!grid-cols-4 gap-5">
             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                 <div class="flex items-center flex-wrap gap-3.5">
-                    <i class="ki-outline ki-people size-6 shrink-0 text-primary"></i>
+                    <i class="ki-outline ki-dollar size-6 shrink-0 text-primary"></i>
                     <div class="flex flex-col">
                         <div class="text-sm font-medium text-gray-900 mb-px">
-                            Tổng nhân viên
+                            Tổng tiền đã tạm ứng
                         </div>
                         <div class="text-2sm text-gray-700">
-                            {{ $stats['totalEmployees'] ?? 0 }} nhân viên
+                            {{ number_format($stats['totalPaid'] ?? 0, 0, ',', '.') }} VNĐ
                         </div>
                     </div>
                 </div>
@@ -35,13 +35,13 @@
     
             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                 <div class="flex items-center flex-wrap gap-3.5">
-                    <i class="ki-outline ki-calendar-tick size-6 shrink-0 text-success"></i>
+                    <i class="ki-outline ki-notification-status size-6 shrink-0 text-success"></i>
                     <div class="flex flex-col">
                         <div class="text-sm font-medium text-gray-900 mb-px">
-                            Đã chấm công hôm nay
+                            Tạm ứng đã duyệt
                         </div>
                         <div class="text-2sm text-gray-700">
-                            {{ $stats['checkedInToday'] ?? 0 }} nhân viên
+                            {{ $stats['approvedCount'] ?? 0 }} yêu cầu
                         </div>
                     </div>
                 </div>
@@ -52,10 +52,10 @@
                     <i class="ki-outline ki-timer size-6 shrink-0 text-warning"></i>
                     <div class="flex flex-col">
                         <div class="text-sm font-medium text-gray-900 mb-px">
-                            Đi trễ hôm nay
+                            Tạm ứng chờ duyệt
                         </div>
                         <div class="text-2sm text-gray-700">
-                            {{ $stats['lateToday'] ?? 0 }} nhân viên
+                            {{ $stats['pendingCount'] ?? 0 }} yêu cầu
                         </div>
                     </div>
                 </div>
@@ -63,24 +63,24 @@
     
             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                 <div class="flex items-center flex-wrap gap-3.5">
-                    <i class="ki-outline ki-calendar-cross size-6 shrink-0 text-danger"></i>
+                    <i class="ki-outline ki-cross-square size-6 shrink-0 text-danger"></i>
                     <div class="flex flex-col">
                         <div class="text-sm font-medium text-gray-900 mb-px">
-                            Vắng mặt hôm nay
+                            Tạm ứng bị từ chối
                         </div>
                         <div class="text-2sm text-gray-700">
-                            {{ $stats['absentToday'] ?? 0 }} nhân viên
+                            {{ $stats['rejectedCount'] ?? 0 }} yêu cầu
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Bảng dữ liệu chấm công -->
+        <!-- Danh sách tạm ứng -->
         <div class="card card-grid min-w-full">
             <div class="card-header flex-wrap py-5">
                 <h3 class="card-title">
-                    Dữ liệu chấm công
+                    Danh sách yêu cầu tạm ứng
                 </h3>
                 <div class="flex flex-wrap gap-2">
                     <div class="relative">
@@ -95,10 +95,10 @@
                     <div class="relative">
                         <select class="select select-sm" id="status-filter" data-filter="status">
                             <option value="">Tất cả trạng thái</option>
-                            <option value="present">Có mặt</option>
-                            <option value="absent">Vắng mặt</option>
-                            <option value="late">Đi trễ</option>
-                            <option value="early_leave">Về sớm</option>
+                            <option value="pending">Chờ duyệt</option>
+                            <option value="approved">Đã duyệt</option>
+                            <option value="rejected">Từ chối</option>
+                            <option value="paid">Đã chi</option>
                         </select>
                     </div>
                     
@@ -110,14 +110,14 @@
                         <input class="input input-sm" type="text" id="date-to-filter" data-filter="date_to" data-flatpickr="true" placeholder="Đến ngày">
                     </div>
                     
-                    <button id="btn-export-excel" class="btn btn-primary btn-sm">
-                        <i class="ki-filled ki-file-down me-1"></i>
-                        Xuất Excel
+                    <button class="btn btn-primary btn-sm" data-modal-toggle="#create-advance-modal">
+                        <i class="ki-filled ki-plus me-1"></i>
+                        Tạo yêu cầu
                     </button>
                 </div>
             </div>
             <div class="card-body">
-                <div id="attendance-table" class="datatable-initialized">
+                <div id="advance-table" class="datatable-initialized">
                     <div class="scrollable-x-auto">
                         <table class="table table-fixed table-border" data-datatable-table="true">
                             <thead>
@@ -128,40 +128,40 @@
                                             <span class="sort-label text-gray-700 font-normal">Nhân viên</span>
                                         </span>
                                     </th>
-                                    <th class="w-[150px]">
+                                    <th class="w-[100px]">
                                         <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Ngày</span>
+                                            <span class="sort-label text-gray-700 font-normal">Ngày yêu cầu</span>
                                         </span>
                                     </th>
                                     <th class="w-[150px]">
                                         <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Check In</span>
+                                            <span class="sort-label text-gray-700 font-normal">Số tiền</span>
                                         </span>
                                     </th>
-                                    <th class="w-[150px]">
+                                    <th class="w-[250px]">
                                         <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Check Out</span>
+                                            <span class="sort-label text-gray-700 font-normal">Lý do</span>
                                         </span>
                                     </th>
                                     <th class="w-[100px]">
                                         <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Giờ làm</span>
+                                            <span class="sort-label text-gray-700 font-normal">Trạng thái</span>
                                         </span>
                                     </th>
                                     <th class="w-[150px]">
                                         <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Trạng thái</span>
+                                            <span class="sort-label text-gray-700 font-normal">Người duyệt</span>
                                         </span>
                                     </th>
-                                    <th class="w-[200px]">
+                                    <th class="w-[100px]">
                                         <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Ghi chú</span>
+                                            <span class="sort-label text-gray-700 font-normal">Ngày duyệt</span>
                                         </span>
                                     </th>
                                     <th class="w-[60px]"></th>
                                 </tr>
                             </thead>
-                            @include('dashboard.layouts.tableloader', ['currentlist' => '/account/timekeeping/data'])
+                            @include('dashboard.layouts.tableloader', ['currentlist' => '/account/salary/advance-data'])
                         </table>
                     </div>
                     <div class="card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-gray-600 text-2sm font-medium">
@@ -179,58 +179,88 @@
     </div>
 </div>
 
-<!-- Modal Chỉnh sửa chấm công -->
-<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="edit-attendance-modal" style="z-index: 90;">
+<!-- Modal Tạo yêu cầu tạm ứng -->
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="create-advance-modal" style="z-index: 90;">
     <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
         <div class="modal-header pr-2.5">
             <h3 class="modal-title">
-                Chỉnh sửa dữ liệu chấm công
+                Tạo yêu cầu tạm ứng lương
             </h3>
             <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
         <div class="modal-body">
-            <form id="edit-attendance-form" class="grid gap-5 px-0 py-5">
-                <input type="hidden" name="id" id="edit-attendance-id">
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-2.5">
-                        <label class="text-gray-900 font-semibold text-2sm">
-                            Giờ Check In
-                        </label>
-                        <input class="input" type="text" name="check_in_time" id="edit-check-in-time" data-flatpickr="true" data-flatpickr-type="time" placeholder="Chọn giờ check in">
-                    </div>
-                    <div class="flex flex-col gap-2.5">
-                        <label class="text-gray-900 font-semibold text-2sm">
-                            Giờ Check Out
-                        </label>
-                        <input class="input" type="text" name="check_out_time" id="edit-check-out-time" data-flatpickr="true" data-flatpickr-type="time" placeholder="Chọn giờ check out">
-                    </div>
-                </div>
-                
+            <form id="create-advance-form" class="grid gap-5 px-0 py-5">
                 <div class="flex flex-col gap-2.5">
                     <label class="text-gray-900 font-semibold text-2sm">
-                        Trạng thái
+                        Nhân viên <span class="text-red-500">*</span>
                     </label>
-                    <select class="select" name="status" id="edit-status">
-                        <option value="present">Có mặt</option>
-                        <option value="absent">Vắng mặt</option>
-                        <option value="late">Đi trễ</option>
-                        <option value="early_leave">Về sớm</option>
+                    <select class="select" name="user_id" required>
+                        <option value="">Chọn nhân viên</option>
+                        @foreach($users as $user)
+                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 
                 <div class="flex flex-col gap-2.5">
                     <label class="text-gray-900 font-semibold text-2sm">
-                        Ghi chú
+                        Số tiền cần ứng <span class="text-red-500">*</span>
                     </label>
-                    <textarea class="textarea" name="note" id="edit-note" rows="3" placeholder="Nhập ghi chú"></textarea>
+                    <input class="input" type="number" name="amount" placeholder="Nhập số tiền cần ứng" min="100000" required>
+                </div>
+                
+                <div class="flex flex-col gap-2.5">
+                    <label class="text-gray-900 font-semibold text-2sm">
+                        Ngày yêu cầu <span class="text-red-500">*</span>
+                    </label>
+                    <input class="input" type="text" name="request_date" data-flatpickr="true" placeholder="Chọn ngày yêu cầu" required>
+                </div>
+                
+                <div class="flex flex-col gap-2.5">
+                    <label class="text-gray-900 font-semibold text-2sm">
+                        Lý do <span class="text-red-500">*</span>
+                    </label>
+                    <textarea class="textarea" name="reason" rows="3" placeholder="Nhập lý do tạm ứng" required></textarea>
                 </div>
                 
                 <div class="flex flex-col">
                     <button type="submit" class="btn btn-primary justify-center">
-                        Cập nhật
+                        Tạo yêu cầu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xử lý yêu cầu tạm ứng -->
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="process-advance-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Xử lý yêu cầu tạm ứng
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="process-advance-form" class="grid gap-5 px-0 py-5">
+                <input type="hidden" name="id" id="process-advance-id">
+                <input type="hidden" name="status" id="process-advance-status">
+                
+                <div class="flex flex-col gap-2.5">
+                    <label class="text-gray-900 font-semibold text-2sm">
+                        Ghi chú
+                    </label>
+                    <textarea class="textarea" name="note" rows="3" placeholder="Nhập ghi chú (nếu có)"></textarea>
+                </div>
+                
+                <div class="flex flex-col">
+                    <button type="submit" id="process-advance-btn" class="btn btn-primary justify-center">
+                        Xác nhận
                     </button>
                 </div>
             </form>
@@ -243,83 +273,95 @@
 <script>
     $(function() {
         // Khởi tạo flatpickr cho các trường ngày
+        flatpickrMake($("input[name='request_date']"), 'date');
         flatpickrMake($("#date-from-filter"), 'date');
         flatpickrMake($("#date-to-filter"), 'date');
         
-        // Xử lý sự kiện khi thay đổi bộ lọc
+        // Xử lý khi thay đổi bộ lọc
         $('[data-filter]').on('change', function() {
             callAjaxDataTable($('.updater'));
         });
         
-        // Xử lý nút xuất Excel
-        $('#btn-export-excel').on('click', function() {
-            const filters = {};
-            
-            $('[data-filter]').each(function() {
-                const filter = $(this).data('filter');
-                const value = $(this).val();
-                
-                if (value) {
-                    filters[filter] = value;
-                }
-            });
-            
-            let url = '/account/timekeeping/export-excel';
-            const queryParams = new URLSearchParams(filters).toString();
-            
-            if (queryParams) {
-                url += `?${queryParams}`;
-            }
-            
-            window.location.href = url;
-        });
-        
-        // Xử lý form chỉnh sửa chấm công
-        $('#edit-attendance-form').on('submit', async function(e) {
+        // Xử lý form tạo yêu cầu tạm ứng
+        $('#create-advance-form').on('submit', async function(e) {
             e.preventDefault();
             
-            const id = $('#edit-attendance-id').val();
-            const checkInTime = $('#edit-check-in-time').val();
-            const checkOutTime = $('#edit-check-out-time').val();
-            const status = $('#edit-status').val();
-            const note = $('#edit-note').val();
+            const userId = $(this).find('select[name="user_id"]').val();
+            const amount = $(this).find('input[name="amount"]').val();
+            const requestDate = $(this).find('input[name="request_date"]').val();
+            const reason = $(this).find('textarea[name="reason"]').val();
             
             try {
-                const res = await axiosTemplate('post', '/account/timekeeping/update', null, {
+                const res = await axiosTemplate('post', '/account/salary/create-advance', null, {
+                    user_id: userId,
+                    amount: amount,
+                    request_date: requestDate,
+                    reason: reason
+                });
+                
+                if (res.data.status === 200) {
+                    showAlert('success', res.data.message);
+                    KTModal.getInstance(document.querySelector('#create-advance-modal')).hide();
+                    
+                    // Reset form
+                    $(this).trigger('reset');
+                    
+                    // Cập nhật bảng
+                    callAjaxDataTable($('.updater'));
+                } else {
+                    showAlert('warning', res.data.message);
+                }
+            } catch (error) {
+                showAlert('error', 'Đã xảy ra lỗi khi tạo yêu cầu tạm ứng');
+                console.error(error);
+            }
+        });
+        
+        // Xử lý form xử lý yêu cầu tạm ứng
+        $('#process-advance-form').on('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = $('#process-advance-id').val();
+            const status = $('#process-advance-status').val();
+            const note = $(this).find('textarea[name="note"]').val();
+            
+            try {
+                const res = await axiosTemplate('post', '/account/salary/update-advance-status', null, {
                     id: id,
-                    check_in_time: checkInTime,
-                    check_out_time: checkOutTime,
                     status: status,
                     note: note
                 });
                 
                 if (res.data.status === 200) {
                     showAlert('success', res.data.message);
-                    KTModal.getInstance(document.querySelector('#edit-attendance-modal')).hide();
+                    KTModal.getInstance(document.querySelector('#process-advance-modal')).hide();
+                    
+                    // Reset form
+                    $(this).trigger('reset');
+                    
+                    // Cập nhật bảng
                     callAjaxDataTable($('.updater'));
                 } else {
                     showAlert('warning', res.data.message);
                 }
             } catch (error) {
-                showAlert('error', 'Đã xảy ra lỗi khi cập nhật dữ liệu chấm công');
+                showAlert('error', 'Đã xảy ra lỗi khi xử lý yêu cầu tạm ứng');
                 console.error(error);
             }
         });
     });
     
-    // Hàm mở modal chỉnh sửa chấm công
-    function openEditAttendanceModal(id, checkInTime, checkOutTime, status, note) {
-        $('#edit-attendance-id').val(id);
-        $('#edit-check-in-time').val(checkInTime);
-        $('#edit-check-out-time').val(checkOutTime);
-        $('#edit-status').val(status);
-        $('#edit-note').val(note);
+    // Hàm mở modal xử lý yêu cầu tạm ứng
+    function openProcessModal(id, status) {
+        const statusText = status === 'approved' ? 'duyệt' : (status === 'rejected' ? 'từ chối' : 'chi trả');
+        const buttonClass = status === 'approved' ? 'btn-success' : (status === 'rejected' ? 'btn-danger' : 'btn-primary');
         
-        // Khởi tạo lại flatpickr cho các trường thời gian
-        flatpickrMake($("#edit-check-in-time"), 'time');
-        flatpickrMake($("#edit-check-out-time"), 'time');
+        $('#process-advance-id').val(id);
+        $('#process-advance-status').val(status);
+        $('#process-advance-btn').text(`Xác nhận ${statusText}`).removeClass('btn-success btn-danger btn-primary').addClass(buttonClass);
+        $('.modal-title').text(`${status === 'approved' ? 'Duyệt' : (status === 'rejected' ? 'Từ chối' : 'Chi trả')} yêu cầu tạm ứng`);
         
-        KTModal.getInstance(document.querySelector('#edit-attendance-modal')).show();
+        KTModal.getInstance(document.querySelector('#process-advance-modal')).show();
     }
 </script>
 @endpush
