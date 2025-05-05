@@ -1168,6 +1168,15 @@ video {
 .w-\[225px\] {
   width: 225px;
 }
+.w-\[120px\] {
+  width: 120px;
+}
+.w-\[180px\] {
+  width: 180px;
+}
+.w-\[80px\] {
+  width: 80px;
+}
 .min-w-0 {
   min-width: 0px;
 }
@@ -2114,8 +2123,14 @@ video {
 .text-left {
   text-align: left;
 }
+.\!text-left {
+  text-align: left !important;
+}
 .text-center {
   text-align: center;
+}
+.\!text-center {
+  text-align: center !important;
 }
 .text-right {
   text-align: right;
@@ -2876,6 +2891,10 @@ video {
 
   .lg\:\!grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .lg\:\!grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 
   .lg\:flex-row {

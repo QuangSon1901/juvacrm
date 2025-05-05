@@ -1,5 +1,11 @@
 @foreach ($data as $item)
 <tr>
+    <td>
+        <div class="checkbox">
+            <input class="form-checkbox checkbox-row" type="checkbox" id="checkbox-{{ $item['id'] }}" value="{{ $item['id'] }}" {{ $item['status'] === 'paid' ? 'disabled' : '' }}>
+            <label for="checkbox-{{ $item['id'] }}"></label>
+        </div>
+    </td>
     <td class="text-center">
         {{ $item['index'] }}
     </td>

@@ -24,7 +24,7 @@
                     <i class="ki-outline ki-dollar size-6 shrink-0 text-primary"></i>
                     <div class="flex flex-col">
                         <div class="text-sm font-medium text-gray-900 mb-px">
-                            Tổng chi lương tháng này
+                            Tổng chi lương tháng trước
                         </div>
                         <div class="text-2sm text-gray-700">
                             {{ number_format($stats['totalPaid'] ?? 0, 0, ',', '.') }} VNĐ
@@ -32,7 +32,52 @@
                     </div>
                 </div>
             </div>
-    
+
+            <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
+                <div class="flex items-center flex-wrap gap-3.5">
+                    <i class="ki-outline ki-notification-status size-6 shrink-0 text-success"></i>
+                    <div class="flex flex-col">
+                        <div class="text-sm font-medium text-gray-900 mb-px">
+                            Tổng cơ bản
+                        </div>
+                        <div class="text-2sm text-gray-700">
+                            {{ number_format($stats['totalBaseSalary'] ?? 0, 0, ',', '.') }} VNĐ
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
+                <div class="flex items-center flex-wrap gap-3.5">
+                    <i class="ki-outline ki-timer size-6 shrink-0 text-warning"></i>
+                    <div class="flex flex-col">
+                        <div class="text-sm font-medium text-gray-900 mb-px">
+                            Tổng hoa hồng
+                        </div>
+                        <div class="text-2sm text-gray-700">
+                            {{ number_format($stats['totalCommission'] ?? 0, 0, ',', '.') }} VNĐ
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
+                <div class="flex items-center flex-wrap gap-3.5">
+                    <i class="ki-outline ki-abstract-26 size-6 shrink-0 text-danger"></i>
+                    <div class="flex flex-col">
+                        <div class="text-sm font-medium text-gray-900 mb-px">
+                            Tổng nhiệm vụ
+                        </div>
+                        <div class="text-2sm text-gray-700">
+                            {{ number_format($stats['totalMission'] ?? 0, 0, ',', '.') }} VNĐ
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hàng số liệu thứ hai -->
+        <div class="grid !grid-cols-1 lg:!grid-cols-3 gap-5">
             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                 <div class="flex items-center flex-wrap gap-3.5">
                     <i class="ki-outline ki-notification-status size-6 shrink-0 text-success"></i>
@@ -46,7 +91,7 @@
                     </div>
                 </div>
             </div>
-    
+
             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                 <div class="flex items-center flex-wrap gap-3.5">
                     <i class="ki-outline ki-timer size-6 shrink-0 text-warning"></i>
@@ -60,10 +105,10 @@
                     </div>
                 </div>
             </div>
-    
+
             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                 <div class="flex items-center flex-wrap gap-3.5">
-                    <i class="ki-outline ki-abstract-26 size-6 shrink-0 text-danger"></i>
+                    <i class="ki-outline ki-abstract-26 size-6 shrink-0 text-primary"></i>
                     <div class="flex flex-col">
                         <div class="text-sm font-medium text-gray-900 mb-px">
                             Tổng nhân viên
@@ -75,7 +120,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Danh sách bảng lương -->
         <div class="card card-grid min-w-full">
             <div class="card-header flex-wrap py-5">
@@ -84,32 +129,23 @@
                 </h3>
                 <div class="flex flex-wrap gap-2">
                     <div class="relative">
-                        <select class="select select-sm" id="user-filter" data-filter="user_id">
-                            <option value="">Tất cả nhân viên</option>
-                            @foreach($users as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    
-                    <div class="relative">
                         <select class="select select-sm" id="month-filter" data-filter="period_month">
                             <option value="">Tất cả tháng</option>
                             @for($i = 1; $i <= 12; $i++)
-                            <option value="{{ $i }}" {{ $i == $currentMonth ? 'selected' : '' }}>Tháng {{ $i }}</option>
-                            @endfor
+                                <option value="{{ $i }}" {{ $i == $previousMonth ? 'selected' : '' }}>Tháng {{ $i }}</option>
+                                @endfor
                         </select>
                     </div>
-                    
+
                     <div class="relative">
                         <select class="select select-sm" id="year-filter" data-filter="period_year">
                             <option value="">Tất cả năm</option>
                             @for($i = 2020; $i <= date('Y'); $i++)
-                            <option value="{{ $i }}" {{ $i == $currentYear ? 'selected' : '' }}>Năm {{ $i }}</option>
-                            @endfor
+                                <option value="{{ $i }}" {{ $i == $previousYear ? 'selected' : '' }}>Năm {{ $i }}</option>
+                                @endfor
                         </select>
                     </div>
-                    
+
                     <div class="relative">
                         <select class="select select-sm" id="status-filter" data-filter="status">
                             <option value="">Tất cả trạng thái</option>
@@ -118,11 +154,62 @@
                             <option value="paid">Đã chi</option>
                         </select>
                     </div>
-                    
-                    <button class="btn btn-primary btn-sm" data-modal-toggle="#calculate-salary-modal">
+
+                    <button class="btn btn-primary btn-sm" id="calculate-bulk-salary-btn">
                         <i class="ki-filled ki-calculator me-1"></i>
-                        Tính lương
+                        Tính lương tháng trước
                     </button>
+
+                    <div class="dropdown" data-dropdown="true" data-dropdown-trigger="click">
+                        <button class="dropdown-toggle btn btn-success btn-sm">
+                            <i class="ki-filled ki-check me-1"></i>
+                            Xử lý nhanh
+                        </button>
+                        <div class="dropdown-content w-full max-w-56 py-2">
+                            <div class="menu menu-default flex flex-col w-full">
+                                <div class="menu-item">
+                                    <button class="menu-link" id="bulk-approve-btn">
+                                        <span class="menu-icon">
+                                            <i class="ki-filled ki-check text-success"></i>
+                                        </span>
+                                        <span class="menu-title">
+                                        Duyệt lương đã chọn
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="menu-item">
+                                    <button class="menu-link" id="bulk-pay-btn">
+                                        <span class="menu-icon">
+                                            <i class="ki-filled ki-dollar text-primary"></i>
+                                        </span>
+                                        <span class="menu-title">
+                                        Chi lương đã chọn
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="menu-item">
+                                    <button class="menu-link" id="bulk-approve-all-btn">
+                                        <span class="menu-icon">
+                                            <i class="ki-filled ki-check-all text-success"></i>
+                                        </span>
+                                        <span class="menu-title !text-left">
+                                        Duyệt tất cả lương chờ xử lý
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="menu-item">
+                                    <button class="menu-link" id="bulk-pay-all-btn">
+                                        <span class="menu-icon">
+                                            <i class="ki-filled ki-dollar text-primary"></i>
+                                        </span>
+                                        <span class="menu-title">
+                                        Chi tất cả lương đã duyệt
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
@@ -131,18 +218,24 @@
                         <table class="table table-fixed table-border" data-datatable-table="true">
                             <thead>
                                 <tr>
-                                    <th class="w-[60px] text-center">STT</th>
-                                    <th class="w-[200px]">
+                                    <th class="w-[40px]">
+                                        <div class="checkbox">
+                                            <input class="form-checkbox" type="checkbox" id="checkbox-all">
+                                            <label for="checkbox-all"></label>
+                                        </div>
+                                    </th>
+                                    <th class="w-[40px] text-center">STT</th>
+                                    <th class="w-[180px]">
                                         <span class="sort">
                                             <span class="sort-label text-gray-700 font-normal">Nhân viên</span>
                                         </span>
                                     </th>
-                                    <th class="w-[100px]">
+                                    <th class="w-[80px]">
                                         <span class="sort">
                                             <span class="sort-label text-gray-700 font-normal">Kỳ lương</span>
                                         </span>
                                     </th>
-                                    <th class="w-[150px]">
+                                    <th class="w-[120px]">
                                         <span class="sort">
                                             <span class="sort-label text-gray-700 font-normal">Lương cơ bản</span>
                                         </span>
@@ -157,7 +250,7 @@
                                             <span class="sort-label text-gray-700 font-normal">Hoa hồng</span>
                                         </span>
                                     </th>
-                                    <th class="w-[150px]">
+                                    <th class="w-[120px]">
                                         <span class="sort">
                                             <span class="sort-label text-gray-700 font-normal">Tiền công nhiệm vụ</span>
                                         </span>
@@ -167,7 +260,7 @@
                                             <span class="sort-label text-gray-700 font-normal">Khấu trừ</span>
                                         </span>
                                     </th>
-                                    <th class="w-[150px]">
+                                    <th class="w-[120px]">
                                         <span class="sort">
                                             <span class="sort-label text-gray-700 font-normal">Thực nhận</span>
                                         </span>
@@ -198,158 +291,69 @@
     </div>
 </div>
 
-<!-- Modal Tính lương -->
-<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="calculate-salary-modal" style="z-index: 90;">
-    <div class="modal-content max-w-[600px] top-5 lg:top-[10%]">
+<!-- Modal Kết quả tính lương -->
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="salary-result-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[800px] top-5 lg:top-[5%]">
         <div class="modal-header pr-2.5">
             <h3 class="modal-title">
-                Tính lương nhân viên
+                Kết quả tính lương
             </h3>
             <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
                 <i class="ki-filled ki-cross"></i>
             </button>
         </div>
         <div class="modal-body">
-            <form id="calculate-salary-form" class="grid gap-5 px-0 py-5">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-2.5">
-                        <label class="text-gray-900 font-semibold text-2sm">
-                            Nhân viên <span class="text-red-500">*</span>
-                        </label>
-                        <select class="select" name="user_id" id="calc-user-id" required>
-                            <option value="">Chọn nhân viên</option>
-                            @foreach($users as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    
-                    <div class="flex flex-col gap-2.5">
-                        <label class="text-gray-900 font-semibold text-2sm">
-                            Kỳ lương <span class="text-red-500">*</span>
-                        </label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <select class="select" name="period_month" id="calc-period-month" required>
-                                <option value="">Tháng</option>
-                                @for($i = 1; $i <= 12; $i++)
-                                <option value="{{ $i }}" {{ $i == $currentMonth ? 'selected' : '' }}>Tháng {{ $i }}</option>
-                                @endfor
-                            </select>
-                            <select class="select" name="period_year" id="calc-period-year" required>
-                                <option value="">Năm</option>
-                                @for($i = 2020; $i <= date('Y'); $i++)
-                                <option value="{{ $i }}" {{ $i == $currentYear ? 'selected' : '' }}>{{ $i }}</option>
-                                @endfor
-                            </select>
-                        </div>
+            <div id="salary-calculation-result" class="grid gap-5 px-0 py-2">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-semibold text-lg">Kết quả tính lương tháng <span id="result-period"></span></h4>
+                    <div class="flex gap-2">
+                        <span class="text-success font-medium">Thành công: <span id="result-success-count">0</span></span>
+                        <span class="text-danger font-medium">Lỗi: <span id="result-error-count">0</span></span>
                     </div>
                 </div>
-                
-                <div class="flex flex-col">
-                    <button type="submit" class="btn btn-primary justify-center">
-                        Tính lương
-                    </button>
+
+                <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg mb-4">
+                    <span class="font-medium">Tổng tiền lương:</span>
+                    <span class="text-lg font-semibold text-success" id="result-total-salary">0 VNĐ</span>
                 </div>
-            </form>
-            
-            <div id="salary-calculation-result" class="hidden mt-5 border-t pt-5">
-                <h4 class="font-semibold text-lg mb-4">Kết quả tính lương</h4>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="font-medium">Nhân viên: <span id="result-user-name" class="font-normal"></span></p>
-                        <p class="font-medium">Kỳ lương: <span id="result-period" class="font-normal"></span></p>
-                    </div>
-                    <div>
-                        <p class="font-medium">Số ngày làm việc: <span id="result-working-days" class="font-normal"></span></p>
-                        <p class="font-medium">Giờ làm thêm: <span id="result-overtime-hours" class="font-normal"></span></p>
-                        <p class="font-medium">Giờ làm part-time: <span id="result-parttime-hours" class="font-normal"></span></p>
-                    </div>
-                </div>
-                
-                <div class="card-table scrollable-x-auto pb-3">
+
+                <div class="card-table scrollable-y-auto max-h-[400px]">
                     <table class="table align-middle text-sm text-gray-500">
-                        <tbody>
+                        <thead>
                             <tr>
-                                <td class="py-2 min-w-28 text-gray-600 font-medium">
-                                    Lương cơ bản
-                                </td>
-                                <td class="py-2 text-gray-700 font-medium min-w-32 text-right">
-                                    <span id="result-base-salary"></span> VNĐ
-                                </td>
+                                <th class="py-2">Nhân viên</th>
+                                <th class="py-2">Lương</th>
+                                <th class="py-2">Trạng thái</th>
                             </tr>
-                            <tr>
-                                <td class="py-2 min-w-28 text-gray-600 font-medium">
-                                    Lương part-time
-                                </td>
-                                <td class="py-2 text-gray-700 font-medium min-w-32 text-right">
-                                    <span id="result-parttime-salary"></span> VNĐ
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 min-w-28 text-gray-600 font-medium">
-                                    Lương làm thêm giờ
-                                </td>
-                                <td class="py-2 text-gray-700 font-medium min-w-32 text-right">
-                                    <span id="result-overtime-amount"></span> VNĐ
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 min-w-28 text-gray-600 font-medium">
-                                    Hoa hồng hợp đồng
-                                </td>
-                                <td class="py-2 text-gray-700 font-medium min-w-32 text-right">
-                                    <span id="result-commission-amount"></span> VNĐ
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 min-w-28 text-gray-600 font-medium">
-                                    Tiền công hoàn thành công việc
-                                </td>
-                                <td class="py-2 text-gray-700 font-medium min-w-32 text-right">
-                                    <span id="result-task-mission-amount"></span> VNĐ
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 min-w-28 text-gray-600 font-medium">
-                                    Tạm ứng
-                                </td>
-                                <td class="py-2 text-gray-700 font-medium min-w-32 text-right">
-                                    <span id="result-advance-amount"></span> VNĐ
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 min-w-28 text-gray-600 font-medium">
-                                    Thuế thu nhập
-                                </td>
-                                <td class="py-2 text-gray-700 font-medium min-w-32 text-right">
-                                    <span id="result-tax-amount"></span> VNĐ
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 min-w-28 text-gray-600 font-medium">
-                                    Bảo hiểm
-                                </td>
-                                <td class="py-2 text-gray-700 font-medium min-w-32 text-right">
-                                    <span id="result-insurance-amount"></span> VNĐ
-                                </td>
-                            </tr>
-                            <tr class="border-t border-gray-200">
-                                <td class="py-2 min-w-28 text-gray-800 font-semibold">
-                                    Thực nhận
-                                </td>
-                                <td class="py-2 text-success font-semibold min-w-32 text-right">
-                                    <span id="result-final-amount"></span> VNĐ
-                                </td>
-                            </tr>
+                        </thead>
+                        <tbody id="result-employees">
+                            <!-- Kết quả sẽ được thêm ở đây bằng JavaScript -->
                         </tbody>
                     </table>
                 </div>
-                
-                <div class="flex justify-end mt-4">
-                    <button id="save-salary-btn" class="btn btn-primary">
-                        <i class="ki-filled ki-save me-1"></i>
-                        Lưu bảng lương
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xử lý hàng loạt -->
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="bulk-process-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title" id="bulk-process-title">
+                Xử lý lương hàng loạt
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="grid gap-5 px-0 py-5">
+                <p id="bulk-process-message">Bạn đang chuẩn bị xử lý <span class="font-semibold" id="bulk-process-count">0</span> bảng lương.</p>
+
+                <div class="flex justify-center">
+                    <button id="bulk-process-confirm" class="btn btn-primary justify-center">
+                        Xác nhận
                     </button>
                 </div>
             </div>
@@ -379,121 +383,245 @@
 
 @push('scripts')
 <script>
-    let calculatedSalaryData = null;
-    
+    // Các biến toàn cục
+    let selectedSalaryIds = [];
+
     $(function() {
         // Xử lý khi thay đổi bộ lọc
         $('[data-filter]').on('change', function() {
             callAjaxDataTable($('.updater'));
         });
-        
-        // Xử lý form tính lương
-        $('#calculate-salary-form').on('submit', async function(e) {
-            e.preventDefault();
-            
-            const userId = $('#calc-user-id').val();
-            const periodMonth = $('#calc-period-month').val();
-            const periodYear = $('#calc-period-year').val();
-            
-            if (!userId || !periodMonth || !periodYear) {
-                showAlert('warning', 'Vui lòng điền đầy đủ thông tin');
-                return;
-            }
-            
+
+        // Xử lý nút tính lương
+        $('#calculate-bulk-salary-btn').on('click', async function() {
             try {
-                const res = await axiosTemplate('get', '/account/salary/calculate', {
-                    user_id: userId,
-                    period_month: periodMonth,
-                    period_year: periodYear
-                }, null);
-                
-                if (res.data.status === 200) {
-                    // Lưu dữ liệu tính toán
-                    calculatedSalaryData = res.data.data;
-                    
-                    // Hiển thị kết quả
-                    $('#salary-calculation-result').removeClass('hidden');
-                    
-                    // Cập nhật thông tin hiển thị
-                    $('#result-user-name').text(calculatedSalaryData.user.name);
-                    $('#result-period').text(calculatedSalaryData.period.month + '/' + calculatedSalaryData.period.year);
-                    $('#result-working-days').text(calculatedSalaryData.workingDays);
-                    $('#result-overtime-hours').text(calculatedSalaryData.overtimeHours);
-                    $('#result-parttime-hours').text(calculatedSalaryData.partTimeHours);
-                    
-                    // Định dạng số tiền
-                    $('#result-base-salary').text(formatNumber(calculatedSalaryData.baseSalary));
-                    $('#result-parttime-salary').text(formatNumber(calculatedSalaryData.partTimeSalary));
-                    $('#result-overtime-amount').text(formatNumber(calculatedSalaryData.overtimeAmount));
-                    $('#result-commission-amount').text(formatNumber(calculatedSalaryData.commissionAmount));
-                    $('#result-task-mission-amount').text(formatNumber(calculatedSalaryData.taskMissionAmount)); // Thêm dòng này
-                    $('#result-advance-amount').text(formatNumber(calculatedSalaryData.advanceAmount));
-                    $('#result-tax-amount').text(formatNumber(calculatedSalaryData.taxAmount));
-                    $('#result-insurance-amount').text(formatNumber(calculatedSalaryData.insuranceAmount));
-                    $('#result-final-amount').text(formatNumber(calculatedSalaryData.finalAmount));
-                } else {
-                    showAlert('warning', res.data.message);
+                // Lấy tháng trước
+                const now = new Date();
+                let previousMonth = now.getMonth(); // getMonth() trả về 0-11
+                if (previousMonth === 0) {
+                    previousMonth = 12;
                 }
-            } catch (error) {
-                showAlert('error', 'Đã xảy ra lỗi khi tính lương');
-                console.error(error);
-            }
-        });
-        
-        // Xử lý nút lưu bảng lương
-        $('#save-salary-btn').on('click', async function() {
-            if (!calculatedSalaryData) {
-                showAlert('warning', 'Không có dữ liệu lương để lưu');
-                return;
-            }
-            
-            try {
-                const res = await axiosTemplate('post', '/account/salary/save-salary', null, {
-                    user_id: calculatedSalaryData.user.id,
-                    period_month: calculatedSalaryData.period.month,
-                    period_year: calculatedSalaryData.period.year,
-                    base_salary: calculatedSalaryData.baseSalary + calculatedSalaryData.partTimeSalary,
-                    attendance_bonus: 0,
-                    overtime_hours: calculatedSalaryData.overtimeHours,
-                    overtime_amount: calculatedSalaryData.overtimeAmount,
-                    commission_amount: calculatedSalaryData.commissionAmount,
-                    task_mission_amount: calculatedSalaryData.taskMissionAmount, // Thêm dòng này
-                    deductions: 0,
-                    tax_amount: calculatedSalaryData.taxAmount,
-                    insurance_amount: calculatedSalaryData.insuranceAmount,
-                    advance_payments: calculatedSalaryData.advanceAmount,
-                    final_amount: calculatedSalaryData.finalAmount,
-                    commission_ids: calculatedSalaryData.commissionIds || []
+
+                let previousYear = now.getFullYear();
+                if (previousMonth === 12) {
+                    previousYear--;
+                }
+
+                const confirmed = await new Promise(resolve => {
+                    Notiflix.Confirm.show(
+                        'Tính lương hàng loạt',
+                        `Bạn đang chuẩn bị tính lương tháng ${previousMonth}/${previousYear} cho tất cả nhân viên. Tiếp tục?`,
+                        'Tiếp tục',
+                        'Hủy bỏ',
+                        () => resolve(true),
+                        () => resolve(false)
+                    );
                 });
-                
+
+                if (!confirmed) {
+                    return;
+                }
+
+                // Hiển thị loading
+                Notiflix.Loading.circle('Đang tính lương...');
+
+                const res = await axiosTemplate('get', '/account/salary/calculate', {
+                    period_month: previousMonth,
+                    period_year: previousYear
+                }, null);
+
+                Notiflix.Loading.remove();
+
                 if (res.data.status === 200) {
-                    showAlert('success', res.data.message);
-                    KTModal.getInstance(document.querySelector('#calculate-salary-modal')).hide();
-                    calculatedSalaryData = null;
-                    
+                    // Hiển thị kết quả
+                    $('#result-period').text(res.data.data.period);
+                    $('#result-success-count').text(res.data.data.success_count);
+                    $('#result-error-count').text(res.data.data.error_count);
+                    $('#result-total-salary').text(res.data.data.total_salary + ' VNĐ');
+
+                    // Render danh sách nhân viên
+                    let html = '';
+                    res.data.data.results.forEach(result => {
+                        html += `<tr>
+                            <td class="py-2 text-gray-800">${result.user_name}</td>
+                            <td class="py-2 text-gray-800">${result.status === 'success' ? result.salary + ' VNĐ' : '-'}</td>
+                            <td class="py-2">
+                                <span class="badge badge-sm badge-outline badge-${result.status === 'success' ? 'success' : 'danger'}">
+                                    ${result.status === 'success' ? 'Thành công' : 'Lỗi: ' + result.message}
+                                </span>
+                            </td>
+                        </tr>`;
+                    });
+
+                    $('#result-employees').html(html);
+
+                    // Hiển thị modal kết quả
+                    KTModal.getInstance(document.querySelector('#salary-result-modal')).show();
+
                     // Cập nhật lại bảng dữ liệu
                     callAjaxDataTable($('.updater'));
                 } else {
                     showAlert('warning', res.data.message);
                 }
             } catch (error) {
-                showAlert('error', 'Đã xảy ra lỗi khi lưu bảng lương');
+                Notiflix.Loading.remove();
+                showAlert('error', 'Đã xảy ra lỗi khi tính lương');
+                console.error(error);
+            }
+        });
+
+        // Xử lý checkbox chọn tất cả
+        $('#checkbox-all').on('change', function() {
+            const isChecked = $(this).prop('checked');
+            $('.checkbox-row').prop('checked', isChecked);
+            updateSelectedIds();
+        });
+
+        // Xử lý khi chọn từng checkbox (thêm xử lý này trong event delegation)
+        $(document).on('change', '.checkbox-row', function() {
+            updateSelectedIds();
+            // Kiểm tra nếu tất cả đều được chọn thì chọn checkbox tất cả
+            const totalRows = $('.checkbox-row').length;
+            const checkedRows = $('.checkbox-row:checked').length;
+            $('#checkbox-all').prop('checked', totalRows === checkedRows && totalRows > 0);
+        });
+
+        // Xử lý nút duyệt lương hàng loạt
+        $('#bulk-approve-btn').on('click', function() {
+            if (selectedSalaryIds.length === 0) {
+                showAlert('warning', 'Vui lòng chọn ít nhất một bảng lương để duyệt');
+                return;
+            }
+
+            $('#bulk-process-title').text('Duyệt lương hàng loạt');
+            $('#bulk-process-message').html(`Bạn đang chuẩn bị <span class="font-semibold text-success">duyệt</span> <span class="font-semibold">${selectedSalaryIds.length}</span> bảng lương đã chọn.`);
+            $('#bulk-process-confirm').data('action', 'process');
+            KTModal.getInstance(document.querySelector('#bulk-process-modal')).show();
+        });
+
+        // Xử lý nút chi lương hàng loạt
+        $('#bulk-pay-btn').on('click', function() {
+            if (selectedSalaryIds.length === 0) {
+                showAlert('warning', 'Vui lòng chọn ít nhất một bảng lương để chi trả');
+                return;
+            }
+
+            $('#bulk-process-title').text('Chi lương hàng loạt');
+            $('#bulk-process-message').html(`Bạn đang chuẩn bị <span class="font-semibold text-primary">chi trả</span> <span class="font-semibold">${selectedSalaryIds.length}</span> bảng lương đã chọn.`);
+            $('#bulk-process-confirm').data('action', 'pay');
+            KTModal.getInstance(document.querySelector('#bulk-process-modal')).show();
+        });
+
+        // Xử lý nút duyệt tất cả lương chờ xử lý
+        $('#bulk-approve-all-btn').on('click', async function() {
+            try {
+                const res = await axiosTemplate('get', '/account/salary/get-pending-ids', null, null);
+
+                if (res.data.status === 200) {
+                    const pendingIds = res.data.data.ids;
+
+                    if (pendingIds.length === 0) {
+                        showAlert('warning', 'Không có bảng lương nào đang chờ duyệt');
+                        return;
+                    }
+
+                    $('#bulk-process-title').text('Duyệt tất cả lương chờ xử lý');
+                    $('#bulk-process-message').html(`Bạn đang chuẩn bị <span class="font-semibold text-success">duyệt</span> <span class="font-semibold">${pendingIds.length}</span> bảng lương đang chờ xử lý.`);
+                    $('#bulk-process-confirm').data('action', 'process-all');
+                    KTModal.getInstance(document.querySelector('#bulk-process-modal')).show();
+                } else {
+                    showAlert('warning', res.data.message);
+                }
+            } catch (error) {
+                showAlert('error', 'Đã xảy ra lỗi khi lấy danh sách bảng lương chờ duyệt');
+                console.error(error);
+            }
+        });
+
+        // Xử lý nút chi tất cả lương đã duyệt
+        $('#bulk-pay-all-btn').on('click', async function() {
+            try {
+                const res = await axiosTemplate('get', '/account/salary/get-processed-ids', null, null);
+
+                if (res.data.status === 200) {
+                    const processedIds = res.data.data.ids;
+
+                    if (processedIds.length === 0) {
+                        showAlert('warning', 'Không có bảng lương nào đã duyệt');
+                        return;
+                    }
+
+                    $('#bulk-process-title').text('Chi tất cả lương đã duyệt');
+                    $('#bulk-process-message').html(`Bạn đang chuẩn bị <span class="font-semibold text-primary">chi trả</span> <span class="font-semibold">${processedIds.length}</span> bảng lương đã duyệt.`);
+                    $('#bulk-process-confirm').data('action', 'pay-all');
+                    KTModal.getInstance(document.querySelector('#bulk-process-modal')).show();
+                } else {
+                    showAlert('warning', res.data.message);
+                }
+            } catch (error) {
+                showAlert('error', 'Đã xảy ra lỗi khi lấy danh sách bảng lương đã duyệt');
+                console.error(error);
+            }
+        });
+
+        // Xử lý nút xác nhận xử lý hàng loạt
+        $('#bulk-process-confirm').on('click', async function() {
+            const action = $(this).data('action');
+
+            try {
+                Notiflix.Loading.circle('Đang xử lý...');
+
+                let res;
+
+                if (action === 'process' || action === 'pay') {
+                    res = await axiosTemplate('post', '/account/salary/bulk-process-salary', null, {
+                        salary_ids: selectedSalaryIds,
+                        action: action
+                    });
+                } else if (action === 'process-all') {
+                    res = await axiosTemplate('post', '/account/salary/bulk-process-all-pending', null, null);
+                } else if (action === 'pay-all') {
+                    res = await axiosTemplate('post', '/account/salary/bulk-pay-all-processed', null, null);
+                }
+
+                Notiflix.Loading.remove();
+
+                if (res.data.status === 200) {
+                    showAlert('success', res.data.message);
+                    KTModal.getInstance(document.querySelector('#bulk-process-modal')).hide();
+
+                    // Cập nhật lại bảng dữ liệu
+                    callAjaxDataTable($('.updater'));
+                } else {
+                    showAlert('warning', res.data.message);
+                }
+            } catch (error) {
+                Notiflix.Loading.remove();
+                showAlert('error', 'Đã xảy ra lỗi khi xử lý hàng loạt');
                 console.error(error);
             }
         });
     });
-    
+
+    // Hàm cập nhật danh sách ID đã chọn
+    function updateSelectedIds() {
+        selectedSalaryIds = [];
+        $('.checkbox-row:checked').each(function() {
+            selectedSalaryIds.push($(this).val());
+        });
+    }
+
     // Hàm định dạng số
     function formatNumber(number) {
         return new Intl.NumberFormat('vi-VN').format(Math.round(number));
     }
-    
+
     // Hàm xử lý khi xem chi tiết bảng lương
     async function viewSalaryDetail(id) {
         try {
             // Hiển thị modal
             KTModal.getInstance(document.querySelector('#salary-detail-modal')).show();
-            
+
             // Hiển thị loading
             $('#salary-detail-content').html(`
                 <div class="flex justify-center items-center p-5">
@@ -502,10 +630,10 @@
                     </div>
                 </div>
             `);
-            
+
             // Gọi API lấy chi tiết
             const res = await axiosTemplate('get', `/account/salary/payroll/${id}/detail`, null, null);
-            
+
             if (res.data.status === 200) {
                 $('#salary-detail-content').html(res.data.content);
             } else {
@@ -516,11 +644,11 @@
             console.error(error);
         }
     }
-    
-    // Hàm xử lý khi xử lý bảng lương
+
+    // Hàm xử lý khi xử lý bảng lương đơn lẻ
     async function processSalary(id, status) {
         const statusText = status === 'processed' ? 'duyệt' : 'chi trả';
-        
+
         try {
             Notiflix.Confirm.show(
                 `${status === 'processed' ? 'Duyệt' : 'Chi trả'} bảng lương`,
@@ -532,7 +660,7 @@
                         id: id,
                         status: status,
                     });
-                    
+
                     if (res.data.status === 200) {
                         showAlert('success', res.data.message);
                         callAjaxDataTable($('.updater'));

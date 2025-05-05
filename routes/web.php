@@ -357,6 +357,8 @@ Route::group(
                             Route::get('/account/salary/payroll-data', [SalaryController::class, "payrollData"])->name("payroll-data");
                             Route::get('/account/salary/advance', [SalaryAdvanceController::class, "index"])->name("advance");
                             Route::get('/account/salary/advance-data', [SalaryAdvanceController::class, "advanceData"])->name("advance-data");
+                            Route::get('/account/salary/get-pending-ids', [SalaryController::class, "getPendingSalaryIds"])->name("get-pending-ids");
+                            Route::get('/account/salary/get-processed-ids', [SalaryController::class, "getProcessedSalaryIds"])->name("get-processed-ids");
                         });
                         
                         Route::group(['middleware' => ['permission:edit-salary']], function () {
@@ -368,6 +370,9 @@ Route::group(
                         Route::group(['middleware' => ['permission:approve-salary']], function () {
                             Route::post('/account/salary/process-salary', [SalaryController::class, "processSalary"])->name("process-salary");
                             Route::post('/account/salary/update-advance-status', [SalaryAdvanceController::class, "updateAdvanceStatus"])->name("update-advance-status");
+                            Route::post('/account/salary/bulk-process-salary', [SalaryController::class, "bulkProcessSalary"])->name("bulk-process-salary");
+                            Route::post('/account/salary/bulk-process-all-pending', [SalaryController::class, "bulkProcessAllPending"])->name("bulk-process-all-pending");
+                            Route::post('/account/salary/bulk-pay-all-processed', [SalaryController::class, "bulkPayAllProcessed"])->name("bulk-pay-all-processed");
                         });
                         
                         Route::group(['middleware' => ['permission:configure-salary']], function () {
