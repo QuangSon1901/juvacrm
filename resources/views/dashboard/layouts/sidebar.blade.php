@@ -454,7 +454,64 @@
                 </button>
                 <div class="dropdown-content light:border-gray-300 w-screen max-w-[320px]">
                     <!-- Nội dung thông báo giữ nguyên -->
-                    <!-- ... -->
+                    <div class="flex items-center justify-between gap-2.5 text-sm text-gray-900 font-semibold px-5 py-2.5 border-b border-b-gray-200" id="notifications_header">
+                        Thông báo
+                        <button class="btn btn-sm btn-icon btn-light btn-clear shrink-0" data-dropdown-dismiss="true">
+                            <i class="ki-filled ki-cross">
+                            </i>
+                        </button>
+                    </div>
+                    <div class="pt-3 pb-4 flex flex-col gap-5 scrollable-y-auto max-h-[400px] divide-y divide-gray-200">
+                        <div class="flex grow gap-2.5 px-5">
+                            <div class="relative shrink-0 mt-0.5">
+                                <img alt="" class="rounded-full size-8" src="{{asset('assets/images/logo/favicon.png')}}">
+                                <span class="size-1.5 badge badge-circle badge-success absolute top-7 end-0.5 ring-1 ring-light transform -translate-y-1/2">
+                                </span>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <div class="text-2sm font-medium mb-px">
+                                    <span class="text-gray-700">
+                                        Khách hàng
+                                    </span>
+                                    <a class="hover:text-primary-active text-gray-900 font-semibold" href="#">
+                                        Trung Hiếu
+                                    </a>
+                                    <span class="text-gray-700">
+                                        vừa yêu cầu liên hệ
+                                    </span>
+                                </div>
+                                <span class="flex items-center text-2xs font-medium text-gray-500">
+                                    1 phút trước
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-b border-b-gray-200"></div>
+                    <div class="pt-3 pb-4 flex flex-col gap-5 scrollable-y-auto max-h-[400px] divide-y divide-gray-200">
+                        <div class="flex grow gap-2.5 px-5">
+                            <div class="relative shrink-0 mt-0.5">
+                                <img alt="" class="rounded-full size-8" src="{{asset('assets/images/logo/favicon.png')}}">
+                                <span class="size-1.5 badge badge-circle badge-success absolute top-7 end-0.5 ring-1 ring-light transform -translate-y-1/2">
+                                </span>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <div class="text-2sm font-medium mb-px">
+                                    <span class="text-gray-700">
+                                        Khách hàng
+                                    </span>
+                                    <a class="hover:text-primary-active text-gray-900 font-semibold" href="#">
+                                        Trung Hiếu
+                                    </a>
+                                    <span class="text-gray-700">
+                                        vừa yêu cầu liên hệ
+                                    </span>
+                                </div>
+                                <span class="flex items-center text-2xs font-medium text-gray-500">
+                                    5 phút trước
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             @if(hasPermission('view-setting'))
@@ -468,7 +525,121 @@
         
         <!-- Menu profile giữ nguyên -->
         <div class="menu" data-menu="true">
-            <!-- ... -->
+        <div class="menu-item" data-menu-item-offset="-20px, 28px" data-menu-item-overflow="true" data-menu-item-placement="right-end" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
+                <div class="menu-toggle btn btn-icon">
+                    <img alt="" class="size-8 justify-center rounded-lg border border-gray-500 shrink-0" src="{{asset('assets/images/logo/favicon.png')}}"></img>
+                </div>
+                <div class="menu-dropdown menu-default light:border-gray-300 w-screen max-w-[250px]">
+                    <div class="flex items-center justify-between px-5 py-1.5 gap-1.5">
+                        <div class="flex items-center gap-2">
+                            <img alt="" class="size-9 rounded-full border-2 border-success" src="{{asset('assets/images/logo/favicon.png')}}">
+                            <div class="flex flex-col gap-1.5">
+                                <span class="text-sm text-gray-800 font-semibold leading-none">
+                                    {{Session::get(ACCOUNT_CURRENT_SESSION)['name']}}
+                                </span>
+                                <span class="text-xs text-gray-600 font-medium leading-none">
+                                {{Session::get(ACCOUNT_CURRENT_SESSION)['email']}}
+                                </span>
+                            </div>
+                            </img>
+                        </div>
+                    </div>
+                    <div class="menu-separator">
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{route('dashboard.profile.profile')}}">
+                                <span class="menu-icon">
+                                    <i class="ki-filled ki-user">
+                                    </i>
+                                </span>
+                                <span class="menu-title">
+                                    Trang cá nhân
+                                </span>
+                            </a>
+                        </div>
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{route('dashboard.profile.my-salary')}}">
+                                <span class="menu-icon">
+                                    <i class="ki-filled ki-dollar">
+                                    </i>
+                                </span>
+                                <span class="menu-title">
+                                    Bảng lương
+                                </span>
+                            </a>
+                        </div>
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{route('dashboard.profile.my-timesheet')}}">
+                                <span class="menu-icon">
+                                <i class="ki-filled ki-calendar-tick"></i>
+                                </span>
+                                <span class="menu-title">
+                                    Chấm công
+                                </span>
+                            </a>
+                        </div>
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{route('dashboard.profile.my-schedule')}}">
+                                <span class="menu-icon">
+                                <i class="ki-filled ki-calendar"></i>
+                                </span>
+                                <span class="menu-title">
+                                Lịch làm việc
+                                </span>
+                            </a>
+                        </div>
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{route('dashboard.profile.my-commission')}}">
+                                <span class="menu-icon">
+                                <i class="ki-filled ki-chart-line-star"></i>
+                                </span>
+                                <span class="menu-title">
+                                Hoa hồng
+                                </span>
+                            </a>
+                        </div>
+                        @if(hasPermission('view-activity-log'))
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{route('dashboard.logs.activity.activity')}}">
+                                <span class="menu-icon">
+                                    <i class="ki-filled ki-time">
+                                    </i>
+                                </span>
+                                <span class="menu-title">
+                                    Lịch sử hoạt động
+                                </span>
+                            </a>
+                        </div>
+                        @endif
+                    </div>
+                    <div class="menu-separator">
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="menu-item mb-0.5">
+                            <div class="menu-link">
+                                <span class="menu-icon">
+                                    <i class="ki-filled ki-moon">
+                                    </i>
+                                </span>
+                                <span class="menu-title">
+                                    Dark Mode
+                                </span>
+                                <label class="switch switch-sm">
+                                    <input data-theme-state="dark" data-theme-toggle="true" name="check" type="checkbox" value="1">
+                                    </input>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="menu-item px-4 py-1.5">
+                            <form class="w-full" action="{{ route('auth.logout') }}" method="POST">
+                                @csrf
+                                <button class="btn btn-sm btn-light justify-center w-full" type="submit">Đăng xuất</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
