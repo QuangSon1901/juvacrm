@@ -63,7 +63,7 @@
                                         <td class="!py-5.5">
                                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                                 @foreach($modulePermissions as $permission)
-                                                <label class="form-label flex items-center gap-2.5">
+                                                <label for="perm_{{ $permission->id }}" class="form-label flex items-center gap-2.5">
                                                     <input class="checkbox module-{{ $module }}" 
                                                            type="checkbox" name="permissions[]" 
                                                            value="{{ $permission->id }}"
