@@ -93,7 +93,7 @@ class TaskController extends Controller
                 if ($dueDate->lt($now) && $item->progress < 100) {
                     $deadlineStatus = 'overdue';
                     $timeRemaining = $now->diffForHumans($dueDate);
-                } else if ($dueDate->diffInDays($now) <= 3 && $item->progress < 100) {
+                } else if ($dueDate->diffInDays($now) <= 1 && $item->progress < 100) {
                     $deadlineStatus = 'upcoming';
                     $timeRemaining = $dueDate->diffForHumans($now);
                 }
@@ -125,7 +125,8 @@ class TaskController extends Controller
                 ] : null,
                 'contract' => $item->contract ? [
                     'id' => $item->contract->id,
-                    'name' => $item->contract->name
+                    'name' => $item->contract->name,
+                    'note' => $item->contract->note,
                 ] : null,
                 'start_date' => $item->start_date,
                 'due_date' => $item->due_date,

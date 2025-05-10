@@ -152,7 +152,7 @@
                                     <th class="min-w-[240px]">
                                         <span class="sort">
                                             <span class="sort-label">
-                                                Ngày kết thúc
+                                                Ngày đến hạn
                                             </span>
                                         </span>
                                     </th>
@@ -163,14 +163,6 @@
                                             </span>
                                         </span>
                                     </th>
-                                    <th class="min-w-[240px]">
-                                        <span class="sort">
-                                            <span class="sort-label">
-                                                Thời gian dự kiến
-                                            </span>
-                                        </span>
-                                    </th>
-                                    <th class="w-[60px]"></th>
                                 </tr>
                             </thead>
                             @include('dashboard.layouts.tableloader', ['currentlist' => '/task-data'])
@@ -276,7 +268,7 @@
         <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <!-- Task info -->
             <div class="flex-1">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                <div class="grid grid-cols-1 gap-2 text-sm">
                     <div>
                         <div class="flex items-center gap-2 mb-2">
                             <span class="badge badge-sm badge-outline badge-neutral task-id-badge"></span>
@@ -284,6 +276,10 @@
                             <span class="badge badge-sm badge-outline task-status-badge"></span>
                         </div>
                         <h4 class="text-gray-900 font-medium mb-2 task-name"></h4>
+                        <div class="text-xs text-gray-500 mt-1 flex items-center gap-1" bis_skin_checked="1">
+                            <i class="ki-outline ki-document text-xs"></i>
+                            <p class="task-contract-note"></p>
+                        </div>
                         <div class="flex items-center gap-1">
                             <i class="ki-outline ki-abstract-26 text-xs text-gray-600"></i>
                             <span class="task-qty text-xs"></span>
@@ -297,19 +293,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <!-- Action buttons -->
-            <div class="flex flex-col gap-2 min-w-[120px]">
-                <div class="flex justify-end">
-                    <button class="btn btn-sm btn-primary claim-btn">
-                        <i class="ki-outline ki-check me-1"></i>Gán nhiệm vụ
-                    </button>
-                </div>
-                <div class="flex justify-end">
-                    <button class="btn btn-sm btn-warning report-btn">
-                        <i class="ki-outline ki-flag me-1"></i>Báo cáo
-                    </button>
                 </div>
             </div>
         </div>
@@ -528,6 +511,7 @@
             $taskCard.find('.task-id-badge').text('#' + task.id);
             $taskCard.find('.task-type-badge').text(task.type);
             $taskCard.find('.task-name').text(task.name);
+            $taskCard.find('.task-contract-note').text(task?.note ?? '');
             $taskCard.find('.task-qty').text('SL: ' + task.qtyCompleted + '/' + task.qtyRequest);
             
             // Calculate progress
@@ -1134,7 +1118,8 @@
                 qtyCompleted: $checkbox.data('qty-completed'),
                 qtyRequest: $checkbox.data('qty-request'),
                 sampleImage: $checkbox.data('sample-image'),
-                resultImage: $checkbox.data('result-image')
+                resultImage: $checkbox.data('result-image'),
+                note: $checkbox.data('contract-note')
             });
 
             if ($checkbox.data('parent-id')) {

@@ -13,6 +13,7 @@
                 data-qty-request="{{$item['qty_request']}}"
                 data-sample-image="{{$item['sample_image_id']}}"
                 data-result-image="{{$item['result_image_id']}}"
+                data-contract-note="{{$item['contract']['note']}}"
             >
         </div>
     </td>
@@ -59,27 +60,8 @@
             @if ($item['parent_id'])
             <a class="text-gray-600 hover:text-primary flex items-center gap-1">
                 <i class="ki-outline ki-up-square text-xs"></i>
-                <span>{{$item['parent']['name'] ?? $item['parent_id']}}</span>
+                <span>Hợp đồng: {{$item['contract']['name'] ?? ''}}</span>
             </a>
-            @endif
-
-            @if ($item['priority']['id'] != 0)
-            <span class="text-{{$item['priority']['color']}} flex items-center gap-1">
-                <i class="ki-outline ki-flag text-xs"></i>
-                <span>{{$item['priority']['name']}}</span>
-            </span>
-            @endif
-
-            <span class="text-gray-600 flex items-center gap-1">
-                <i class="ki-outline ki-abstract-26 text-xs"></i>
-                <span>SL: {{$item['qty_completed']}}/{{$item['qty_request']}}</span>
-            </span>
-
-            @if ($item['has_children'])
-            <span class="text-info flex items-center gap-1">
-                <i class="ki-outline ki-element-11 text-xs"></i>
-                <span>{{$item['children_count']}} công việc con</span>
-            </span>
             @endif
         </div>
 
@@ -147,50 +129,6 @@
                 </span>
             </div>
         </div>
-    </td>
-    <td class="text-sm text-gray-800 font-normal">
-        <span class="text-gray-900 font-medium">{{$item['estimate_time'] ?? 0}}h</span>
-        @if($item['spend_time'] > 0)
-        <div class="text-xs px-2 py-0.5 rounded mt-1 
-            {{$item['spend_time'] > $item['estimate_time'] ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}} inline-block">
-            <i class="ki-outline {{$item['spend_time'] > $item['estimate_time'] ? 'ki-clock-warning' : 'ki-check-circle'}} text-xs mr-1"></i>
-            {{$item['spend_time']}}h
-        </div>
-        @endif
-    </td>
-    <td class="w-[60px]">
-        {{--<div class="menu" data-menu="true">
-            <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
-                <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
-                    <i class="ki-filled ki-dots-vertical">
-                    </i>
-                </button>
-                <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
-                    <div class="menu-item">
-                        <a class="menu-link" href="/task/{{$item['id']}}">
-                            <span class="menu-icon">
-                                <i class="ki-filled ki-search-list">
-                                </i>
-                            </span>
-                            <span class="menu-title">
-                                Xem chi tiết
-                            </span>
-                        </a>
-                    </div>
-                    <div class="menu-item">
-                        <a class="menu-link" href="/task/{{$item['id']}}">
-                            <span class="menu-icon">
-                                <i class="ki-filled ki-pencil">
-                                </i>
-                            </span>
-                            <span class="menu-title">
-                                Chỉnh sửa
-                            </span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>--}}
     </td>
 </tr>
 @endforeach
