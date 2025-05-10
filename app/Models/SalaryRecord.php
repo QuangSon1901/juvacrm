@@ -13,15 +13,11 @@ class SalaryRecord extends Model
         'period_month',
         'period_year',
         'base_salary',
-        'attendance_bonus',
-        'overtime_hours',
-        'overtime_amount',
         'commission_amount',
         'task_mission_amount',
-        'deductions',
         'tax_amount',
         'insurance_amount',
-        'advance_payments',
+        'deductions',
         'final_amount',
         'status',
         'transaction_id',
@@ -43,17 +39,17 @@ class SalaryRecord extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
     
+    /**
+     * Tính tổng thu nhập cuối cùng
+     */
     public function calculateFinalAmount()
     {
+        $this->deductions = $this->tax_amount + $this->insurance_amount;
+        
         $this->final_amount = $this->base_salary + 
-                              $this->attendance_bonus + 
-                              $this->overtime_amount + 
                               $this->commission_amount +
                               $this->task_mission_amount -
-                              $this->deductions - 
-                              $this->tax_amount - 
-                              $this->insurance_amount - 
-                              $this->advance_payments;
+                              $this->deductions;
         
         return $this->final_amount;
     }

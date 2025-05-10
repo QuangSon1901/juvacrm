@@ -50,14 +50,14 @@
             </span>
             @endif
         </div>
-        <a class="text-gray-900 font-medium hover:text-primary" href="/task/{{$item['id']}}">
+        <a class="text-gray-900 font-medium hover:text-primary">
             {{$item['name']}}
         </a>
 
         <!-- Thông tin phụ được tổ chức gọn gàng hơn -->
         <div class="flex flex-wrap gap-2 text-xs mt-1">
             @if ($item['parent_id'])
-            <a class="text-gray-600 hover:text-primary flex items-center gap-1" href="/task/{{$item['parent_id']}}">
+            <a class="text-gray-600 hover:text-primary flex items-center gap-1">
                 <i class="ki-outline ki-up-square text-xs"></i>
                 <span>{{$item['parent']['name'] ?? $item['parent_id']}}</span>
             </a>
@@ -159,7 +159,7 @@
         @endif
     </td>
     <td class="w-[60px]">
-        <div class="menu" data-menu="true">
+        {{--<div class="menu" data-menu="true">
             <div class="menu-item menu-item-dropdown" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-placement-rtl="bottom-start" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:click">
                 <button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
                     <i class="ki-filled ki-dots-vertical">
@@ -190,7 +190,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div>--}}
     </td>
 </tr>
 @endforeach

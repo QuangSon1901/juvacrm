@@ -695,6 +695,9 @@ video {
 .col-span-2 {
   grid-column: span 2 / span 2;
 }
+.col-span-3 {
+  grid-column: span 3 / span 3;
+}
 .m-5 {
   margin: 1.25rem;
 }
@@ -844,6 +847,9 @@ video {
 }
 .ml-1 {
   margin-left: 0.25rem;
+}
+.mb-0 {
+  margin-bottom: 0px;
 }
 .block {
   display: block;

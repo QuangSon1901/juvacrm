@@ -1198,7 +1198,7 @@ class TaskController extends Controller
     }
 
     /**
-     * Chức năng cho phép nhân viên tự nhận việc
+     * Chức năng cho phép nhân viên tự Gán nhiệm vụ
      */
     public function claimTask(Request $request)
     {

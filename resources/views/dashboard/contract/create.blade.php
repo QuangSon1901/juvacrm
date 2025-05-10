@@ -34,7 +34,7 @@
                                 Thông tin chung
                             </span>
                         </div>
-                        <div class="tab cursor-pointer" data-tab-toggle="#tab-services">
+                        {{--<div class="tab cursor-pointer" data-tab-toggle="#tab-services">
                             <span class="text-nowrap text-sm">
                                 Dịch vụ & Sản phẩm
                             </span>
@@ -43,7 +43,7 @@
                             <span class="text-nowrap text-sm">
                                 Thanh toán
                             </span>
-                        </div>
+                        </div>--}}
                     </div>
                 </div>
             </div>

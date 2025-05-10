@@ -4,22 +4,17 @@
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center flex-wrap gap-1 lg:gap-5">
             <h1 class="font-medium text-base text-gray-900">
-                Bảng lương cá nhân
+                Lương cá nhân
             </h1>
-        </div>
-        <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
-            <button class="btn btn-icon btn-icon-lg size-8 rounded-md hover:bg-gray-200 dropdown-open:bg-gray-200 hover:text-primary text-gray-600" data-modal-toggle="#search_modal">
-                <i class="ki-filled ki-magnifier !text-base"></i>
-            </button>
         </div>
     </div>
 </div>
 
 <div class="container-fixed">
     <div class="grid gap-5 lg:gap-7.5">
-        <!-- Thông tin lương hiện tại -->
+        <!-- Thông tin lương -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div class="col-span-2">
+            <div class="col-span-3">
                 <div class="card min-w-full">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -31,37 +26,10 @@
                             <tbody>
                                 <tr>
                                     <td class="py-2 min-w-28 text-gray-600 font-normal">
-                                        Loại lương
-                                    </td>
-                                    <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
-                                        {{ isset($salaryConfig) && $salaryConfig->type == 'fulltime' ? 'Lương cố định' : 'Lương theo giờ' }}
-                                    </td>
-                                </tr>
-                                @if(isset($salaryConfig) && $salaryConfig->type == 'fulltime')
-                                <tr>
-                                    <td class="py-2 min-w-28 text-gray-600 font-normal">
                                         Lương cơ bản
                                     </td>
                                     <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
-                                        {{ number_format($salaryConfig->monthly_salary, 0, ',', '.') }} VNĐ
-                                    </td>
-                                </tr>
-                                @else
-                                <tr>
-                                    <td class="py-2 min-w-28 text-gray-600 font-normal">
-                                        Lương theo giờ
-                                    </td>
-                                    <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
-                                        {{ number_format($salaryConfig->hourly_rate ?? 0, 0, ',', '.') }} VNĐ/giờ
-                                    </td>
-                                </tr>
-                                @endif
-                                <tr>
-                                    <td class="py-2 min-w-28 text-gray-600 font-normal">
-                                        Hệ số làm thêm giờ
-                                    </td>
-                                    <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
-                                        {{ $salaryConfig->overtime_rate ?? 1.5 }}
+                                        {{ number_format($baseSalary, 0, ',', '.') }} VNĐ
                                     </td>
                                 </tr>
                                 <tr>
@@ -69,7 +37,7 @@
                                         Thuế thu nhập
                                     </td>
                                     <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
-                                        {{ ($salaryConfig->tax_rate ?? 0) }}%
+                                        {{ $taxRate }}%
                                     </td>
                                 </tr>
                                 <tr>
@@ -77,7 +45,7 @@
                                         Bảo hiểm
                                     </td>
                                     <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
-                                        {{ ($salaryConfig->insurance_rate ?? 0) }}%
+                                        {{ $insuranceRate }}%
                                     </td>
                                 </tr>
                             </tbody>
@@ -85,61 +53,9 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="col-span-1">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="ki-filled ki-arrow-down-square text-primary text-2xl"></i>&nbsp;Tạm ứng
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="grid gap-2.5">
-                            @if(isset($currentAdvance))
-                            <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
-                                <div class="flex items-center flex-wrap gap-3.5">
-                                    <i class="ki-outline ki-dollar size-6 shrink-0 text-warning"></i>
-                                    <div class="flex flex-col">
-                                        <div class="text-sm font-medium text-gray-900 mb-px">
-                                            Tạm ứng hiện tại
-                                        </div>
-                                        <div class="text-2sm text-gray-700">
-                                            {{ number_format($currentAdvance->amount, 0, ',', '.') }} VNĐ
-                                        </div>
-                                        <div class="text-xs text-gray-500">
-                                            {{ formatDateTime($currentAdvance->request_date, 'd/m/Y') }}
-                                        </div>
-                                        <div class="text-xs badge badge-sm badge-outline mt-1
-                                        @if($currentAdvance->status == 'pending') badge-warning
-                                        @elseif($currentAdvance->status == 'approved') badge-primary
-                                        @elseif($currentAdvance->status == 'rejected') badge-danger
-                                        @elseif($currentAdvance->status == 'paid') badge-success
-                                        @endif">
-                                            @if($currentAdvance->status == 'pending') Chờ duyệt
-                                            @elseif($currentAdvance->status == 'approved') Đã duyệt
-                                            @elseif($currentAdvance->status == 'rejected') Từ chối
-                                            @elseif($currentAdvance->status == 'paid') Đã chi
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            @else
-                            <div class="flex flex-col items-center justify-center gap-3.5 py-4">
-                                <i class="ki-outline ki-dollar size-6 text-gray-400"></i>
-                                <div class="text-sm text-gray-500">Chưa có yêu cầu tạm ứng trong tháng này</div>
-                                <button class="btn btn-sm btn-primary" data-modal-toggle="#request-advance-modal">
-                                    Yêu cầu tạm ứng
-                                </button>
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
         
-        <!-- Bảng lương -->
+        <!-- Lịch sử lương -->
         <div class="card card-grid min-w-full">
             <div class="card-header flex-wrap py-5">
                 <h3 class="card-title">
@@ -175,7 +91,7 @@
                                     </th>
                                     <th class="w-[150px]">
                                         <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Thêm giờ</span>
+                                            <span class="sort-label text-gray-700 font-normal">Tiền công nhiệm vụ</span>
                                         </span>
                                     </th>
                                     <th class="w-[150px]">
@@ -203,8 +119,8 @@
                                     <td>{{ $record->period_month }}/{{ $record->period_year }}</td>
                                     <td>{{ number_format($record->base_salary, 0, ',', '.') }}</td>
                                     <td>{{ number_format($record->commission_amount, 0, ',', '.') }}</td>
-                                    <td>{{ number_format($record->overtime_amount, 0, ',', '.') }}</td>
-                                    <td>{{ number_format($record->deductions + $record->tax_amount + $record->insurance_amount + $record->advance_payments, 0, ',', '.') }}</td>
+                                    <td>{{ number_format($record->task_mission_amount, 0, ',', '.') }}</td>
+                                    <td>{{ number_format($record->deductions, 0, ',', '.') }}</td>
                                     <td class="font-semibold text-success">{{ number_format($record->final_amount, 0, ',', '.') }}</td>
                                     <td>
                                         @php
@@ -269,41 +185,6 @@
     </div>
 </div>
 
-<!-- Modal Yêu cầu tạm ứng -->
-<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="request-advance-modal" style="z-index: 90;">
-    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
-        <div class="modal-header pr-2.5">
-            <h3 class="modal-title">
-                Yêu cầu tạm ứng lương
-            </h3>
-            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
-                <i class="ki-filled ki-cross"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <form id="advance-request-form" class="grid gap-5 px-0 py-5">
-                <div class="flex flex-col gap-2.5">
-                    <label class="text-gray-900 font-semibold text-2sm">
-                        Số tiền cần ứng <span class="text-red-500">*</span>
-                    </label>
-                    <input class="input" type="number" name="amount" placeholder="Nhập số tiền cần ứng" min="100000" required>
-                </div>
-                <div class="flex flex-col gap-2.5">
-                    <label class="text-gray-900 font-semibold text-2sm">
-                        Lý do <span class="text-red-500">*</span>
-                    </label>
-                    <textarea class="textarea" name="reason" rows="3" placeholder="Nhập lý do tạm ứng" required></textarea>
-                </div>
-                <div class="flex flex-col">
-                    <button type="submit" class="btn btn-primary justify-center">
-                        Gửi yêu cầu
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <!-- Modal Chi tiết lương -->
 <div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="salary-detail-modal" style="z-index: 90;">
     <div class="modal-content max-w-[700px] top-5 lg:top-[10%]">
@@ -337,42 +218,15 @@
                 window.location.href = "{{ route('dashboard.profile.my-salary') }}?year=" + selectedYear;
             }
         });
-        
-        // Xử lý form yêu cầu tạm ứng
-        $("#advance-request-form").on('submit', async function(e) {
-            e.preventDefault();
-            
-            const amount = $(this).find('input[name="amount"]').val();
-            const reason = $(this).find('textarea[name="reason"]').val();
-            
-            try {
-                const res = await axiosTemplate('post', '/account/salary/create-advance', null, {
-                    amount: amount,
-                    reason: reason,
-                    request_date: '{{ date("d-m-Y") }}'
-                });
-                
-                if (res.data.status === 200) {
-                    showAlert('success', res.data.message);
-                    KTModal.getInstance(document.querySelector('#request-advance-modal')).hide();
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    showAlert('warning', res.data.message);
-                }
-            } catch (error) {
-                showAlert('error', 'Đã xảy ra lỗi khi gửi yêu cầu tạm ứng');
-                console.error(error);
-            }
-        });
     });
     
-    // Hàm xem chi tiết lương
+    // Xem chi tiết lương
     async function viewSalaryDetail(id) {
         try {
             // Hiển thị modal
             KTModal.getInstance(document.querySelector('#salary-detail-modal')).show();
             
-            // Load nội dung chi tiết
+            // Hiển thị loading
             const content = `
                 <div class="flex justify-center items-center p-5">
                     <div class="spinner-border text-primary" role="status">

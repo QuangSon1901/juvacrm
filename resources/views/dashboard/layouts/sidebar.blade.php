@@ -231,25 +231,9 @@
                         </div>
                         <div class="menu-default menu-dropdown gap-0.5 w-[220px]">
                             <div class="menu-item">
-                                <a class="menu-link" href="{{route('dashboard.account.salary.configuration')}}">
-                                    <span class="menu-title">
-                                        Cấu hình tính lương
-                                    </span>
-                                </a>
-                            </div>
-                            
-                            <div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.account.salary.payroll')}}">
                                     <span class="menu-title">
                                         Bảng lương nhân viên
-                                    </span>
-                                </a>
-                            </div>
-                            
-                            <div class="menu-item">
-                                <a class="menu-link" href="{{route('dashboard.account.salary.advance')}}">
-                                    <span class="menu-title">
-                                        Tạm ứng lương
                                     </span>
                                 </a>
                             </div>

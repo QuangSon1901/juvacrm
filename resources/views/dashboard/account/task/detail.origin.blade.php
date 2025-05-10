@@ -14,7 +14,7 @@
             @if (in_array($details['type'], ['SERVICE', 'SUB']) && in_array($details['status']['id'], [1, 2]))
             <button class="btn btn-sm btn-primary" onclick="openClaimTaskModal({{$details['id']}})">
                 <i class="ki-outline ki-check-square me-1"></i>
-                Nhận việc
+                Gán nhiệm vụ
             </button>
             @endif
 
@@ -323,7 +323,7 @@
                                             </button>
                                             @if (in_array($serviceTask['status']['id'], [1, 2]))
                                             <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$serviceTask['id']}})">
-                                            Nhận việc
+                                            Gán nhiệm vụ
                                             </button>
                                             @elseif (in_array($serviceTask['status']['id'], [3]) && count($serviceTask['sub_tasks']) == 0)
                                             <button class="btn btn-xs btn-success" onclick="openReportMissionsModal({{$serviceTask['id']}}, '{{$serviceTask['name']}}')">
@@ -445,7 +445,7 @@
                                                         </button>
                                                         @if (in_array($subTask['status']['id'], [1, 2]))
                                                         <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$subTask['id']}})">
-                                                        Nhận việc
+                                                        Gán nhiệm vụ
                                                         </button>
                                                         @elseif (in_array($subTask['status']['id'], [3]))
                                                         <button class="btn btn-xs btn-success" onclick="openReportMissionsModal({{$subTask['id']}}, '{{$subTask['name']}}')">
@@ -531,7 +531,7 @@
                                             </div>
                                             @if (in_array($subTask['status']['id'], [1, 2]))
                                             <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$subTask['id']}})">
-                                            Nhận việc
+                                            Gán nhiệm vụ
                                             </button>
                                             @elseif (in_array($subTask['status']['id'], [3]))
                                             <button class="btn btn-xs btn-success" onclick="openReportMissionsModal({{$subTask['id']}}, '{{$subTask['name']}}')">
@@ -1150,7 +1150,7 @@
     </div>
 </div>
 
-<!-- Modal nhận việc -->
+<!-- Modal Gán nhiệm vụ -->
 <div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="claim-task-modal" style="z-index: 90;">
     <div class="modal-content max-w-[600px] top-5 lg:top-[10%]">
         <div class="modal-header pr-2.5">
@@ -1176,7 +1176,7 @@
                 
                 <div class="flex flex-col">
                     <button type="submit" class="btn btn-primary justify-center">
-                        Nhận việc
+                        Gán nhiệm vụ
                     </button>
                 </div>
             </form>
@@ -1345,7 +1345,7 @@
             postReportCompletion($(this));
         })
 
-        // Xử lý form nhận việc
+        // Xử lý form Gán nhiệm vụ
         $('#claim-task-form').on('submit', async function(e) {
             e.preventDefault();
             
@@ -1368,7 +1368,7 @@
                 }
             } catch (error) {
                 console.error('Error claiming task:', error);
-                showAlert('error', 'Không thể nhận việc');
+                showAlert('error', 'Không thể Gán nhiệm vụ');
             }
         });
 
@@ -1677,7 +1677,7 @@
         KTModal.getInstance(document.querySelector('#report-completion-modal')).show();
     }
 
-    // Xử lý modal nhận việc
+    // Xử lý modal Gán nhiệm vụ
     function openClaimTaskModal(taskId) {
         $('#claim-task-id').val(taskId);
         loadMissions();
@@ -1696,7 +1696,7 @@
                     html += `
                     <label for="mission-${mission.id}" class="form-label flex items-center gap-2.5">
                         <input checked class="checkbox" name="mission_ids[]" type="checkbox" value="${mission.id}" id="mission-${mission.id}"/>
-                        ${mission.name} <span class="text-gray-600">(${mission.salary}đ)</span>
+                        ${mission.name}
                     </label>
                     `;
                 });

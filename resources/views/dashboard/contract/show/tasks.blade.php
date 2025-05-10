@@ -154,9 +154,9 @@
                                                     <div class="h-1.5 rounded-full !bg-blue-800" style="width: {{ $childTask['progress'] }}%;"></div>
                                                 </div>
                                             </div>
-                                            <a href="{{ route('dashboard.account.task.detail', $childTask['id']) }}" class="btn btn-icon btn-xs btn-light">
+                                            {{--<a href="{{ route('dashboard.account.task.detail', $childTask['id']) }}" class="btn btn-icon btn-xs btn-light">
                                                 <i class="ki-filled ki-eye"></i>
-                                            </a>
+                                            </a>--}}
                                         </div>
                                     </div>
 
@@ -184,9 +184,9 @@
                                                             <div class="h-1.5 rounded-full !bg-blue-800" style="width: {{ $subChildTask['progress'] }}%;"></div>
                                                         </div>
                                                     </div>
-                                                    <a href="{{ route('dashboard.account.task.detail', $subChildTask['id']) }}" class="btn btn-icon btn-xs btn-light">
+                                                    {{--<a href="{{ route('dashboard.account.task.detail', $subChildTask['id']) }}" class="btn btn-icon btn-xs btn-light">
                                                         <i class="ki-filled ki-eye"></i>
-                                                    </a>
+                                                    </a>--}}
                                                 </div>
                                             </div>
                                         </div>

@@ -359,33 +359,26 @@ Route::group(
                 Route::group(
                     ['namespace' => 'Salary', 'as' => 'salary.', 'middleware' => []],
                     function () {
-                        Route::group(['middleware' => ['permission:view-salary']], function () {
-                            Route::get('/account/salary/payroll', [SalaryController::class, "payroll"])->name("payroll");
-                            Route::get('/account/salary/payroll-data', [SalaryController::class, "payrollData"])->name("payroll-data");
-                            Route::get('/account/salary/advance', [SalaryAdvanceController::class, "index"])->name("advance");
-                            Route::get('/account/salary/advance-data', [SalaryAdvanceController::class, "advanceData"])->name("advance-data");
+                        // View payroll (admin)
+                        Route::middleware(['permission:view-salary'])->group(function() {
+                            Route::get('/account/salary/payroll', [SalaryController::class, "index"])->name("payroll");
+                            Route::get('/account/salary/payroll-data', [SalaryController::class, "data"])->name("payroll-data");
                             Route::get('/account/salary/get-pending-ids', [SalaryController::class, "getPendingSalaryIds"])->name("get-pending-ids");
                             Route::get('/account/salary/get-processed-ids', [SalaryController::class, "getProcessedSalaryIds"])->name("get-processed-ids");
+                            Route::get('/account/salary/payroll/{id}/detail', [SalaryController::class, "getSalaryDetail"])->name("salary-detail");
                         });
                         
-                        Route::group(['middleware' => ['permission:edit-salary']], function () {
+                        // Calculate salary (admin)
+                        Route::middleware(['permission:edit-salary'])->group(function() {
                             Route::get('/account/salary/calculate', [SalaryController::class, "calculateSalary"])->name("calculate");
-                            Route::post('/account/salary/save-salary', [SalaryController::class, "saveSalary"])->name("save-salary");
-                            Route::post('/account/salary/create-advance', [SalaryAdvanceController::class, "createAdvance"])->name("create-advance");
                         });
                         
-                        Route::group(['middleware' => ['permission:approve-salary']], function () {
+                        // Process/approve salary (admin)
+                        Route::middleware(['permission:approve-salary'])->group(function() {
                             Route::post('/account/salary/process-salary', [SalaryController::class, "processSalary"])->name("process-salary");
-                            Route::post('/account/salary/update-advance-status', [SalaryAdvanceController::class, "updateAdvanceStatus"])->name("update-advance-status");
                             Route::post('/account/salary/bulk-process-salary', [SalaryController::class, "bulkProcessSalary"])->name("bulk-process-salary");
                             Route::post('/account/salary/bulk-process-all-pending', [SalaryController::class, "bulkProcessAllPending"])->name("bulk-process-all-pending");
                             Route::post('/account/salary/bulk-pay-all-processed', [SalaryController::class, "bulkPayAllProcessed"])->name("bulk-pay-all-processed");
-                        });
-                        
-                        Route::group(['middleware' => ['permission:configure-salary']], function () {
-                            Route::get('/account/configuration', [SalaryConfigurationController::class, "index"])->name("configuration");
-                            Route::get('/account/user-config', [SalaryConfigurationController::class, "getUserConfig"])->name("user-config");
-                            Route::post('/account/salary/save-config', [SalaryConfigurationController::class, "saveConfig"])->name("save-config");
                         });
                     }
                 );
@@ -483,6 +476,7 @@ Route::group(
                 Route::get('/profile', [ProfileController::class, "index"])->name("profile");
                 Route::post('/profile/update', [ProfileController::class, "update"])->name("update");
                 Route::get('/profile/my-salary', [SalaryController::class, "mySalary"])->name("my-salary");
+                Route::get('/profile/my-salary/{id}/detail', [SalaryController::class, "getMySalaryDetail"])->name("my-salary-detail");
                 Route::get('/profile/my-timesheet', [AttendanceController::class, "myTimesheet"])->name("my-timesheet");
                 
                 // Lịch làm việc cá nhân (mọi nhân viên đều có quyền này)
@@ -692,12 +686,14 @@ Route::group(
                 // View settings
                 Route::middleware(['permission:view-setting'])->group(function() {
                     Route::get('/setting', [SettingController::class, "index"])->name("setting");
+                    Route::get('/setting/salary', [SettingController::class, "salarySettings"])->name("salary-settings");
                     Route::get('/setting/commissions', [SettingController::class, "commissions"])->name("commissions");
                 });
 
                 // Edit settings
                 Route::middleware(['permission:edit-setting'])->group(function() {
                     Route::post('/setting/update', [SettingController::class, "update"])->name("update");
+                    Route::post('/setting/salary/update', [SettingController::class, "updateSalarySettings"])->name("update-salary-settings");
                 });
             }
         );

@@ -18,7 +18,7 @@
             @if (in_array($details['type'], ['SERVICE', 'SUB']) && in_array($details['status']['id'], [1, 2]))
             <button class="btn btn-sm btn-primary" onclick="openClaimTaskModal({{$details['id']}})">
                 <i class="ki-outline ki-check me-1"></i>
-                Nhận việc
+                Gán nhiệm vụ
             </button>
             @endif
 
@@ -356,7 +356,7 @@
                                             </button>
                                             @if (in_array($serviceTask['status']['id'], [1, 2]))
                                             <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$serviceTask['id']}})">
-                                            Nhận việc
+                                            Gán nhiệm vụ
                                             </button>
                                             @elseif (in_array($serviceTask['status']['id'], [3]) && count($serviceTask['sub_tasks']) == 0)
                                             <button class="btn btn-xs btn-warning" onclick="openReportMissionsModal({{$serviceTask['id']}}, '{{$serviceTask['name']}}')">
@@ -486,7 +486,7 @@
                                                         </button>
                                                         @if (in_array($subTask['status']['id'], [1, 2]))
                                                         <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$subTask['id']}})">
-                                                        Nhận việc
+                                                        Gán nhiệm vụ
                                                         </button>
                                                         @elseif (in_array($subTask['status']['id'], [3]))
                                                         <button class="btn btn-xs btn-warning" onclick="openReportMissionsModal({{$subTask['id']}}, '{{$subTask['name']}}')">
@@ -573,7 +573,7 @@
                                             </div>
                                             @if (in_array($subTask['status']['id'], [1, 2]))
                                             <button class="btn btn-xs btn-primary" onclick="openClaimTaskModal({{$subTask['id']}})">
-                                            Nhận việc
+                                            Gán nhiệm vụ
                                             </button>
                                             @elseif (in_array($subTask['status']['id'], [3]))
                                             <button class="btn btn-xs btn-warning" onclick="openReportMissionsModal({{$subTask['id']}}, '{{$subTask['name']}}')">
@@ -1123,7 +1123,7 @@
                 
                 <div class="flex flex-col">
                     <button type="submit" class="btn btn-primary justify-center">
-                        Nhận việc
+                        Gán nhiệm vụ
                     </button>
                 </div>
             </form>
@@ -1298,7 +1298,7 @@ $(function() {
         postReportCompletion($(this));
     });
 
-    // Xử lý form nhận việc
+    // Xử lý form Gán nhiệm vụ
     $('#claim-task-form').on('submit', async function(e) {
         e.preventDefault();
         
@@ -1321,7 +1321,7 @@ $(function() {
             }
         } catch (error) {
             console.error('Error claiming task:', error);
-            showAlert('error', 'Không thể nhận việc');
+            showAlert('error', 'Không thể Gán nhiệm vụ');
         }
     });
 
@@ -1649,7 +1649,7 @@ async function loadMissions() {
                 html += `
                 <label for="mission-${mission.id}" class="form-label flex items-center gap-2.5">
                     <input checked class="checkbox" name="mission_ids[]" type="checkbox" value="${mission.id}" id="mission-${mission.id}"/>
-                    ${mission.name} <span class="text-gray-600">(${mission.salary}đ)</span>
+                    ${mission.name}
                 </label>
                 `;
             });

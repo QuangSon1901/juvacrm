@@ -2,7 +2,7 @@
 <tr>
     <td>
         <div class="checkbox">
-            <input class="form-checkbox checkbox-row" type="checkbox" id="checkbox-{{ $item['id'] }}" value="{{ $item['id'] }}" {{ $item['status'] === 'paid' ? 'disabled' : '' }}>
+            <input class="form-checkbox checkbox-row checkbox" type="checkbox" id="checkbox-{{ $item['id'] }}" value="{{ $item['id'] }}" {{ $item['status'] === 'paid' ? 'disabled' : '' }}>
             <label for="checkbox-{{ $item['id'] }}"></label>
         </div>
     </td>
@@ -18,7 +18,6 @@
     </td>
     <td>{{ $item['period'] }}</td>
     <td>{{ $item['base_salary'] }}</td>
-    <td>{{ $item['overtime_amount'] }}</td>
     <td>{{ $item['commission_amount'] }}</td>
     <td>{{ $item['task_mission_amount'] }}</td>
     <td>{{ $item['deductions'] }}</td>
@@ -70,7 +69,7 @@
                             <span class="menu-icon">
                                 <i class="ki-filled ki-check"></i>
                             </span>
-                            <span class="menu-title">
+                            <span class="menu-title !text-left">
                                 Duyệt bảng lương
                             </span>
                         </button>
@@ -83,7 +82,7 @@
                             <span class="menu-icon">
                                 <i class="ki-filled ki-dollar"></i>
                             </span>
-                            <span class="menu-title">
+                            <span class="menu-title !text-left">
                                 Chi trả lương
                             </span>
                         </button>

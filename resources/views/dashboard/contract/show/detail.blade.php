@@ -52,12 +52,12 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
             </button>
             @push("actions")
             <div class="flex flex-wrap items-center gap-3">
-                @if ($details['status'] == 0)
+                {{--@if ($details['status'] == 0)
                 <button type="button" class="btn btn-primary px-5 py-2 flex items-center gap-2" onclick="saveCreateTaskContract({{$details['id']}})">
                     <i class="ki-filled ki-plus text-white"></i>
                     <span>Tạo công việc</span>
                 </button>
-                @endif
+                @endif--}}
 
                 @if ($details['status'] == 0 || $details['status'] == 1)
                 <button type="button" class="btn btn-outline btn-primary px-5 py-2 flex items-center gap-2" onclick="saveCreateContract({{$details['id']}})">

@@ -234,7 +234,7 @@
                 
                 <div class="flex flex-col">
                     <button type="submit" class="btn btn-primary justify-center">
-                        Nhận việc
+                        Gán nhiệm vụ
                     </button>
                 </div>
             </form>
@@ -303,7 +303,7 @@
             <div class="flex flex-col gap-2 min-w-[120px]">
                 <div class="flex justify-end">
                     <button class="btn btn-sm btn-primary claim-btn">
-                        <i class="ki-outline ki-check me-1"></i>Nhận việc
+                        <i class="ki-outline ki-check me-1"></i>Gán nhiệm vụ
                     </button>
                 </div>
                 <div class="flex justify-end">
@@ -369,7 +369,7 @@
             <div class="flex flex-col gap-2 min-w-[120px]">
                 <div class="flex justify-end">
                     <button class="btn btn-xs btn-primary subtask-claim-btn">
-                        <i class="ki-outline ki-check me-1"></i>Nhận việc
+                        <i class="ki-outline ki-check me-1"></i>Gán nhiệm vụ
                     </button>
                 </div>
                 <div class="flex justify-end">
@@ -727,7 +727,7 @@
                         })
                         .catch(error => {
                             console.error('Error claiming task:', error);
-                            showAlert('error', 'Không thể nhận việc');
+                            showAlert('error', 'Không thể Gán nhiệm vụ');
                             Notiflix.Loading.remove();
                         });
                 });
@@ -977,7 +977,7 @@
                                 html += `
                                 <label for="mission-${mission.id}" class="form-label flex items-center gap-2.5">
                                     <input checked class="checkbox" name="mission_ids[]" type="checkbox" value="${mission.id}" id="mission-${mission.id}"/>
-                                    ${mission.name} <span class="text-gray-600">(${mission.salary}đ)</span>
+                                    ${mission.name}
                                 </label>
                                 `;
                             });

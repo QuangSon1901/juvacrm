@@ -72,4 +72,73 @@ class SettingController extends Controller
                       
         return view('dashboard.setting.commissions', compact('commissions'));
     }
+
+    /**
+     * Display salary settings
+     */
+    public function salarySettings()
+    {
+        $salarySettings = [
+            'hourly_rate' => SystemConfig::getValue('hourly_rate', 0),
+            'tax_rate' => SystemConfig::getValue('tax_rate', 0),
+            'insurance_rate' => SystemConfig::getValue('insurance_rate', 0),
+        ];
+        
+        return view('dashboard.setting.salary', compact('salarySettings'));
+    }
+
+    /**
+     * Update salary settings
+     */
+    public function updateSalarySettings(Request $request)
+    {
+        $validator = ValidatorService::make($request, [
+            'hourly_rate' => 'required|numeric|min:0',
+            'tax_rate' => 'required|numeric|min:0|max:100',
+            'insurance_rate' => 'required|numeric|min:0|max:100',
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+        
+        try {
+            // Update settings
+            SystemConfig::updateOrCreate(
+                ['config_key' => 'hourly_rate'],
+                ['config_value' => $request->hourly_rate, 'description' => 'Hourly rate for part-time work']
+            );
+            
+            SystemConfig::updateOrCreate(
+                ['config_key' => 'tax_rate'],
+                ['config_value' => $request->tax_rate, 'description' => 'Income tax rate (%)']
+            );
+            
+            SystemConfig::updateOrCreate(
+                ['config_key' => 'insurance_rate'],
+                ['config_value' => $request->insurance_rate, 'description' => 'Insurance rate (%)']
+            );
+            
+            LogService::saveLog([
+                'action' => 'UPDATE_SALARY_SETTINGS',
+                'ip' => $request->getClientIp(),
+                'details' => 'Updated salary settings',
+                'fk_key' => null,
+                'fk_value' => null,
+            ]);
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Salary settings updated successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ]);
+        }
+    }
 }
