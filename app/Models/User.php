@@ -83,6 +83,11 @@ class User extends Authenticatable implements AuthenticatableContract
         return $this->hasMany(Task::class, 'assign_id');
     }
 
+    public function task_mission_reports()
+    {
+        return $this->hasMany(TaskMissionReport::class, 'user_id');
+    }
+
     public function isSuperAdmin()
     {
         return (bool) $this->is_super_admin;

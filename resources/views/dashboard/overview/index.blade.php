@@ -384,7 +384,7 @@
                         <thead>
                             <tr>
                                 <th>Tên công việc</th>
-                                <th>Người xử lý</th>
+                                <th>Người quản lý</th>
                                 <th>Trạng thái</th>
                                 <th>Hạn xử lý</th>
                             </tr>
@@ -393,7 +393,7 @@
                             @foreach($taskStats['recent_tasks'] as $task)
                             <tr>
                                 <td>
-                                    <a href="{{ route('dashboard.account.task.detail', $task->id) }}" class="text-primary hover:text-primary-hover">
+                                    <a class="text-primary hover:text-primary-hover">
                                         {{ \Illuminate\Support\Str::limit($task->name, 40) }}
                                     </a>
                                 </td>
@@ -422,11 +422,6 @@
                     </table>
                 </div>
             </div>
-            
-            <h4 class="font-medium text-sm mb-3">Biểu đồ hoàn thành công việc (7 ngày gần đây)</h4>
-            <div class="h-60">
-                <canvas id="taskCompletionChart"></canvas>
-            </div>
         </div>
     </div>
     
@@ -439,22 +434,18 @@
             <a href="{{ route('dashboard.customer.support.customer-support') }}" class="btn btn-sm btn-light">Xem tất cả</a>
         </div>
         <div class="card-body">
-            <div class="grid !grid-cols-2 md:!grid-cols-4 gap-3 mb-6">
-                <div class="bg-blue-50 rounded-lg p-3 text-center">
-                    <p class="text-xs text-gray-600">Khách hàng</p>
-                    <p class="text-xl font-bold text-blue-700">{{ $customerStats['customers'] }}</p>
-                </div>
-                <div class="bg-green-50 rounded-lg p-3 text-center">
-                    <p class="text-xs text-gray-600">Tiềm năng</p>
-                    <p class="text-xl font-bold text-green-700">{{ $customerStats['prospects'] }}</p>
-                </div>
+            <div class="grid !grid-cols-2 md:!grid-cols-3 gap-3 mb-6">
                 <div class="bg-orange-50 rounded-lg p-3 text-center">
-                    <p class="text-xs text-gray-600">Lead</p>
+                    <p class="text-xs text-gray-600">Nguồn khách hàng mới</p>
                     <p class="text-xl font-bold text-orange-700">{{ $customerStats['leads'] }}</p>
                 </div>
-                <div class="bg-purple-50 rounded-lg p-3 text-center">
-                    <p class="text-xs text-gray-600">Đang tư vấn</p>
-                    <p class="text-xl font-bold text-purple-700">{{ $customerStats['active_consultations'] }}</p>
+                <div class="bg-green-50 rounded-lg p-3 text-center">
+                    <p class="text-xs text-gray-600">Khách hàng đang hỗ trợ</p>
+                    <p class="text-xl font-bold text-green-700">{{ $customerStats['prospects'] }}</p>
+                </div>
+                <div class="bg-blue-50 rounded-lg p-3 text-center">
+                    <p class="text-xs text-gray-600">Khách hàng đã sử dụng dịch vụ</p>
+                    <p class="text-xl font-bold text-blue-700">{{ $customerStats['customers'] }}</p>
                 </div>
             </div>
             
@@ -491,15 +482,6 @@
                         </div>
                         <p class="text-sm text-gray-600 mb-3">Cần liên hệ lại để duy trì mối quan hệ và tăng khả năng ký hợp đồng</p>
                         <a href="{{ route('dashboard.customer.support.customer-support') }}?filter[interaction]=old" class="btn btn-sm btn-warning">Xem danh sách</a>
-                    </div>
-                    
-                    <div class="border border-blue-200 rounded-lg p-4 bg-blue-50 mt-3">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="font-medium">Đang tư vấn</p>
-                            <span class="badge badge-primary">{{ $customerStats['active_consultations'] }}</span>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-3">Khách hàng đang trong quá trình tư vấn, cần theo dõi và hỗ trợ kịp thời</p>
-                        <a href="{{ route('dashboard.customer.support.customer-support') }}" class="btn btn-sm btn-primary">Xem chi tiết</a>
                     </div>
                 </div>
             </div>
@@ -682,7 +664,7 @@
                                 {{ $employee->name }}
                             </a>
                             <span class="text-2xs text-gray-700">
-                                {{ $employee->tasks_count }} task hoàn thành
+                                {{ $employee->task_mission_reports_count }} báo cáo hoàn thành
                             </span>
                         </div>
                     </div>
@@ -879,42 +861,6 @@
 }
     
     function initCharts() {
-        // Task Completion Chart
-        const taskCtx = document.getElementById('taskCompletionChart').getContext('2d');
-        const taskCompletionChart = new Chart(taskCtx, {
-            type: 'bar',
-            data: {
-                labels: [
-                    @foreach($taskTrends as $trend)
-                        '{{ $trend['date'] }}',
-                    @endforeach
-                ],
-                datasets: [{
-                    label: 'Công việc hoàn thành',
-                    data: [
-                        @foreach($taskTrends as $trend)
-                            {{ $trend['completed'] }},
-                        @endforeach
-                    ],
-                    backgroundColor: '#10b981',
-                    borderColor: '#10b981',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                }
-            }
-        });
-        
         // Financial Chart
         const finCtx = document.getElementById('financialChart').getContext('2d');
         const financialChart = new Chart(finCtx, {

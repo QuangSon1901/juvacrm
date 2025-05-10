@@ -44,6 +44,7 @@ class ContractController extends Controller
             // Cập nhật tất cả các task liên quan
             Task::where('contract_id', $request['id'])->update(['status_id' => 8]);
             
+            Customer::where('id', $contract->provider_id)->where('type', 1)->update(['type' => 2]);
             // Tính và lưu hoa hồng cho nhân viên được phân công
             $this->calculateAndSaveCommission($contract);
     
@@ -469,7 +470,7 @@ class ContractController extends Controller
                 }
             }
 
-            Customer::where('id', $contract->provider_id)->update(['type' => 1]);
+            Customer::where('id', $contract->provider_id)->where('type', 0)->update(['type' => 1]);
 
             // Commit transaction nếu mọi thứ thành công
             DB::commit();

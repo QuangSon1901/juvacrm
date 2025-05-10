@@ -61,28 +61,32 @@ class OverviewController extends Controller
 
         // 3. Task Overview
         $taskStats = [
-            'total' => Task::where('is_active', 1)->count(),
-            'completed' => Task::where('is_active', 1)->where('status_id', 4)->count(),
-            'in_progress' => Task::where('is_active', 1)->where('status_id', 3)->count(),
+            'total' => Task::where('is_active', 1)->where('type', 'SERVICE')->count(),
+            'completed' => Task::where('is_active', 1)->where('type', 'SERVICE')->whereIn('status_id', [4,8])->count(),
+            'in_progress' => Task::where('is_active', 1)->where('type', 'SERVICE')->whereIn('status_id', [2,3])->count(),
             'overdue' => Task::where('is_active', 1)
+                            ->where('type', 'SERVICE')
                           ->where('due_date', '<', now())
-                          ->where('status_id', '<', 4)
+                          ->whereIn('status_id', [0,1,2,3,4,6,7])
                           ->count(),
             'due_today' => Task::where('is_active', 1)
+                            ->where('type', 'SERVICE')
                           ->whereDate('due_date', today())
-                          ->where('status_id', '<', 4)
+                          ->whereIn('status_id', [0,1,2,3,4,6,7])
                           ->count(),
             'due_this_week' => Task::where('is_active', 1)
+                            ->where('type', 'SERVICE')
                             ->where('due_date', '>=', now())
                             ->where('due_date', '<=', now()->endOfWeek())
-                            ->where('status_id', '<', 4)
+                            ->whereIn('status_id', [0,1,2,3,4,6,7])
                             ->count(),
             'need_revision' => Task::where('is_active', 1)->where('status_id', 7)->count(),
             'recent_tasks' => Task::with(['assign', 'status'])
-                              ->where('is_active', 1)
-                              ->orderBy('updated_at', 'desc')
-                              ->limit(5)
-                              ->get()
+                            ->where('type', 'SERVICE')
+                            ->where('is_active', 1)
+                            ->orderBy('updated_at', 'desc')
+                            ->limit(5)
+                            ->get()
         ];
 
         // 4. Financial Overview
@@ -126,10 +130,8 @@ class OverviewController extends Controller
             'on_leave' => AttendanceRecord::whereDate('work_date', today())
                         ->where('status', 'absent')
                         ->count(),
-            'top_performers' => User::withCount(['tasks' => function($query) {
-                                    $query->where('status_id', 4);
-                                }])
-                               ->orderBy('tasks_count', 'desc')
+            'top_performers' => User::withCount(['task_mission_reports'])
+                               ->orderBy('task_mission_reports_count', 'desc')
                                ->limit(5)
                                ->get()
         ];
