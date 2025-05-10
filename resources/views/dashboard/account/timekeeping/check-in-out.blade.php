@@ -30,7 +30,12 @@
                         <div class="text-center">
                             <div class="text-xl font-semibold text-gray-900 mb-2">{{ date('d/m/Y') }}</div>
                             <div class="text-sm text-gray-600">
-                                Giờ làm việc: {{ config('constants.work_start_time', '08:00') }} - {{ config('constants.work_end_time', '17:00') }}
+                                @if(isset($schedule))
+                                    <span class="badge badge-sm badge-success">Lịch làm việc đã duyệt</span>
+                                    <p class="mt-1">Thời gian: {{ formatDateTime($schedule->start_time, 'H:i') }} - {{ formatDateTime($schedule->end_time, 'H:i') }}</p>
+                                @else
+                                    <span class="badge badge-sm badge-warning">Không có lịch làm việc hôm nay</span>
+                                @endif
                             </div>
                         </div>
                         
@@ -44,6 +49,9 @@
                                         <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
                                             @if(isset($attendanceRecord) && $attendanceRecord->check_in_time)
                                                 <span class="text-success font-medium">{{ formatDateTime($attendanceRecord->check_in_time, 'H:i:s') }}</span>
+                                                @if($attendanceRecord->isLate())
+                                                    <span class="badge badge-sm badge-warning ml-2">Trễ</span>
+                                                @endif
                                             @else
                                                 <span class="text-gray-500">Chưa chấm công</span>
                                             @endif
@@ -56,6 +64,9 @@
                                         <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
                                             @if(isset($attendanceRecord) && $attendanceRecord->check_out_time)
                                                 <span class="text-danger font-medium">{{ formatDateTime($attendanceRecord->check_out_time, 'H:i:s') }}</span>
+                                                @if($attendanceRecord->isEarlyLeave())
+                                                    <span class="badge badge-sm badge-info ml-2">Sớm</span>
+                                                @endif
                                             @else
                                                 <span class="text-gray-500">Chưa chấm công</span>
                                             @endif
@@ -77,35 +88,8 @@
                                         </td>
                                         <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
                                             @if(isset($attendanceRecord))
-                                                @php
-                                                    $statusClass = '';
-                                                    $statusText = '';
-                                                    
-                                                    switch($attendanceRecord->status) {
-                                                        case 'present':
-                                                            $statusClass = 'success';
-                                                            $statusText = 'Có mặt';
-                                                            break;
-                                                        case 'absent':
-                                                            $statusClass = 'danger';
-                                                            $statusText = 'Vắng mặt';
-                                                            break;
-                                                        case 'late':
-                                                            $statusClass = 'warning';
-                                                            $statusText = 'Đi trễ';
-                                                            break;
-                                                        case 'early_leave':
-                                                            $statusClass = 'info';
-                                                            $statusText = 'Về sớm';
-                                                            break;
-                                                        default:
-                                                            $statusClass = 'gray';
-                                                            $statusText = $attendanceRecord->status;
-                                                    }
-                                                @endphp
-                                                
-                                                <span class="badge badge-sm badge-outline badge-{{ $statusClass }}">
-                                                    {{ $statusText }}
+                                                <span class="badge badge-sm badge-{{ $attendanceRecord->getStatusClass() }}">
+                                                    {{ $attendanceRecord->getStatusText() }}
                                                 </span>
                                             @else
                                                 <span class="badge badge-sm badge-outline badge-gray">
@@ -119,10 +103,12 @@
                         </div>
                         
                         <div class="flex gap-4">
-                            <button id="btn-check-in" class="btn btn-success {{ isset($attendanceRecord) && $attendanceRecord->check_in_time ? 'disabled' : '' }}" {{ isset($attendanceRecord) && $attendanceRecord->check_in_time ? 'disabled' : '' }}>
+                            <button id="btn-check-in" class="btn btn-success {{ !isset($schedule) || (isset($attendanceRecord) && $attendanceRecord->check_in_time) ? 'disabled' : '' }}" 
+                                    {{ !isset($schedule) || (isset($attendanceRecord) && $attendanceRecord->check_in_time) ? 'disabled' : '' }}>
                                 <i class="ki-filled ki-arrow-right me-2"></i>Check In
                             </button>
-                            <button id="btn-check-out" class="btn btn-danger {{ !isset($attendanceRecord) || !$attendanceRecord->check_in_time || isset($attendanceRecord) && $attendanceRecord->check_out_time ? 'disabled' : '' }}" {{ !isset($attendanceRecord) || !$attendanceRecord->check_in_time || isset($attendanceRecord) && $attendanceRecord->check_out_time ? 'disabled' : '' }}>
+                            <button id="btn-check-out" class="btn btn-danger {{ !isset($attendanceRecord) || !$attendanceRecord->check_in_time || isset($attendanceRecord) && $attendanceRecord->check_out_time ? 'disabled' : '' }}"
+                                    {{ !isset($attendanceRecord) || !$attendanceRecord->check_in_time || isset($attendanceRecord) && $attendanceRecord->check_out_time ? 'disabled' : '' }}>
                                 <i class="ki-filled ki-arrow-left me-2"></i>Check Out
                             </button>
                         </div>
@@ -134,13 +120,13 @@
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">
-                        <i class="ki-filled ki-user text-primary text-2xl"></i>&nbsp;Thông tin nhân viên
+                        <i class="ki-filled ki-user text-primary text-2xl"></i>&nbsp;Thông tin làm việc
                     </h3>
                 </div>
                 <div class="card-body">
                     <div class="flex flex-col gap-4">
                         <div class="flex items-center gap-4">
-                            <div class="avatar avatar-rounded" style="background-image: url('{{ asset('assets/images/logo/favicon.png') }}')"></div>
+                            <div class="avatar avatar-rounded" style="background-image: url('{{ $user->avatar ? asset($user->avatar) : asset('assets/images/logo/favicon.png') }}')"></div>
                             <div>
                                 <div class="font-semibold text-lg">{{ $user->name }}</div>
                                 <div class="text-gray-600">{{ $user->email }}</div>
@@ -168,6 +154,16 @@
                                             {{ isset($salaryConfig) && $salaryConfig->type == 'fulltime' ? 'Lương cố định' : 'Lương theo giờ' }}
                                         </td>
                                     </tr>
+                                    @if(isset($salaryConfig) && $salaryConfig->type == 'part-time' && $salaryConfig->hourly_rate)
+                                    <tr>
+                                        <td class="py-2 min-w-28 text-gray-600 font-normal">
+                                            Lương theo giờ
+                                        </td>
+                                        <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
+                                            {{ number_format($salaryConfig->hourly_rate, 0, ',', '.') }} đ/giờ
+                                        </td>
+                                    </tr>
+                                    @endif
                                     <tr>
                                         <td class="py-2 min-w-28 text-gray-600 font-normal">
                                             Ngày làm việc tháng này
@@ -248,39 +244,20 @@
                                     <td>{{ $record->check_out_time ? formatDateTime($record->check_out_time, 'H:i:s') : '--:--:--' }}</td>
                                     <td>{{ number_format($record->total_hours, 2) }}</td>
                                     <td>
-                                        @php
-                                            $statusClass = '';
-                                            $statusText = '';
-                                            
-                                            switch($record->status) {
-                                                case 'present':
-                                                    $statusClass = 'success';
-                                                    $statusText = 'Có mặt';
-                                                    break;
-                                                case 'absent':
-                                                    $statusClass = 'danger';
-                                                    $statusText = 'Vắng mặt';
-                                                    break;
-                                                case 'late':
-                                                    $statusClass = 'warning';
-                                                    $statusText = 'Đi trễ';
-                                                    break;
-                                                case 'early_leave':
-                                                    $statusClass = 'info';
-                                                    $statusText = 'Về sớm';
-                                                    break;
-                                                default:
-                                                    $statusClass = 'gray';
-                                                    $statusText = $record->status;
-                                            }
-                                        @endphp
-                                        
-                                        <span class="badge badge-sm badge-outline badge-{{ $statusClass }}">
-                                            {{ $statusText }}
+                                        <span class="badge badge-sm badge-{{ $record->getStatusClass() }}">
+                                            {{ $record->getStatusText() }}
                                         </span>
                                     </td>
                                 </tr>
                                 @endforeach
+                                
+                                @if(count($recentAttendance) == 0)
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <p class="text-gray-500">Không có dữ liệu chấm công</p>
+                                    </td>
+                                </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -292,7 +269,6 @@
 @endsection
 
 @push('scripts')
-<!-- Cập nhật phần JS ở cuối file -->
 <script>
     $(function() {
         // Cập nhật thời gian hiện tại mỗi giây
@@ -315,6 +291,9 @@
                     'Đồng ý',
                     'Hủy bỏ',
                     async function() {
+                        const btn = $('#btn-check-in');
+                        btn.prop('disabled', true).html('<i class="ki-duotone ki-spinner-dot fs-2 animate-spin me-1"></i> Đang xử lý...');
+                        
                         const res = await axiosTemplate('post', '/account/timekeeping/do-check-in', null, {});
                         
                         if (res.data.status === 200) {
@@ -322,6 +301,7 @@
                             setTimeout(() => window.location.reload(), 1500);
                         } else {
                             showAlert('warning', res.data.message);
+                            btn.prop('disabled', false).html('<i class="ki-filled ki-arrow-right me-2"></i>Check In');
                         }
                     }
                 );
@@ -342,6 +322,9 @@
                     'Đồng ý',
                     'Hủy bỏ',
                     async function() {
+                        const btn = $('#btn-check-out');
+                        btn.prop('disabled', true).html('<i class="ki-duotone ki-spinner-dot fs-2 animate-spin me-1"></i> Đang xử lý...');
+                        
                         const res = await axiosTemplate('post', '/account/timekeeping/do-check-out', null, {});
                         
                         if (res.data.status === 200) {
@@ -349,6 +332,7 @@
                             setTimeout(() => window.location.reload(), 1500);
                         } else {
                             showAlert('warning', res.data.message);
+                            btn.prop('disabled', false).html('<i class="ki-filled ki-arrow-left me-2"></i>Check Out');
                         }
                     }
                 );

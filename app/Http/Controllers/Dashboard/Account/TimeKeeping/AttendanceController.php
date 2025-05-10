@@ -19,7 +19,17 @@ class AttendanceController extends Controller
     public function timekeeping()
     {
         $users = User::where('is_active', 1)->get();
-        return view('dashboard.account.timekeeping.index', compact('users'));
+        
+        // Thống kê cơ bản
+        $stats = [
+            'totalEmployees' => User::where('is_active', 1)->count(),
+            'checkedInToday' => AttendanceRecord::whereDate('work_date', Carbon::today())->count(),
+            'lateToday' => AttendanceRecord::whereDate('work_date', Carbon::today())
+                ->whereIn('status', ['late', 'late_and_early_leave'])->count(),
+            'absentToday' => 0, // Tính sau khi ngày kết thúc
+        ];
+        
+        return view('dashboard.account.timekeeping.index', compact('users', 'stats'));
     }
     
     public function checkInOut()
@@ -32,10 +42,10 @@ class AttendanceController extends Controller
         
         // Lấy thông tin phòng ban của người dùng
         $departments = UserDepartment::join('tbl_departments', 'tbl_user_departments.department_id', '=', 'tbl_departments.id')
-                                                ->join('tbl_levels', 'tbl_user_departments.level_id', '=', 'tbl_levels.id')
-                                                ->where('tbl_user_departments.user_id', $userId)
-                                                ->select('tbl_departments.name', 'tbl_levels.name as level_name')
-                                                ->get();
+                                    ->join('tbl_levels', 'tbl_user_departments.level_id', '=', 'tbl_levels.id')
+                                    ->where('tbl_user_departments.user_id', $userId)
+                                    ->select('tbl_departments.name', 'tbl_levels.name as level_name')
+                                    ->get();
         
         // Lấy cấu hình lương
         $salaryConfig = SalaryConfiguration::where(function($query) use ($userId) {
@@ -45,10 +55,16 @@ class AttendanceController extends Controller
         ->orderBy('user_id', 'desc') // Ưu tiên cấu hình riêng
         ->first();
         
+        // Lấy lịch làm việc đã được duyệt cho hôm nay
+        $schedule = PartTimeSchedule::where('user_id', $userId)
+                                ->where('schedule_date', $today)
+                                ->where('status', 'approved')
+                                ->first();
+        
         // Lấy bản ghi chấm công hôm nay nếu có
         $attendanceRecord = AttendanceRecord::where('user_id', $userId)
-                                            ->where('work_date', $today)
-                                            ->first();
+                                        ->where('work_date', $today)
+                                        ->first();
         
         // Tính toán thống kê chấm công
         $currentMonth = Carbon::now()->month;
@@ -68,7 +84,7 @@ class AttendanceController extends Controller
         
         // Tính toán các thống kê
         $stats = [
-            'presentDays' => $monthAttendances->whereIn('status', ['present', 'late', 'early_leave'])->count(),
+            'presentDays' => $monthAttendances->whereIn('status', ['present', 'late', 'early_leave', 'late_and_early_leave'])->count(),
             'workingDaysInMonth' => $workingDaysInMonth,
             'totalHours' => $monthAttendances->sum('total_hours'),
         ];
@@ -78,11 +94,13 @@ class AttendanceController extends Controller
                                         ->orderBy('work_date', 'desc')
                                         ->limit(10)
                                         ->get();
+                                        
         return view('dashboard.account.timekeeping.check-in-out', compact(
             'user', 
             'departments', 
             'salaryConfig', 
-            'attendanceRecord', 
+            'attendanceRecord',
+            'schedule',
             'stats', 
             'recentAttendance'
         ));
@@ -118,9 +136,11 @@ class AttendanceController extends Controller
                 'message' => 'Bạn không có lịch làm việc được duyệt cho hôm nay',
             ]);
         }
-        // Kiểm tra thời gian check-in có trong khung giờ đăng ký không
-        $scheduleStart = Carbon::createFromFormat('Y-m-d H:i:s', date('Y-m-d', strtotime($schedule->schedule_date)) . ' ' . date('H:i:s', strtotime($schedule->start_time)));
-        $scheduleEnd = Carbon::createFromFormat('Y-m-d H:i:s', date('Y-m-d', strtotime($schedule->schedule_date)) . ' ' . date('H:i:s', strtotime($schedule->end_time)));
+        
+        // Chuyển đổi thời gian lịch sang Carbon objects để dễ so sánh
+        $scheduleStart = Carbon::createFromFormat('Y-m-d H:i:s', $today . ' ' . date('H:i:s', strtotime($schedule->start_time)));
+        $scheduleEnd = Carbon::createFromFormat('Y-m-d H:i:s', $today . ' ' . date('H:i:s', strtotime($schedule->end_time)));
+        
         // Cho phép check-in sớm 60 phút so với lịch
         $allowedCheckInTime = $scheduleStart->copy()->subMinutes(60);
         
@@ -143,7 +163,7 @@ class AttendanceController extends Controller
         $attendanceRecord->user_id = $userId;
         $attendanceRecord->work_date = $today;
         $attendanceRecord->check_in_time = $now;
-        $attendanceRecord->schedule_id = $schedule->id; // Thêm trường schedule_id
+        $attendanceRecord->schedule_id = $schedule->id;
         
         // Xác định trạng thái (trễ hoặc đúng giờ)
         $isLate = $now->gt($scheduleStart);
@@ -202,7 +222,7 @@ class AttendanceController extends Controller
         // Kiểm tra xem có về sớm không
         $isEarlyLeave = false;
         if ($schedule) {
-            $scheduleEnd = Carbon::createFromFormat('Y-m-d H:i:s', date('Y-m-d', strtotime($schedule->schedule_date)) . ' ' . date('H:i:s', strtotime($schedule->end_time)));
+            $scheduleEnd = Carbon::createFromFormat('Y-m-d H:i:s', $today . ' ' . date('H:i:s', strtotime($schedule->end_time)));
             $isEarlyLeave = $now->lt($scheduleEnd);
         }
         
@@ -216,7 +236,7 @@ class AttendanceController extends Controller
         );
         
         // Cập nhật trạng thái nếu về sớm
-        if ($isEarlyLeave && $attendanceRecord->status != 'late') {
+        if ($isEarlyLeave && $attendanceRecord->status == 'present') {
             $attendanceRecord->status = 'early_leave';
         } else if ($isEarlyLeave && $attendanceRecord->status == 'late') {
             $attendanceRecord->status = 'late_and_early_leave';
@@ -267,27 +287,11 @@ class AttendanceController extends Controller
         $paginationResult = PaginationService::paginate($query, $currentPage, TABLE_PERPAGE_NUM);
         $offset = $paginationResult['sorter']['offset'];
         
-        $result = $paginationResult['data']->map(function($item, $key) use ($offset) {
-            return [
-                'index' => $offset + $key + 1,
-                'id' => $item->id,
-                'user' => [
-                    'id' => $item->user->id,
-                    'name' => $item->user->name,
-                ],
-                'work_date' => $item->work_date->format('d/m/Y'),
-                'check_in_time' => $item->check_in_time ? $item->check_in_time->format('H:i:s') : '-',
-                'check_out_time' => $item->check_out_time ? $item->check_out_time->format('H:i:s') : '-',
-                'total_hours' => $item->total_hours,
-                'status' => $item->status,
-                'status_text' => $this->getStatusText($item->status),
-                'note' => $item->note,
-            ];
-        });
+        $attendances = $paginationResult['data'];
         
         return response()->json([
             'status' => 200,
-            'content' => view('dashboard.account.timekeeping.ajax-index', ['data' => $result])->render(),
+            'content' => view('dashboard.account.timekeeping.ajax-index', ['data' => $attendances, 'offset' => $offset])->render(),
             'sorter' => $paginationResult['sorter'],
         ]);
     }
@@ -308,7 +312,7 @@ class AttendanceController extends Controller
             'id' => 'required|exists:tbl_attendance_records,id',
             'check_in_time' => 'nullable|date_format:H:i:s',
             'check_out_time' => 'nullable|date_format:H:i:s',
-            'status' => 'nullable|in:present,absent,late,early_leave',
+            'status' => 'nullable|in:present,absent,late,early_leave,late_and_early_leave',
             'note' => 'nullable|string',
         ]);
         
@@ -366,21 +370,5 @@ class AttendanceController extends Controller
             'status' => 200,
             'message' => 'Cập nhật bản ghi chấm công thành công',
         ]);
-    }
-    
-    private function getStatusText($status)
-    {
-        switch ($status) {
-            case 'present':
-                return 'Có mặt';
-            case 'absent':
-                return 'Vắng mặt';
-            case 'late':
-                return 'Đi trễ';
-            case 'early_leave':
-                return 'Về sớm';
-            default:
-                return ucfirst($status);
-        }
     }
 }

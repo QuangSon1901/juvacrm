@@ -1,46 +1,25 @@
-@foreach ($data as $item)
+@foreach ($data as $index => $item)
 <tr>
     <td class="text-center">
-        {{ $item['index'] }}
+        {{ $offset + $index + 1 }}
     </td>
     <td>
         <div class="flex items-center gap-3">
             <div class="flex flex-col">
-                <span class="text-gray-800 text-sm font-medium">{{ $item['user']['name'] }}</span>
+                <span class="text-gray-800 text-sm font-medium">{{ $item->user->name }}</span>
             </div>
         </div>
     </td>
-    <td>{{ $item['work_date'] }}</td>
-    <td>{{ $item['check_in_time'] }}</td>
-    <td>{{ $item['check_out_time'] }}</td>
-    <td>{{ $item['total_hours'] }}</td>
+    <td>{{ formatDateTime($item->work_date, 'd/m/Y') }}</td>
+    <td>{{ $item->check_in_time ? formatDateTime($item->check_in_time, 'H:i:s') : '-' }}</td>
+    <td>{{ $item->check_out_time ? formatDateTime($item->check_out_time, 'H:i:s') : '-' }}</td>
+    <td>{{ number_format($item->total_hours, 2) }}</td>
     <td>
-        @php
-            $statusClass = '';
-            
-            switch($item['status']) {
-                case 'present':
-                    $statusClass = 'success';
-                    break;
-                case 'absent':
-                    $statusClass = 'danger';
-                    break;
-                case 'late':
-                    $statusClass = 'warning';
-                    break;
-                case 'early_leave':
-                    $statusClass = 'info';
-                    break;
-                default:
-                    $statusClass = 'gray';
-            }
-        @endphp
-        
-        <span class="badge badge-sm badge-outline badge-{{ $statusClass }}">
-            {{ $item['status_text'] }}
+        <span class="badge badge-sm badge-{{ $item->getStatusClass() }}">
+            {{ $item->getStatusText() }}
         </span>
     </td>
-    <td>{{ $item['note'] }}</td>
+    <td>{{ $item->note }}</td>
     <td>
     @if(hasPermission('edit-timekeeping'))
         <div class="menu" data-menu="true">
@@ -50,7 +29,7 @@
                 </button>
                 <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
                     <div class="menu-item">
-                        <button class="menu-link" onclick="openEditAttendanceModal('{{ $item['id'] }}', '{{ $item['check_in_time'] }}', '{{ $item['check_out_time'] }}', '{{ $item['status'] }}', '{{ $item['note'] }}')">
+                        <button class="menu-link" onclick="openEditAttendanceModal('{{ $item->id }}', '{{ $item->check_in_time ? formatDateTime($item->check_in_time, 'H:i:s') : '' }}', '{{ $item->check_out_time ? formatDateTime($item->check_out_time, 'H:i:s') : '' }}', '{{ $item->status }}', '{{ $item->note }}')">
                             <span class="menu-icon">
                                 <i class="ki-filled ki-pencil"></i>
                             </span>
@@ -66,3 +45,11 @@
     </td>
 </tr>
 @endforeach
+
+@if(count($data) === 0)
+<tr>
+    <td colspan="9" class="text-center py-4">
+        <div class="text-gray-500">Không có dữ liệu</div>
+    </td>
+</tr>
+@endif
