@@ -81,6 +81,21 @@
                 </div>
             </div>
         </div>
+
+        <div class="card bg-yellow-50">
+            <div class="card-body p-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-600">Lịch chờ duyệt</p>
+                        <h2 class="text-2xl font-bold">{{ $pendingSchedulesCount }}</h2>
+                        <p class="text-xs text-gray-500">Yêu cầu hủy: {{ $cancelRequestsCount }}</p>
+                    </div>
+                    <div class="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
+                        <i class="ki-filled ki-calendar-tick text-yellow-500 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <div class="card bg-green-50">
             <div class="card-body p-5">
@@ -628,7 +643,7 @@
     </div>
     
     <!-- Employee Overview Section -->
-    <div class="card">
+    <div class="card mb-7">
         <div class="card-header">
             <div class="flex items-center">
                 <h3 class="card-title">
@@ -679,6 +694,69 @@
             </div>
         </div>
     </div>
+    <!-- Lịch làm việc chờ duyệt Section -->
+    @if($pendingSchedulesCount > 0 || $cancelRequestsCount > 0)
+    <div class="card mb-7">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="ki-filled ki-calendar text-warning text-2xl"></i>&nbsp;Lịch làm việc cần xử lý
+            </h3>
+            <a href="{{ route('dashboard.account.schedule.schedule') }}" class="btn btn-sm btn-primary">
+                Quản lý lịch
+            </a>
+        </div>
+        <div class="card-body">
+            @if(count($pendingSchedules) > 0)
+                <h4 class="font-medium text-sm mb-3">Lịch đang chờ duyệt ({{ $pendingSchedulesCount }})</h4>
+                <div class="overflow-x-auto mb-5">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Nhân viên</th>
+                                <th>Ngày</th>
+                                <th>Thời gian</th>
+                                <th>Giờ làm</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($pendingSchedules as $schedule)
+                            <tr>
+                                <td>{{ $schedule->user->name }}</td>
+                                <td>{{ formatDateTime($schedule->schedule_date, 'd/m/Y') }}</td>
+                                <td>{{ formatDateTime($schedule->start_time, 'H:i') }} - {{ formatDateTime($schedule->end_time, 'H:i') }}</td>
+                                <td>{{ number_format($schedule->total_hours, 2) }} giờ</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                
+                @if($pendingSchedulesCount > 5)
+                <div class="text-center">
+                    <a href="{{ route('dashboard.account.schedule.schedule') }}?filter[status]=pending" class="btn btn-sm btn-light">
+                        Xem tất cả {{ $pendingSchedulesCount }} lịch chờ duyệt
+                    </a>
+                </div>
+                @endif
+            @endif
+            
+            @if($cancelRequestsCount > 0)
+                <div class="mt-4">
+                    <div class="alert alert-warning d-flex align-items-center p-5">
+                        <i class="ki-solid ki-information-5 fs-2hx text-warning me-4"></i>
+                        <div class="d-flex flex-column">
+                            <h4 class="mb-1 text-warning">Có {{ $cancelRequestsCount }} yêu cầu hủy lịch cần xử lý</h4>
+                            <span>Vui lòng kiểm tra và xử lý các yêu cầu hủy lịch từ nhân viên</span>
+                        </div>
+                        <a href="{{ route('dashboard.account.schedule.schedule') }}?filter[status]=cancel_requested" class="btn btn-sm btn-warning ms-auto">
+                            Xem yêu cầu hủy
+                        </a>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+    @endif
 </div>
 @endsection
 

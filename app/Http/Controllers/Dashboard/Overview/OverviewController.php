@@ -214,6 +214,15 @@ class OverviewController extends Controller
             // Kiểm tra xem thời gian hiện tại có nằm trong khoảng thời gian cho phép check-in không
             $canCheckIn = $now->between($allowedCheckInTime, $scheduleEnd);
         }
+
+        $pendingSchedules = PartTimeSchedule::with('user')
+                    ->pending()
+                    ->orderBy('schedule_date', 'asc')
+                    ->limit(5)
+                    ->get();
+
+        $pendingSchedulesCount = PartTimeSchedule::pending()->count();
+        $cancelRequestsCount = PartTimeSchedule::cancelRequested()->count();
         
         return view("dashboard.overview.index", compact(
             'contractStats',
@@ -225,7 +234,10 @@ class OverviewController extends Controller
             'financialTrends',
             'attendanceRecord',
             'approvedSchedule',
-            'canCheckIn'
+            'canCheckIn',
+            'pendingSchedules',
+            'pendingSchedulesCount',
+            'cancelRequestsCount'
         ));
     }
 }
