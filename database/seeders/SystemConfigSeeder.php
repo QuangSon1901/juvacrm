@@ -77,6 +77,33 @@ class SystemConfigSeeder extends Seeder
                 'is_active' => 1,
                 'created_at' => '2025-04-25 16:51:30',
                 'updated_at' => '2025-04-25 16:51:30'
+            ],
+            [
+                'id' => 8,
+                'config_key' => 'hourly_rate',
+                'config_value' => '50000', // 50.000 VNĐ/giờ
+                'description' => 'Mức lương theo giờ (VNĐ)',
+                'is_active' => 1,
+                'created_at' => '2025-04-25 16:51:30',
+                'updated_at' => '2025-04-25 16:51:30'
+            ],
+            [
+                'id' => 9,
+                'config_key' => 'min_work_hours',
+                'config_value' => '4',
+                'description' => 'Số giờ đăng ký tối thiểu cho 1 ngày',
+                'is_active' => 1,
+                'created_at' => '2025-04-25 16:51:30',
+                'updated_at' => '2025-04-25 16:51:30'
+            ],
+            [
+                'id' => 10,
+                'config_key' => 'auto_approve_schedule',
+                'config_value' => '0', // 0: Không, 1: Có
+                'description' => 'Tự động duyệt lịch làm việc',
+                'is_active' => 1,
+                'created_at' => '2025-04-25 16:51:30',
+                'updated_at' => '2025-04-25 16:51:30'
             ]
         ]);
     }

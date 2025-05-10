@@ -52,6 +52,80 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Thiết lập Chấm công -->
+                <div class="card min-w-full">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            Thiết lập Chấm công & Lịch làm việc
+                        </h3>
+                    </div>
+                    <div class="card-table scrollable-x-auto pb-3">
+                        <table class="table align-middle text-sm text-gray-500">
+                            <tbody>
+                                @php
+                                    $hourlyRateConfig = $configs->firstWhere('config_key', 'hourly_rate');
+                                    $minWorkHoursConfig = $configs->firstWhere('config_key', 'min_work_hours');
+                                    $autoApproveConfig = $configs->firstWhere('config_key', 'auto_approve_schedule');
+                                @endphp
+                                
+                                <!-- Mức lương theo giờ -->
+                                <tr>
+                                    <td class="py-2 min-w-28 text-gray-600 font-normal">
+                                        {{ $hourlyRateConfig->description }}
+                                    </td>
+                                    <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
+                                        {{ number_format($hourlyRateConfig->config_value) }} VNĐ
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-config-modal" 
+                                                data-key="{{ $hourlyRateConfig->config_key }}" 
+                                                data-value="{{ $hourlyRateConfig->config_value }}" 
+                                                data-description="{{ $hourlyRateConfig->description }}">
+                                            <i class="ki-filled ki-notepad-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Số giờ tối thiểu -->
+                                <tr>
+                                    <td class="py-2 min-w-28 text-gray-600 font-normal">
+                                        {{ $minWorkHoursConfig->description }}
+                                    </td>
+                                    <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
+                                        {{ $minWorkHoursConfig->config_value }} giờ
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-config-modal" 
+                                                data-key="{{ $minWorkHoursConfig->config_key }}" 
+                                                data-value="{{ $minWorkHoursConfig->config_value }}" 
+                                                data-description="{{ $minWorkHoursConfig->description }}">
+                                            <i class="ki-filled ki-notepad-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Tự động duyệt lịch -->
+                                <tr>
+                                    <td class="py-2 min-w-28 text-gray-600 font-normal">
+                                        {{ $autoApproveConfig->description }}
+                                    </td>
+                                    <td class="py-2 text-gray700 font-normal min-w-32 text-2sm">
+                                        {{ $autoApproveConfig->config_value == 1 ? 'Có' : 'Không' }}
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        <button class="btn btn-xs btn-icon btn-clear btn-primary" data-modal-toggle="#update-config-modal" 
+                                                data-key="{{ $autoApproveConfig->config_key }}" 
+                                                data-value="{{ $autoApproveConfig->config_value }}" 
+                                                data-description="{{ $autoApproveConfig->description }}">
+                                            <i class="ki-filled ki-notepad-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 
                 <!-- Thiết lập hoa hồng -->
                 <div class="card min-w-full">

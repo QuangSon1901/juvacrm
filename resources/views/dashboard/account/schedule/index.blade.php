@@ -554,5 +554,66 @@
             console.error(error);
         }
     }
+
+    // Hàm phê duyệt yêu cầu hủy lịch
+    async function approveCancelRequest(id) {
+        try {
+            Notiflix.Confirm.show(
+                'Phê duyệt hủy lịch',
+                'Bạn có chắc chắn muốn phê duyệt yêu cầu hủy lịch này?',
+                'Đồng ý',
+                'Hủy bỏ',
+                async function() {
+                    const res = await axiosTemplate('post', '/account/schedule/approve-cancel', null, {
+                        id: id
+                    });
+                    
+                    if (res.data.status === 200) {
+                        showAlert('success', res.data.message);
+                        callAjaxDataTable($('.updater'));
+                    } else {
+                        showAlert('warning', res.data.message);
+                    }
+                }
+            );
+        } catch (error) {
+            showAlert('error', 'Đã xảy ra lỗi khi phê duyệt yêu cầu hủy lịch');
+            console.error(error);
+        }
+    }
+    
+    // Hàm từ chối yêu cầu hủy lịch
+    async function rejectCancelRequest(id) {
+        try {
+            Notiflix.Prompt.show(
+                'Từ chối yêu cầu hủy lịch',
+                'Nhập lý do từ chối',
+                '',
+                'Đồng ý',
+                'Hủy bỏ',
+                async function(reason) {
+                    if (!reason) {
+                        showAlert('warning', 'Vui lòng nhập lý do từ chối');
+                        return;
+                    }
+                    
+                    const res = await axiosTemplate('post', '/account/schedule/reject-cancel', null, {
+                        id: id,
+                        reason: reason
+                    });
+                    
+                    if (res.data.status === 200) {
+                        showAlert('success', res.data.message);
+                        callAjaxDataTable($('.updater'));
+                    } else {
+                        showAlert('warning', res.data.message);
+                    }
+                }
+            );
+        } catch (error) {
+            showAlert('error', 'Đã xảy ra lỗi khi từ chối yêu cầu hủy lịch');
+            console.error(error);
+        }
+    }
 </script>
 @endpush

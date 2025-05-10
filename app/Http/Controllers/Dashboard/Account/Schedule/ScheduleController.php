@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard\Account\Schedule;
 
 use App\Http\Controllers\Controller;
 use App\Models\PartTimeSchedule;
+use App\Models\SystemConfig;
 use App\Models\User;
 use App\Services\LogService;
 use App\Services\PaginationService;
@@ -320,9 +321,13 @@ class ScheduleController extends Controller
         ]);
     }
 
+    /**
+     * Đăng ký lịch làm việc mới
+     */
     public function createSchedule(Request $request)
     {
-        $validator = \App\Services\ValidatorService::make($request, [
+        // Validate đầu vào
+        $validator = ValidatorService::make($request, [
             'schedule_date' => 'required|date_format:d-m-Y',
             'start_time' => 'required|date_format:H:i:s',
             'end_time' => 'required|date_format:H:i:s|after:start_time',
@@ -336,15 +341,35 @@ class ScheduleController extends Controller
             ]);
         }
 
+        // Chuyển đổi định dạng ngày
         $scheduleDate = Carbon::createFromFormat('d-m-Y', $request->schedule_date)->format('Y-m-d');
         $startTime = $request->start_time;
         $endTime = $request->end_time;
+        
+        // Kiểm tra ngày đăng ký phải là ngày tương lai
+        if (Carbon::parse($scheduleDate)->lt(Carbon::tomorrow())) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Chỉ được đăng ký lịch cho ngày mai trở đi',
+            ]);
+        }
 
-        // Tính tổng giờ
+        // Tính tổng giờ làm việc - SỬA Ở ĐÂY
         $totalHours = PartTimeSchedule::calculateTotalHours(
             $scheduleDate . ' ' . $startTime,
             $scheduleDate . ' ' . $endTime
         );
+        
+        // Lấy cấu hình số giờ tối thiểu
+        $minWorkHours = SystemConfig::getValue('min_work_hours', 4);
+        
+        // Kiểm tra số giờ đăng ký có đủ tối thiểu không
+        if ($totalHours < $minWorkHours) {
+            return response()->json([
+                'status' => 422,
+                'message' => "Số giờ làm việc tối thiểu phải là {$minWorkHours} giờ",
+            ]);
+        }
 
         $userId = $request->input('user_id', Session::get(ACCOUNT_CURRENT_SESSION)['id']);
 
@@ -353,7 +378,11 @@ class ScheduleController extends Controller
             ->where('schedule_date', $scheduleDate)
             ->where(function ($query) use ($startTime, $endTime) {
                 $query->whereBetween('start_time', [$startTime, $endTime])
-                    ->orWhereBetween('end_time', [$startTime, $endTime]);
+                    ->orWhereBetween('end_time', [$startTime, $endTime])
+                    ->orWhere(function($q) use ($startTime, $endTime) {
+                        $q->where('start_time', '<=', $startTime)
+                        ->where('end_time', '>=', $endTime);
+                    });
             })
             ->first();
 
@@ -364,6 +393,10 @@ class ScheduleController extends Controller
             ]);
         }
 
+        // Kiểm tra cấu hình tự động duyệt
+        $autoApprove = SystemConfig::getValue('auto_approve_schedule', 0);
+        $status = $autoApprove ? 'approved' : 'pending';
+
         $schedule = PartTimeSchedule::create([
             'user_id' => $userId,
             'schedule_date' => $scheduleDate,
@@ -371,20 +404,190 @@ class ScheduleController extends Controller
             'end_time' => $endTime,
             'total_hours' => $totalHours,
             'note' => $request->note,
-            'status' => 'pending'
+            'status' => $status,
+            'approver_id' => $autoApprove ? Session::get(ACCOUNT_CURRENT_SESSION)['id'] : null,
+            'approval_time' => $autoApprove ? Carbon::now() : null
         ]);
 
         LogService::saveLog([
-            'action' => 'CREATE_PART_TIME_SCHEDULE',
+            'action' => 'CREATE_WORK_SCHEDULE',
             'ip' => $request->getClientIp(),
-            'details' => "Tạo lịch làm việc part-time ngày " . formatDateTime($scheduleDate, 'd/m/Y'),
+            'details' => "Tạo lịch làm việc ngày " . formatDateTime($scheduleDate, 'd/m/Y'),
             'fk_key' => 'tbl_part_time_schedules|id',
             'fk_value' => $schedule->id,
         ]);
 
         return response()->json([
             'status' => 200,
-            'message' => 'Tạo lịch làm việc thành công',
+            'message' => 'Tạo lịch làm việc thành công' . ($autoApprove ? '' : ', đang chờ duyệt'),
+            'schedule' => [
+                'id' => $schedule->id,
+                'user_id' => $schedule->user_id,
+                'schedule_date' => $scheduleDate,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'status' => $status
+            ]
+        ]);
+    }
+
+    /**
+     * Yêu cầu hủy lịch làm việc
+     */
+    public function requestCancelSchedule(Request $request)
+    {
+        $validator = ValidatorService::make($request, [
+            'id' => 'required|exists:tbl_part_time_schedules,id',
+            'reason' => 'required|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $userId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
+        $schedule = PartTimeSchedule::findOrFail($request->id);
+        
+        // Kiểm tra quyền: chỉ chủ sở hữu mới được hủy
+        if ($schedule->user_id != $userId && !hasPermission('approve-schedule')) {
+            return response()->json([
+                'status' => 403,
+                'message' => 'Bạn không có quyền hủy lịch này',
+            ]);
+        }
+        
+        // Nếu lịch chưa được duyệt, xóa ngay
+        if ($schedule->status == 'pending') {
+            $schedule->delete();
+            
+            LogService::saveLog([
+                'action' => 'CANCEL_WORK_SCHEDULE',
+                'ip' => $request->getClientIp(),
+                'details' => "Hủy lịch làm việc ngày " . formatDateTime($schedule->schedule_date, 'd/m/Y'),
+                'fk_key' => 'tbl_part_time_schedules|id',
+                'fk_value' => $schedule->id,
+            ]);
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Hủy lịch làm việc thành công',
+            ]);
+        }
+        
+        // Lịch đã được duyệt, chuyển thành yêu cầu hủy
+        $schedule->update([
+            'status' => 'cancel_requested',
+            'note' => $schedule->note . "\nYêu cầu hủy: " . $request->reason
+        ]);
+        
+        LogService::saveLog([
+            'action' => 'REQUEST_CANCEL_WORK_SCHEDULE',
+            'ip' => $request->getClientIp(),
+            'details' => "Yêu cầu hủy lịch làm việc ngày " . formatDateTime($schedule->schedule_date, 'd/m/Y'),
+            'fk_key' => 'tbl_part_time_schedules|id',
+            'fk_value' => $schedule->id,
+        ]);
+        
+        return response()->json([
+            'status' => 200,
+            'message' => 'Đã gửi yêu cầu hủy lịch làm việc. Vui lòng đợi phê duyệt',
+        ]);
+    }
+
+    /**
+     * Phê duyệt yêu cầu hủy lịch
+     */
+    public function approveCancelRequest(Request $request)
+    {
+        $validator = ValidatorService::make($request, [
+            'id' => 'required|exists:tbl_part_time_schedules,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $schedule = PartTimeSchedule::findOrFail($request->id);
+        
+        // Chỉ phê duyệt nếu đang ở trạng thái yêu cầu hủy
+        if ($schedule->status !== 'cancel_requested') {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Lịch không ở trạng thái yêu cầu hủy',
+            ]);
+        }
+        
+        // Lưu ID trước khi xóa để ghi log
+        $scheduleId = $schedule->id;
+        $scheduleDate = $schedule->schedule_date;
+        
+        // Xóa lịch
+        $schedule->delete();
+        
+        LogService::saveLog([
+            'action' => 'APPROVE_CANCEL_WORK_SCHEDULE',
+            'ip' => $request->getClientIp(),
+            'details' => "Phê duyệt hủy lịch làm việc ngày " . formatDateTime($scheduleDate, 'd/m/Y'),
+            'fk_key' => 'tbl_part_time_schedules|id',
+            'fk_value' => $scheduleId,
+        ]);
+        
+        return response()->json([
+            'status' => 200,
+            'message' => 'Đã phê duyệt yêu cầu hủy lịch làm việc',
+        ]);
+    }
+
+    /**
+     * Từ chối yêu cầu hủy lịch
+     */
+    public function rejectCancelRequest(Request $request)
+    {
+        $validator = ValidatorService::make($request, [
+            'id' => 'required|exists:tbl_part_time_schedules,id',
+            'reason' => 'required|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $schedule = PartTimeSchedule::findOrFail($request->id);
+        
+        // Chỉ từ chối nếu đang ở trạng thái yêu cầu hủy
+        if ($schedule->status !== 'cancel_requested') {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Lịch không ở trạng thái yêu cầu hủy',
+            ]);
+        }
+        
+        // Khôi phục trạng thái và cập nhật ghi chú
+        $schedule->update([
+            'status' => 'approved',
+            'note' => $schedule->note . "\nTừ chối hủy: " . $request->reason
+        ]);
+        
+        LogService::saveLog([
+            'action' => 'REJECT_CANCEL_WORK_SCHEDULE',
+            'ip' => $request->getClientIp(),
+            'details' => "Từ chối hủy lịch làm việc ngày " . formatDateTime($schedule->schedule_date, 'd/m/Y'),
+            'fk_key' => 'tbl_part_time_schedules|id',
+            'fk_value' => $schedule->id,
+        ]);
+        
+        return response()->json([
+            'status' => 200,
+            'message' => 'Đã từ chối yêu cầu hủy lịch làm việc',
         ]);
     }
 

@@ -11,6 +11,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Consultation;
 use App\Models\AttendanceRecord;
+use App\Models\PartTimeSchedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -165,13 +166,55 @@ class OverviewController extends Controller
             ];
         }
 
+        // Lấy thông tin người dùng đã đăng nhập
         $userId = auth()->user()->id;
         $today = date('Y-m-d');
-                
+        
+        // Lấy lịch làm việc đã được duyệt của ngày hôm nay
+        $approvedSchedule = PartTimeSchedule::where('user_id', $userId)
+            ->where('schedule_date', $today)
+            ->where('status', 'approved')
+            ->first();
+        
+        // Lấy bản ghi chấm công nếu có
         $attendanceRecord = AttendanceRecord::where('user_id', $userId)
             ->where('work_date', $today)
             ->first();
-
+        
+        // Kiểm tra thời gian hiện tại có nằm trong khoảng thời gian làm việc không
+        $now = Carbon::now();
+        $canCheckIn = false;
+        
+        if ($approvedSchedule) {
+            // Sửa lại cách tạo đối tượng thời gian
+            $startTimeString = $approvedSchedule->start_time;
+            $endTimeString = $approvedSchedule->end_time;
+            
+            // Chuyển đổi định dạng giờ nếu cần
+            if ($startTimeString instanceof \DateTime) {
+                $startTimeString = $startTimeString->format('H:i:s');
+            }
+            
+            if ($endTimeString instanceof \DateTime) {
+                $endTimeString = $endTimeString->format('H:i:s');
+            }
+            
+            $scheduleDate = $approvedSchedule->schedule_date;
+            if ($scheduleDate instanceof \DateTime) {
+                $scheduleDate = $scheduleDate->format('Y-m-d');
+            }
+            
+            // Tạo các đối tượng Carbon riêng biệt cho thời gian bắt đầu và kết thúc
+            $scheduleStart = Carbon::createFromFormat('Y-m-d H:i:s', $scheduleDate . ' ' . $startTimeString);
+            $scheduleEnd = Carbon::createFromFormat('Y-m-d H:i:s', $scheduleDate . ' ' . $endTimeString);
+            
+            // Cho phép check-in sớm 30 phút so với lịch
+            $allowedCheckInTime = $scheduleStart->copy()->subMinutes(30);
+            
+            // Kiểm tra xem thời gian hiện tại có nằm trong khoảng thời gian cho phép check-in không
+            $canCheckIn = $now->between($allowedCheckInTime, $scheduleEnd);
+        }
+        
         return view("dashboard.overview.index", compact(
             'contractStats',
             'customerStats',
@@ -180,7 +223,9 @@ class OverviewController extends Controller
             'employeeStats',
             'taskTrends',
             'financialTrends',
-            'attendanceRecord'
+            'attendanceRecord',
+            'approvedSchedule',
+            'canCheckIn'
         ));
     }
 }

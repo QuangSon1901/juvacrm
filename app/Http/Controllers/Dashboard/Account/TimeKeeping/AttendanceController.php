@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard\Account\Timekeeping;
 
 use App\Http\Controllers\Controller;
 use App\Models\AttendanceRecord;
+use App\Models\PartTimeSchedule;
 use App\Models\SalaryConfiguration;
 use App\Models\User;
 use App\Models\UserDepartment;
@@ -95,8 +96,8 @@ class AttendanceController extends Controller
         
         // Kiểm tra đã check-in chưa
         $existingRecord = AttendanceRecord::where('user_id', $userId)
-                                          ->where('work_date', $today)
-                                          ->first();
+                                        ->where('work_date', $today)
+                                        ->first();
         
         if ($existingRecord && $existingRecord->check_in_time) {
             return response()->json([
@@ -105,31 +106,67 @@ class AttendanceController extends Controller
             ]);
         }
         
+        // Lấy lịch làm việc đã được duyệt cho hôm nay
+        $schedule = PartTimeSchedule::where('user_id', $userId)
+                                ->where('schedule_date', $today)
+                                ->where('status', 'approved')
+                                ->first();
+        
+        if (!$schedule) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Bạn không có lịch làm việc được duyệt cho hôm nay',
+            ]);
+        }
+        // Kiểm tra thời gian check-in có trong khung giờ đăng ký không
+        $scheduleStart = Carbon::createFromFormat('Y-m-d H:i:s', date('Y-m-d', strtotime($schedule->schedule_date)) . ' ' . date('H:i:s', strtotime($schedule->start_time)));
+        $scheduleEnd = Carbon::createFromFormat('Y-m-d H:i:s', date('Y-m-d', strtotime($schedule->schedule_date)) . ' ' . date('H:i:s', strtotime($schedule->end_time)));
+        // Cho phép check-in sớm 60 phút so với lịch
+        $allowedCheckInTime = $scheduleStart->copy()->subMinutes(60);
+        
+        if ($now->lt($allowedCheckInTime)) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Chưa đến thời gian check-in. Bạn có thể check-in từ ' . $allowedCheckInTime->format('H:i:s'),
+            ]);
+        }
+        
+        if ($now->gt($scheduleEnd)) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Đã quá thời gian làm việc của bạn cho hôm nay',
+            ]);
+        }
+        
         // Tạo hoặc cập nhật bản ghi chấm công
         $attendanceRecord = $existingRecord ?: new AttendanceRecord();
         $attendanceRecord->user_id = $userId;
         $attendanceRecord->work_date = $today;
         $attendanceRecord->check_in_time = $now;
+        $attendanceRecord->schedule_id = $schedule->id; // Thêm trường schedule_id
         
         // Xác định trạng thái (trễ hoặc đúng giờ)
-        $workStartTime = config('constants.work_start_time', '08:00:00');
-        $lateThreshold = Carbon::createFromFormat('Y-m-d H:i:s', $today . ' ' . $workStartTime)
-                              ->addMinutes(config('constants.late_threshold_minutes', 15));
-        
-        $attendanceRecord->status = $now->gt($lateThreshold) ? 'late' : 'present';
+        $isLate = $now->gt($scheduleStart);
+        $attendanceRecord->status = $isLate ? 'late' : 'present';
         $attendanceRecord->save();
         
         LogService::saveLog([
             'action' => 'CHECK_IN',
             'ip' => $request->getClientIp(),
-            'details' => "Người dùng check-in lúc " . $now->format('Y-m-d H:i:s'),
+            'details' => "Người dùng check-in lúc " . $now->format('Y-m-d H:i:s') . ($isLate ? ' (đi trễ)' : ''),
             'fk_key' => 'tbl_attendance_records|id',
             'fk_value' => $attendanceRecord->id,
         ]);
         
+        // Chuẩn bị thông báo cho người dùng
+        $message = 'Check-in thành công lúc ' . $now->format('H:i:s');
+        if ($isLate) {
+            $message .= '. Bạn đã đi trễ ' . $now->diffInMinutes($scheduleStart) . ' phút';
+        }
+        
         return response()->json([
             'status' => 200,
-            'message' => 'Check-in thành công lúc ' . $now->format('H:i:s'),
+            'message' => $message,
             'attendance' => $attendanceRecord,
         ]);
     }
@@ -142,8 +179,8 @@ class AttendanceController extends Controller
         
         // Kiểm tra bản ghi chấm công
         $attendanceRecord = AttendanceRecord::where('user_id', $userId)
-                                           ->where('work_date', $today)
-                                           ->first();
+                                        ->where('work_date', $today)
+                                        ->first();
         
         if (!$attendanceRecord || !$attendanceRecord->check_in_time) {
             return response()->json([
@@ -159,6 +196,16 @@ class AttendanceController extends Controller
             ]);
         }
         
+        // Lấy lịch làm việc liên quan
+        $schedule = PartTimeSchedule::find($attendanceRecord->schedule_id);
+        
+        // Kiểm tra xem có về sớm không
+        $isEarlyLeave = false;
+        if ($schedule) {
+            $scheduleEnd = Carbon::createFromFormat('Y-m-d H:i:s', date('Y-m-d', strtotime($schedule->schedule_date)) . ' ' . date('H:i:s', strtotime($schedule->end_time)));
+            $isEarlyLeave = $now->lt($scheduleEnd);
+        }
+        
         // Cập nhật bản ghi
         $attendanceRecord->check_out_time = $now;
         
@@ -168,13 +215,11 @@ class AttendanceController extends Controller
             $attendanceRecord->check_out_time
         );
         
-        // Kiểm tra về sớm
-        $workEndTime = config('constants.work_end_time', '17:00:00');
-        $earlyLeaveThreshold = Carbon::createFromFormat('Y-m-d H:i:s', $today . ' ' . $workEndTime)
-                                    ->subMinutes(config('constants.early_leave_threshold_minutes', 15));
-        
-        if ($now->lt($earlyLeaveThreshold) && $attendanceRecord->status != 'late') {
+        // Cập nhật trạng thái nếu về sớm
+        if ($isEarlyLeave && $attendanceRecord->status != 'late') {
             $attendanceRecord->status = 'early_leave';
+        } else if ($isEarlyLeave && $attendanceRecord->status == 'late') {
+            $attendanceRecord->status = 'late_and_early_leave';
         }
         
         $attendanceRecord->save();
@@ -182,14 +227,20 @@ class AttendanceController extends Controller
         LogService::saveLog([
             'action' => 'CHECK_OUT',
             'ip' => $request->getClientIp(),
-            'details' => "Người dùng check-out lúc " . $now->format('Y-m-d H:i:s'),
+            'details' => "Người dùng check-out lúc " . $now->format('Y-m-d H:i:s') . ($isEarlyLeave ? ' (về sớm)' : ''),
             'fk_key' => 'tbl_attendance_records|id',
             'fk_value' => $attendanceRecord->id,
         ]);
         
+        // Chuẩn bị thông báo cho người dùng
+        $message = 'Check-out thành công lúc ' . $now->format('H:i:s');
+        if ($isEarlyLeave && $schedule) {
+            $message .= '. Bạn đã về sớm ' . $now->diffInMinutes($scheduleEnd) . ' phút';
+        }
+        
         return response()->json([
             'status' => 200,
-            'message' => 'Check-out thành công lúc ' . $now->format('H:i:s'),
+            'message' => $message,
             'attendance' => $attendanceRecord,
         ]);
     }

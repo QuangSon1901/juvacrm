@@ -24,12 +24,19 @@
                     case 'rejected':
                         $statusClass = 'danger';
                         break;
+                    case 'cancel_requested':
+                        $statusClass = 'info';
+                        break;
                     default:
                         $statusClass = 'gray';
                 }
             @endphp
             <span class="badge badge-sm badge-outline badge-{{ $statusClass }}">
-                {{ $item['status_text'] }}
+                @if($item['status'] == 'cancel_requested')
+                    Yêu cầu hủy
+                @else
+                    {{ $item['status_text'] }}
+                @endif
             </span>
         </td>
         <td>{{ $item['note'] ?: '-' }}</td>
@@ -92,6 +99,28 @@
                                 </span>
                             </button>
                         </div>
+                        @endif
+                        @if($item['status'] == 'cancel_requested')
+                            <div class="menu-item">
+                                <button class="menu-link" onclick="approveCancelRequest({{ $item['id'] }})">
+                                    <span class="menu-icon">
+                                        <i class="ki-filled ki-check text-success"></i>
+                                    </span>
+                                    <span class="menu-title">
+                                        Duyệt hủy lịch
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="menu-item">
+                                <button class="menu-link" onclick="rejectCancelRequest({{ $item['id'] }})">
+                                    <span class="menu-icon">
+                                        <i class="ki-filled ki-cross text-danger"></i>
+                                    </span>
+                                    <span class="menu-title">
+                                        Từ chối hủy lịch
+                                    </span>
+                                </button>
+                            </div>
                         @endif
                     </div>
                 </div>

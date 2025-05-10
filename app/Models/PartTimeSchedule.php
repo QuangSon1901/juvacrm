@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class PartTimeSchedule extends Model
@@ -26,6 +27,16 @@ class PartTimeSchedule extends Model
         'end_time' => 'datetime',
         'approval_time' => 'datetime',
     ];
+
+    public function getStartTimeAttribute($value)
+    {
+        return $value ? Carbon::parse($value) : null;
+    }
+
+    public function getEndTimeAttribute($value)
+    {
+        return $value ? Carbon::parse($value) : null;
+    }
     
     public function user()
     {

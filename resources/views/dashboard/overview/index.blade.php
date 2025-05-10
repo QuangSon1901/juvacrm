@@ -25,11 +25,32 @@
                         {{ \Carbon\Carbon::parse($attendanceRecord->check_in_time)->format('H:i') }} - 
                         {{ \Carbon\Carbon::parse($attendanceRecord->check_out_time)->format('H:i') }}
                     </span>
-                @else
+                @elseif(isset($approvedSchedule) && $canCheckIn)
                     <button id="btn-attendance" class="btn btn-sm btn-success" onclick="doCheckIn()">
                         <i class="ki-filled ki-time me-1"></i>
                         Check In
                     </button>
+                    <span class="text-xs text-gray-600">
+                        Lịch: {{ \Carbon\Carbon::parse($approvedSchedule->start_time)->format('H:i') }} - 
+                        {{ \Carbon\Carbon::parse($approvedSchedule->end_time)->format('H:i') }}
+                    </span>
+                @elseif(isset($approvedSchedule) && !$canCheckIn)
+                    <button class="btn btn-sm btn-light" disabled>
+                        <i class="ki-filled ki-timer me-1"></i>
+                        Chưa tới giờ làm
+                    </button>
+                    <span class="text-xs text-gray-600">
+                        Lịch: {{ \Carbon\Carbon::parse($approvedSchedule->start_time)->format('H:i') }} - 
+                        {{ \Carbon\Carbon::parse($approvedSchedule->end_time)->format('H:i') }}
+                    </span>
+                @else
+                    <button class="btn btn-sm btn-light" disabled>
+                        <i class="ki-filled ki-calendar-x me-1"></i>
+                        Không có lịch
+                    </button>
+                    <a href="{{ route('dashboard.profile.my-schedule') }}" class="text-xs text-primary">
+                        Đăng ký lịch làm việc <i class="ki-solid ki-arrow-right"></i>
+                    </a>
                 @endif
             </div>
         </div>
@@ -705,63 +726,79 @@
     }
 
     async function doCheckIn() {
-        try {
-            // Deshabilitar botón mientras procesa
-            const btn = document.getElementById('btn-attendance');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="ki-solid ki-spinner ki-spin me-1"></i> Đang xử lý...';
-            
-            const res = await axiosTemplate('post', '/account/timekeeping/do-check-in', null, {});
-            
-            if (res.data.status === 200) {
-                showAlert('success', res.data.message);
-                // Recargar página después de 1.5 segundos
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showAlert('warning', res.data.message);
-                // Restaurar botón
-                btn.disabled = false;
-                btn.innerHTML = '<i class="ki-filled ki-time me-1"></i> Check In';
+    try {
+        // Hiển thị hộp thoại xác nhận
+        Notiflix.Confirm.show(
+            'Xác nhận Check-in',
+            'Bạn có chắc chắn muốn check-in ngay bây giờ?',
+            'Đồng ý',
+            'Hủy bỏ',
+            async function() {
+                // Vô hiệu hóa nút khi đang xử lý
+                const btn = document.getElementById('btn-attendance');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ki-solid ki-spinner ki-spin me-1"></i> Đang xử lý...';
+                
+                const res = await axiosTemplate('post', '/account/timekeeping/do-check-in', null, {});
+                
+                if (res.data.status === 200) {
+                    showAlert('success', res.data.message);
+                    // Tải lại trang sau 1.5 giây
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showAlert('warning', res.data.message);
+                    // Khôi phục nút
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ki-filled ki-time me-1"></i> Check In';
+                }
+            },
+            function() {
+                // Người dùng đã hủy bỏ
             }
-        } catch (error) {
-            showAlert('error', 'Đã xảy ra lỗi khi check in');
-            console.error(error);
-            // Restaurar botón
-            const btn = document.getElementById('btn-attendance');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="ki-filled ki-time me-1"></i> Check In';
-        }
+        );
+    } catch (error) {
+        showAlert('error', 'Đã xảy ra lỗi khi check in');
+        console.error(error);
     }
+}
     
     // Función para realizar Check Out
     async function doCheckOut() {
-        try {
-            // Deshabilitar botón mientras procesa
-            const btn = document.getElementById('btn-attendance');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="ki-solid ki-spinner ki-spin me-1"></i> Đang xử lý...';
-            
-            const res = await axiosTemplate('post', '/account/timekeeping/do-check-out', null, {});
-            
-            if (res.data.status === 200) {
-                showAlert('success', res.data.message);
-                // Recargar página después de 1.5 segundos
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showAlert('warning', res.data.message);
-                // Restaurar botón
-                btn.disabled = false;
-                btn.innerHTML = '<i class="ki-filled ki-time me-1"></i> Check Out';
+    try {
+        // Hiển thị hộp thoại xác nhận
+        Notiflix.Confirm.show(
+            'Xác nhận Check-out',
+            'Bạn có chắc chắn muốn check-out ngay bây giờ?',
+            'Đồng ý',
+            'Hủy bỏ',
+            async function() {
+                // Vô hiệu hóa nút khi đang xử lý
+                const btn = document.getElementById('btn-attendance');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ki-solid ki-spinner ki-spin me-1"></i> Đang xử lý...';
+                
+                const res = await axiosTemplate('post', '/account/timekeeping/do-check-out', null, {});
+                
+                if (res.data.status === 200) {
+                    showAlert('success', res.data.message);
+                    // Tải lại trang sau 1.5 giây
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showAlert('warning', res.data.message);
+                    // Khôi phục nút
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ki-filled ki-time me-1"></i> Check Out';
+                }
+            },
+            function() {
+                // Người dùng đã hủy bỏ
             }
-        } catch (error) {
-            showAlert('error', 'Đã xảy ra lỗi khi check out');
-            console.error(error);
-            // Restaurar botón
-            const btn = document.getElementById('btn-attendance');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="ki-filled ki-time me-1"></i> Check Out';
-        }
+        );
+    } catch (error) {
+        showAlert('error', 'Đã xảy ra lỗi khi check out');
+        console.error(error);
     }
+}
     
     function initCharts() {
         // Task Completion Chart

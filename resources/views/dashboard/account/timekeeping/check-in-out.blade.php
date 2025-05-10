@@ -292,6 +292,7 @@
 @endsection
 
 @push('scripts')
+<!-- Cập nhật phần JS ở cuối file -->
 <script>
     $(function() {
         // Cập nhật thời gian hiện tại mỗi giây
@@ -308,14 +309,22 @@
             if ($(this).hasClass('disabled')) return;
             
             try {
-                const res = await axiosTemplate('post', '/account/timekeeping/do-check-in', null, {});
-                
-                if (res.data.status === 200) {
-                    showAlert('success', res.data.message);
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    showAlert('warning', res.data.message);
-                }
+                Notiflix.Confirm.show(
+                    'Xác nhận Check-in',
+                    'Bạn có chắc chắn muốn check-in ngay bây giờ?',
+                    'Đồng ý',
+                    'Hủy bỏ',
+                    async function() {
+                        const res = await axiosTemplate('post', '/account/timekeeping/do-check-in', null, {});
+                        
+                        if (res.data.status === 200) {
+                            showAlert('success', res.data.message);
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            showAlert('warning', res.data.message);
+                        }
+                    }
+                );
             } catch (error) {
                 showAlert('error', 'Đã xảy ra lỗi khi check in');
                 console.error(error);
@@ -327,14 +336,22 @@
             if ($(this).hasClass('disabled')) return;
             
             try {
-                const res = await axiosTemplate('post', '/account/timekeeping/do-check-out', null, {});
-                
-                if (res.data.status === 200) {
-                    showAlert('success', res.data.message);
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    showAlert('warning', res.data.message);
-                }
+                Notiflix.Confirm.show(
+                    'Xác nhận Check-out',
+                    'Bạn có chắc chắn muốn check-out ngay bây giờ?',
+                    'Đồng ý',
+                    'Hủy bỏ',
+                    async function() {
+                        const res = await axiosTemplate('post', '/account/timekeeping/do-check-out', null, {});
+                        
+                        if (res.data.status === 200) {
+                            showAlert('success', res.data.message);
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            showAlert('warning', res.data.message);
+                        }
+                    }
+                );
             } catch (error) {
                 showAlert('error', 'Đã xảy ra lỗi khi check out');
                 console.error(error);

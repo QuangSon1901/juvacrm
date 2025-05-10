@@ -16,6 +16,7 @@ class AttendanceRecord extends Model
         'total_hours',
         'status',
         'note',
+        'schedule_id',
     ];
     
     protected $casts = [

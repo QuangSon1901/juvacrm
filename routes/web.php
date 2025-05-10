@@ -346,6 +346,10 @@ Route::group(
                         Route::group(['middleware' => ['permission:approve-schedule']], function () {
                             Route::post('/account/schedule/update-status', [ScheduleController::class, "updateScheduleStatus"])->name("update-status");
                         });
+
+                        Route::post('/account/schedule/request-cancel', [ScheduleController::class, "requestCancelSchedule"])->name("request-cancel");
+                        Route::post('/account/schedule/approve-cancel', [ScheduleController::class, "approveCancelRequest"])->name("approve-cancel");
+                        Route::post('/account/schedule/reject-cancel', [ScheduleController::class, "rejectCancelRequest"])->name("reject-cancel");
                     }
                 );
 

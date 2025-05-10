@@ -15,7 +15,7 @@ class CreatePartTimeSchedulesTable extends Migration
             $table->time('start_time');
             $table->time('end_time');
             $table->decimal('total_hours', 5, 2);
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['pending', 'approved', 'rejected', 'cancel_requested'])->default('pending');
             $table->text('note')->nullable();
             $table->unsignedBigInteger('approver_id')->nullable();
             $table->dateTime('approval_time')->nullable();
