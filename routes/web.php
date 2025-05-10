@@ -34,6 +34,7 @@ use App\Http\Controllers\Dashboard\Overview\OverviewController;
 use App\Http\Controllers\Dashboard\Profile\ProfileController;
 use App\Http\Controllers\Dashboard\Setting\SettingController;
 use App\Http\Controllers\Dashboard\Customer\Support\CustomerSupportController;
+use App\Http\Controllers\Dashboard\Notification\NotificationController;
 use App\Http\Controllers\Dashboard\Profile\MyScheduleController;
 use App\Http\Controllers\Dashboard\Service\ServiceController;
 use App\Http\Controllers\GoogleDriveController;
@@ -696,6 +697,17 @@ Route::group(
                 Route::middleware(['permission:edit-setting'])->group(function() {
                     Route::post('/setting/update', [SettingController::class, "update"])->name("update");
                 });
+            }
+        );
+
+        Route::group(
+            ['namespace' => 'Notification', 'as' => 'notification.', 'middleware' => []],
+            function () {
+                Route::get('/notifications', [NotificationController::class, "index"])->name("index");
+                Route::get('/notifications/data', [NotificationController::class, "getData"])->name("data");
+                Route::get('/notifications/unread', [NotificationController::class, "getUnreadNotifications"])->name("unread");
+                Route::post('/notifications/mark-read', [NotificationController::class, "markAsRead"])->name("mark-read");
+                Route::post('/notifications/delete', [NotificationController::class, "delete"])->name("delete");
             }
         );
     }

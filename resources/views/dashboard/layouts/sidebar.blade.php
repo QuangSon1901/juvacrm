@@ -447,70 +447,37 @@
         <!-- Phần thông báo không đổi -->
         <div class="flex flex-col gap-1.5">
             <div class="dropdown" data-dropdown="true" data-dropdown-offset="-20px, 30px" data-dropdown-placement="right-end" data-dropdown-trigger="click|lg:click">
-                <button class="dropdown-toggle btn btn-icon btn-icon-xl relative rounded-md size-9 border border-transparent hover:bg-light hover:text-primary hover:border-gray-200 dropdown-open:bg-gray-200 text-gray-600">
+                <button class="dropdown-toggle btn btn-icon btn-icon-xl relative rounded-md size-9 border border-transparent hover:bg-light hover:text-primary hover:border-gray-200 dropdown-open:bg-gray-200 text-gray-600" id="notification-dropdown-toggle">
                     <span class="menu-icon">
                         <i class="ki-filled ki-notification text-1.5xl"></i>
                     </span>
+                    <span class="badge badge-danger badge-circle position-absolute top-0 end-0 size-4 notification-badge d-none">0</span>
                 </button>
-                <div class="dropdown-content light:border-gray-300 w-screen max-w-[320px]">
-                    <!-- Nội dung thông báo giữ nguyên -->
+                <div class="dropdown-content light:border-gray-300 w-screen max-w-[320px]" id="notifications-dropdown">
                     <div class="flex items-center justify-between gap-2.5 text-sm text-gray-900 font-semibold px-5 py-2.5 border-b border-b-gray-200" id="notifications_header">
-                        Thông báo
-                        <button class="btn btn-sm btn-icon btn-light btn-clear shrink-0" data-dropdown-dismiss="true">
-                            <i class="ki-filled ki-cross">
-                            </i>
-                        </button>
-                    </div>
-                    <div class="pt-3 pb-4 flex flex-col gap-5 scrollable-y-auto max-h-[400px] divide-y divide-gray-200">
-                        <div class="flex grow gap-2.5 px-5">
-                            <div class="relative shrink-0 mt-0.5">
-                                <img alt="" class="rounded-full size-8" src="{{asset('assets/images/logo/favicon.png')}}">
-                                <span class="size-1.5 badge badge-circle badge-success absolute top-7 end-0.5 ring-1 ring-light transform -translate-y-1/2">
-                                </span>
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                <div class="text-2sm font-medium mb-px">
-                                    <span class="text-gray-700">
-                                        Khách hàng
-                                    </span>
-                                    <a class="hover:text-primary-active text-gray-900 font-semibold" href="#">
-                                        Trung Hiếu
-                                    </a>
-                                    <span class="text-gray-700">
-                                        vừa yêu cầu liên hệ
-                                    </span>
-                                </div>
-                                <span class="flex items-center text-2xs font-medium text-gray-500">
-                                    1 phút trước
-                                </span>
-                            </div>
+                        <span>Thông báo</span>
+                        <div class="flex gap-2">
+                            <button class="btn btn-sm btn-icon btn-light-primary btn-clear" id="mark-all-read-btn" title="Đánh dấu tất cả đã đọc">
+                                <i class="ki-outline ki-check-square"></i>
+                            </button>
+                            <button class="btn btn-sm btn-icon btn-light btn-clear shrink-0" data-dropdown-dismiss="true">
+                                <i class="ki-filled ki-cross"></i>
+                            </button>
                         </div>
                     </div>
-                    <div class="border-b border-b-gray-200"></div>
-                    <div class="pt-3 pb-4 flex flex-col gap-5 scrollable-y-auto max-h-[400px] divide-y divide-gray-200">
-                        <div class="flex grow gap-2.5 px-5">
-                            <div class="relative shrink-0 mt-0.5">
-                                <img alt="" class="rounded-full size-8" src="{{asset('assets/images/logo/favicon.png')}}">
-                                <span class="size-1.5 badge badge-circle badge-success absolute top-7 end-0.5 ring-1 ring-light transform -translate-y-1/2">
-                                </span>
+                    <div id="notifications-list" class="pt-3 pb-4 flex flex-col gap-5 scrollable-y-auto max-h-[400px] divide-y divide-gray-200">
+                        <!-- Nội dung thông báo sẽ được load qua AJAX -->
+                        <div class="px-5 py-3 text-center">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
                             </div>
-                            <div class="flex flex-col gap-1">
-                                <div class="text-2sm font-medium mb-px">
-                                    <span class="text-gray-700">
-                                        Khách hàng
-                                    </span>
-                                    <a class="hover:text-primary-active text-gray-900 font-semibold" href="#">
-                                        Trung Hiếu
-                                    </a>
-                                    <span class="text-gray-700">
-                                        vừa yêu cầu liên hệ
-                                    </span>
-                                </div>
-                                <span class="flex items-center text-2xs font-medium text-gray-500">
-                                    5 phút trước
-                                </span>
-                            </div>
+                            <div class="text-gray-600 mt-2">Đang tải thông báo...</div>
                         </div>
+                    </div>
+                    <div class="border-t border-t-gray-200 py-2 px-5 text-center">
+                        <a href="{{ route('dashboard.notification.index') }}" class="text-sm text-primary hover:text-primary-hover font-medium">
+                            Xem tất cả thông báo
+                        </a>
                     </div>
                 </div>
             </div>

@@ -7,6 +7,7 @@ use App\Models\PartTimeSchedule;
 use App\Models\SystemConfig;
 use App\Models\User;
 use App\Services\LogService;
+use App\Services\NotificationService;
 use App\Services\PaginationService;
 use App\Services\ValidatorService;
 use Carbon\Carbon;
@@ -202,6 +203,21 @@ class ScheduleController extends Controller
             'rejectedSchedules' => PartTimeSchedule::rejected()->count(),
         ];
 
+        $formattedDate = formatDateTime($scheduleDate, 'd/m/Y');
+        $formattedTime = formatDateTime($startTime, 'H:i') . ' - ' . formatDateTime($endTime, 'H:i');
+        
+        NotificationService::send(
+            $userId,
+            'Lịch làm việc mới',
+            'Quản lý đã tạo lịch làm việc ngày ' . $formattedDate . ' (' . $formattedTime . ') cho bạn.',
+            'schedule',
+            route('dashboard.profile.my-schedule'),
+            'ki-calendar-tick',
+            'success',
+            5,
+            null
+        );
+
         return response()->json([
             'status' => 200,
             'message' => 'Tạo lịch làm việc thành công',
@@ -259,6 +275,36 @@ class ScheduleController extends Controller
             'fk_key' => 'tbl_part_time_schedules|id',
             'fk_value' => $schedule->id,
         ]);
+
+         $formattedDate = formatDateTime($schedule->schedule_date, 'd/m/Y');
+        $formattedTime = formatDateTime($schedule->start_time, 'H:i') . ' - ' . formatDateTime($schedule->end_time, 'H:i');
+        
+        if ($request->status === 'approved') {
+            NotificationService::send(
+                $schedule->user_id,
+                'Lịch làm việc đã được duyệt',
+                'Lịch làm việc ngày ' . $formattedDate . ' (' . $formattedTime . ') của bạn đã được duyệt.',
+                'schedule',
+                route('dashboard.profile.my-schedule'),
+                'ki-check',
+                'success',
+                5,
+                null
+            );
+        } else {
+            $reason = $request->filled('note') ? "Lý do: " . $request->note : '';
+            NotificationService::send(
+                $schedule->user_id,
+                'Lịch làm việc bị từ chối',
+                'Lịch làm việc ngày ' . $formattedDate . ' (' . $formattedTime . ') của bạn đã bị từ chối. ' . $reason,
+                'schedule',
+                route('dashboard.profile.my-schedule'),
+                'ki-cross',
+                'danger',
+                5,
+                null
+            );
+        }
 
         // Lấy HTML cho dòng đã cập nhật
         $rowHtml = view('dashboard.account.schedule.schedule-row', ['schedule' => $schedule, 'index' => 0])->render();
@@ -320,6 +366,21 @@ class ScheduleController extends Controller
                     'fk_key' => 'tbl_part_time_schedules|id',
                     'fk_value' => $schedule->id,
                 ]);
+
+                $formattedDate = formatDateTime($schedule->schedule_date, 'd/m/Y');
+                $formattedTime = formatDateTime($schedule->start_time, 'H:i') . ' - ' . formatDateTime($schedule->end_time, 'H:i');
+                
+                NotificationService::send(
+                    $schedule->user_id,
+                    'Lịch làm việc đã được duyệt',
+                    'Lịch làm việc ngày ' . $formattedDate . ' (' . $formattedTime . ') của bạn đã được duyệt.',
+                    'schedule',
+                    route('dashboard.profile.my-schedule'),
+                    'ki-check',
+                    'success',
+                    5,
+                    null
+                );
             }
         }
 
@@ -367,6 +428,21 @@ class ScheduleController extends Controller
         // Lưu ID trước khi xóa để ghi log
         $scheduleId = $schedule->id;
         $scheduleDate = $schedule->schedule_date;
+
+        $formattedDate = formatDateTime($scheduleDate, 'd/m/Y');
+        $formattedTime = formatDateTime($schedule->start_time, 'H:i') . ' - ' . formatDateTime($schedule->end_time, 'H:i');
+        
+        NotificationService::send(
+            $schedule->user_id,
+            'Yêu cầu hủy lịch đã được duyệt',
+            'Yêu cầu hủy lịch làm việc ngày ' . $formattedDate . ' (' . $formattedTime . ') của bạn đã được duyệt.',
+            'schedule',
+            route('dashboard.profile.my-schedule'),
+            'ki-check',
+            'success',
+            5,
+            null
+        );
         
         // Xóa lịch
         $schedule->delete();
@@ -434,6 +510,21 @@ class ScheduleController extends Controller
             'fk_key' => 'tbl_part_time_schedules|id',
             'fk_value' => $schedule->id,
         ]);
+
+        $formattedDate = formatDateTime($schedule->schedule_date, 'd/m/Y');
+        $formattedTime = formatDateTime($schedule->start_time, 'H:i') . ' - ' . formatDateTime($schedule->end_time, 'H:i');
+        
+        NotificationService::send(
+            $schedule->user_id,
+            'Yêu cầu hủy lịch bị từ chối',
+            'Yêu cầu hủy lịch làm việc ngày ' . $formattedDate . ' (' . $formattedTime . ') của bạn đã bị từ chối. Lý do: ' . $request->reason,
+            'schedule',
+            route('dashboard.profile.my-schedule'),
+            'ki-cross',
+            'danger',
+            5,
+            null
+        );
         
         // Lấy HTML cho dòng đã cập nhật
         $rowHtml = view('dashboard.account.schedule.schedule-row', ['schedule' => $schedule, 'index' => 0])->render();
@@ -519,6 +610,21 @@ class ScheduleController extends Controller
         // Lưu thông tin trước khi xóa để ghi log
         $scheduleDate = $schedule->schedule_date;
         $scheduleId = $schedule->id;
+
+        $formattedDate = formatDateTime($scheduleDate, 'd/m/Y');
+        $formattedTime = formatDateTime($schedule->start_time, 'H:i') . ' - ' . formatDateTime($schedule->end_time, 'H:i');
+        
+        NotificationService::send(
+            $schedule->user_id,
+            'Lịch làm việc đã bị xóa',
+            'Lịch làm việc ngày ' . $formattedDate . ' (' . $formattedTime . ') của bạn đã bị xóa bởi quản lý.',
+            'schedule',
+            route('dashboard.profile.my-schedule'),
+            'ki-trash',
+            'danger',
+            5,
+            null
+        );
         
         $schedule->delete();
         

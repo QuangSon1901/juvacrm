@@ -155,6 +155,94 @@
     window.ImageViewer.open(src, caption || '');
   };
 </script>
+<!-- Thêm vào phần script của resources/views/dashboard/layouts/layout.blade.php -->
+<script>
+    // Hàm cập nhật số lượng thông báo chưa đọc
+    function updateNotificationBadge(count) {
+        if (count > 0) {
+            $('.notification-badge').text(count).removeClass('d-none');
+        } else {
+            $('.notification-badge').text('0').addClass('d-none');
+        }
+    }
+    
+    // Hàm load danh sách thông báo
+    async function loadNotifications() {
+        try {
+            const res = await axiosTemplate('get', '{{ route("dashboard.notification.unread") }}');
+            
+            if (res.data.status === 200) {
+                $('#notifications-list').html(res.data.html);
+                updateNotificationBadge(res.data.unreadCount);
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải thông báo:', error);
+            $('#notifications-list').html(`
+                <div class="px-5 py-3 text-center">
+                    <div class="text-gray-600">Không thể tải thông báo</div>
+                </div>
+            `);
+        }
+    }
+    
+    $(function() {
+        // Load thông báo ban đầu
+        loadNotifications();
+        
+        // Cập nhật thông báo mỗi 1 phút
+        setInterval(loadNotifications, 60000);
+        
+        // Đánh dấu đã đọc khi click vào nút mark-read
+        $(document).on('click', '.mark-read-btn', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const id = $(this).data('id');
+            
+            try {
+                const res = await axiosTemplate('post', '{{ route("dashboard.notification.mark-read") }}', null, {
+                    id: id
+                });
+                
+                if (res.data.status === 200) {
+                    // Tải lại thông báo sau khi đánh dấu đã đọc
+                    loadNotifications();
+                }
+            } catch (error) {
+                console.error('Lỗi khi đánh dấu đã đọc:', error);
+            }
+        });
+        
+        // Đánh dấu tất cả đã đọc
+        $('#mark-all-read-btn').on('click', async function(e) {
+            e.preventDefault();
+            
+            try {
+                const res = await axiosTemplate('post', '{{ route("dashboard.notification.mark-read") }}');
+                
+                if (res.data.status === 200) {
+                    // Tải lại thông báo sau khi đánh dấu tất cả đã đọc
+                    loadNotifications();
+                }
+            } catch (error) {
+                console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
+            }
+        });
+        
+        // Mở trang chi tiết khi click vào thông báo
+        $(document).on('click', '.notification-content', function() {
+            const url = $(this).data('url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+        
+        // Xử lý khi mở dropdown thông báo
+        $('#notification-dropdown-toggle').on('click', function() {
+            // Tải lại thông báo khi mở dropdown
+            loadNotifications();
+        });
+    });
 </script>
 </body>
 
