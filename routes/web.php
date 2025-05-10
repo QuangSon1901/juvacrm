@@ -312,13 +312,15 @@ Route::group(
                             Route::get('/account/timekeeping/check-in-out', [AttendanceController::class, "checkInOut"])->name("check-in-out");
                         });
                         
-                        // Check-in/check-out không cần quyền đặc biệt
                         Route::post('/account/timekeeping/do-check-in', [AttendanceController::class, "doCheckIn"])->name("do-check-in");
                         Route::post('/account/timekeeping/do-check-out', [AttendanceController::class, "doCheckOut"])->name("do-check-out");
                         
                         Route::group(['middleware' => ['permission:edit-timekeeping']], function () {
                             Route::post('/account/timekeeping/update', [AttendanceController::class, "updateAttendance"])->name("update");
                         });
+
+                        Route::post('/account/timekeeping/mark-absent', [AttendanceController::class, "markAbsent"])->name("mark-absent");
+                        Route::get('/account/schedule/get-user-schedules', [ScheduleController::class, "getUserSchedules"])->name("get-user-schedules");
                     }
                 );
 

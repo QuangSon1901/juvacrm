@@ -32,13 +32,27 @@
                     </div>
                 </div>
             </div>
-    
+
+            <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
+                <div class="flex items-center flex-wrap gap-3.5">
+                    <i class="ki-outline ki-calendar size-6 shrink-0 text-blue-500"></i>
+                    <div class="flex flex-col">
+                        <div class="text-sm font-medium text-gray-900 mb-px">
+                            Có lịch hôm nay
+                        </div>
+                        <div class="text-2sm text-gray-700">
+                            {{ $stats['scheduledToday'] ?? 0 }} nhân viên
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                 <div class="flex items-center flex-wrap gap-3.5">
                     <i class="ki-outline ki-calendar-tick size-6 shrink-0 text-success"></i>
                     <div class="flex flex-col">
                         <div class="text-sm font-medium text-gray-900 mb-px">
-                            Đã chấm công hôm nay
+                            Đã chấm công
                         </div>
                         <div class="text-2sm text-gray-700">
                             {{ $stats['checkedInToday'] ?? 0 }} nhân viên
@@ -46,7 +60,7 @@
                     </div>
                 </div>
             </div>
-    
+
             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                 <div class="flex items-center flex-wrap gap-3.5">
                     <i class="ki-outline ki-timer size-6 shrink-0 text-warning"></i>
@@ -60,10 +74,10 @@
                     </div>
                 </div>
             </div>
-    
+
             <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
                 <div class="flex items-center flex-wrap gap-3.5">
-                    <i class="ki-outline ki-calendar-cross size-6 shrink-0 text-danger"></i>
+                    <i class="ki-outline ki-user-x size-6 shrink-0 text-danger"></i>
                     <div class="flex flex-col">
                         <div class="text-sm font-medium text-gray-900 mb-px">
                             Vắng mặt hôm nay
@@ -110,9 +124,13 @@
                         <input class="input input-sm" type="text" id="date-to-filter" data-filter="date_to" data-flatpickr="true" placeholder="Đến ngày">
                     </div>
                     
-                    <button id="btn-export-excel" class="btn btn-primary btn-sm">
+                    <!-- <button id="btn-export-excel" class="btn btn-primary btn-sm">
                         <i class="ki-filled ki-file-down me-1"></i>
                         Xuất Excel
+                    </button> -->
+                    <button class="btn btn-danger btn-sm" data-modal-toggle="#mark-absent-modal">
+                        <i class="ki-outline ki-cross-circle me-1"></i>
+                        Đánh dấu vắng mặt
                     </button>
                 </div>
             </div>
@@ -237,6 +255,63 @@
         </div>
     </div>
 </div>
+
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="mark-absent-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Đánh dấu nhân viên vắng mặt
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="mark-absent-form" class="grid gap-4 py-4">
+                <div class="flex flex-col gap-2">
+                    <label class="font-medium text-sm mb-1">
+                        Nhân viên <span class="text-red-500">*</span>
+                    </label>
+                    <select class="select" name="user_id" id="user_id" required>
+                        <option value="">Chọn nhân viên</option>
+                        @foreach($users as $user)
+                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div class="flex flex-col gap-2">
+                    <label class="font-medium text-sm mb-1">
+                        Ngày vắng mặt <span class="text-red-500">*</span>
+                    </label>
+                    <input class="input" type="text" name="absent_date" id="absent_date" data-flatpickr="true" placeholder="Chọn ngày" required>
+                </div>
+                
+                <div class="flex flex-col gap-2">
+                    <label class="font-medium text-sm mb-1">
+                        Ca làm việc <span class="text-red-500">*</span>
+                    </label>
+                    <select class="select" name="schedule_id" id="schedule_select" required disabled>
+                        <option value="">Chọn nhân viên và ngày trước</option>
+                    </select>
+                </div>
+                
+                <div class="flex flex-col gap-2">
+                    <label class="font-medium text-sm mb-1">
+                        Ghi chú
+                    </label>
+                    <textarea class="textarea" name="note" rows="3" placeholder="Lý do vắng mặt (nếu có)"></textarea>
+                </div>
+                
+                <div class="flex flex-col pt-2">
+                    <button type="submit" class="btn btn-danger justify-center">
+                        Đánh dấu vắng mặt
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -245,6 +320,7 @@
         // Khởi tạo flatpickr cho các trường ngày
         flatpickrMake($("#date-from-filter"), 'date');
         flatpickrMake($("#date-to-filter"), 'date');
+        flatpickrMake($("input[name='absent_date']"), 'date');
         
         // Xử lý sự kiện khi thay đổi bộ lọc
         $('[data-filter]').on('change', function() {
@@ -305,6 +381,97 @@
                 console.error(error);
             }
         });
+
+        $('#user_id, #absent_date').on('change', async function() {
+        const userId = $('#user_id').val();
+        const absentDate = $('#absent_date').val();
+        
+        if (userId && absentDate) {
+            try {
+                // Load danh sách ca làm việc
+                const res = await axiosTemplate('get', '/account/schedule/get-user-schedules', {
+                    user_id: userId,
+                    date: absentDate
+                }, null);
+                
+                if (res.data.status === 200) {
+                    $('#schedule_select').empty().prop('disabled', false);
+                    
+                    if (res.data.schedules.length === 0) {
+                        $('#schedule_select').append('<option value="">Không có lịch làm việc nào</option>');
+                    } else {
+                        $('#schedule_select').append('<option value="">Chọn ca làm việc</option>');
+                        
+                        res.data.schedules.forEach(schedule => {
+                            $('#schedule_select').append(`<option value="${schedule.id}">${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}</option>`);
+                        });
+                    }
+                } else {
+                    showAlert('warning', res.data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('error', 'Không thể tải danh sách ca làm việc');
+            }
+        }
+    });
+    
+    function formatTime(isoTimeString) {
+        // Kiểm tra nếu là ISO datetime
+        if (isoTimeString.includes('T')) {
+            // Tạo đối tượng Date từ chuỗi ISO
+            const date = new Date(isoTimeString);
+            // Format thành chuỗi "HH:MM"
+            return date.getHours().toString().padStart(2, '0') + ':' + 
+                date.getMinutes().toString().padStart(2, '0');
+        } else {
+            // Trường hợp chuỗi thời gian đơn giản (HH:MM:SS)
+            return isoTimeString.substring(0, 5);
+        }
+    }
+    
+    // Xử lý submit form
+    $('#mark-absent-form').on('submit', async function(e) {
+        e.preventDefault();
+        
+        const userId = $('#mark-absent-form #user_id').val();
+        const scheduleId = $('#mark-absent-form #schedule_select').val();
+        const note = $('#mark-absent-form textarea[name="note"]').val();
+        
+        if (!userId || !scheduleId) {
+            showAlert('warning', 'Vui lòng chọn nhân viên và ca làm việc');
+            return;
+        }
+        
+        try {
+            $(this).find('button[type="submit"]').prop('disabled', true).html('<i class="ki-duotone ki-spinner-dot fs-2 animate-spin me-1"></i> Đang xử lý...');
+            
+            const res = await axiosTemplate('post', '/account/timekeeping/mark-absent', null, {
+                user_id: userId,
+                schedule_id: scheduleId,
+                note: note
+            });
+            
+            if (res.data.status === 200) {
+                showAlert('success', res.data.message);
+                KTModal.getInstance(document.querySelector('#mark-absent-modal')).hide();
+                
+                // Làm mới bảng dữ liệu
+                callAjaxDataTable($('.updater'));
+                
+                // Reset form
+                $(this).trigger('reset');
+                $('#schedule_select').empty().prop('disabled', true);
+            } else {
+                showAlert('warning', res.data.message);
+            }
+        } catch (error) {
+            showAlert('error', 'Đã xảy ra lỗi khi đánh dấu vắng mặt');
+            console.error(error);
+        } finally {
+            $(this).find('button[type="submit"]').prop('disabled', false).html('Đánh dấu vắng mặt');
+        }
+    });
     });
     
     // Hàm mở modal chỉnh sửa chấm công

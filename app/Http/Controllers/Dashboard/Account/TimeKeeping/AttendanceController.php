@@ -19,14 +19,35 @@ class AttendanceController extends Controller
     public function timekeeping()
     {
         $users = User::where('is_active', 1)->get();
+        $today = Carbon::today()->toDateString();
         
-        // Thống kê cơ bản
+        // Đếm số ca làm việc hôm nay
+        $schedulesToday = PartTimeSchedule::where('schedule_date', $today)
+                                      ->where('status', 'approved')
+                                      ->count();
+        
+        // Đếm số ca đã check-in
+        $checkedInShifts = AttendanceRecord::whereDate('work_date', $today)
+                                      ->whereNotNull('check_in_time')
+                                      ->count();
+        
+        // Đếm số ca đi trễ
+        $lateShifts = AttendanceRecord::whereDate('work_date', $today)
+                                 ->whereIn('status', ['late', 'late_and_early_leave'])
+                                 ->count();
+        
+        // Đếm số ca vắng mặt
+        $absentShifts = AttendanceRecord::whereDate('work_date', $today)
+                                   ->where('status', 'absent')
+                                   ->count();
+        
+        // Thống kê
         $stats = [
             'totalEmployees' => User::where('is_active', 1)->count(),
-            'checkedInToday' => AttendanceRecord::whereDate('work_date', Carbon::today())->count(),
-            'lateToday' => AttendanceRecord::whereDate('work_date', Carbon::today())
-                ->whereIn('status', ['late', 'late_and_early_leave'])->count(),
-            'absentToday' => 0, // Tính sau khi ngày kết thúc
+            'schedulesToday' => $schedulesToday,
+            'checkedInShifts' => $checkedInShifts,
+            'lateShifts' => $lateShifts,
+            'absentShifts' => $absentShifts,
         ];
         
         return view('dashboard.account.timekeeping.index', compact('users', 'stats'));
@@ -369,6 +390,69 @@ class AttendanceController extends Controller
         return response()->json([
             'status' => 200,
             'message' => 'Cập nhật bản ghi chấm công thành công',
+        ]);
+    }
+
+    public function markAbsent(Request $request)
+    {
+        $validator = \App\Services\ValidatorService::make($request, [
+            'user_id' => 'required|exists:tbl_users,id',
+            'schedule_id' => 'required|exists:tbl_part_time_schedules,id', // Yêu cầu chỉ định cụ thể ca
+            'note' => 'nullable|string',
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+        
+        // Lấy thông tin lịch làm việc
+        $schedule = PartTimeSchedule::find($request->schedule_id);
+        
+        if (!$schedule || $schedule->user_id != $request->user_id) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Lịch làm việc không hợp lệ hoặc không thuộc về nhân viên này',
+            ]);
+        }
+        
+        // Kiểm tra đã có bản ghi chấm công chưa
+        $existingRecord = AttendanceRecord::where('schedule_id', $request->schedule_id)
+                                    ->first();
+        
+        if ($existingRecord) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Đã có bản ghi chấm công cho ca này',
+            ]);
+        }
+        
+        // Tạo bản ghi vắng mặt mới
+        $attendanceRecord = AttendanceRecord::create([
+            'user_id' => $request->user_id,
+            'schedule_id' => $request->schedule_id,
+            'work_date' => $schedule->schedule_date,
+            'status' => 'absent',
+            'total_hours' => 0,
+            'note' => $request->note ?: 'Vắng mặt không báo trước - ' . 
+                      formatDateTime($schedule->start_time, 'H:i') . ' đến ' . formatDateTime($schedule->end_time, 'H:i')
+        ]);
+        
+        LogService::saveLog([
+            'action' => 'MARK_ABSENT',
+            'ip' => $request->getClientIp(),
+            'details' => "Đánh dấu vắng mặt cho nhân viên ca " . 
+                         formatDateTime($schedule->start_time, 'H:i') . "-" . formatDateTime($schedule->end_time, 'H:i') . 
+                         " ngày " . formatDateTime($schedule->schedule_date, 'd/m/Y'),
+            'fk_key' => 'tbl_attendance_records|id',
+            'fk_value' => $attendanceRecord->id,
+        ]);
+        
+        return response()->json([
+            'status' => 200,
+            'message' => 'Đã đánh dấu vắng mặt thành công',
         ]);
     }
 }

@@ -842,6 +842,9 @@ video {
 .ms-auto {
   margin-inline-start: auto;
 }
+.ml-1 {
+  margin-left: 0.25rem;
+}
 .block {
   display: block;
 }

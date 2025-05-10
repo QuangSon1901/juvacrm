@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard\Account\Schedule;
 
 use App\Http\Controllers\Controller;
+use App\Models\AttendanceRecord;
 use App\Models\PartTimeSchedule;
 use App\Models\SystemConfig;
 use App\Models\User;
@@ -648,6 +649,41 @@ class ScheduleController extends Controller
             'status' => 200,
             'message' => 'Xóa lịch làm việc thành công',
             'stats' => $stats
+        ]);
+    }
+
+    public function getUserSchedules(Request $request)
+    {
+        $validator = \App\Services\ValidatorService::make($request, [
+            'user_id' => 'required|exists:tbl_users,id',
+            'date' => 'required|date',
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+        
+        $schedules = PartTimeSchedule::where('user_id', $request->user_id)
+                                ->where('schedule_date', Carbon::parse($request->date)->toDateString())
+                                ->where('status', 'approved')
+                                ->orderBy('start_time')
+                                ->get(['id', 'start_time', 'end_time']);
+        
+        // Kiểm tra đã có bản ghi chấm công chưa
+        $scheduleIds = $schedules->pluck('id')->toArray();
+        $existingRecords = AttendanceRecord::whereIn('schedule_id', $scheduleIds)->get();
+        
+        // Loại bỏ các schedule đã có bản ghi chấm công
+        $availableSchedules = $schedules->filter(function($schedule) use ($existingRecords) {
+            return !$existingRecords->contains('schedule_id', $schedule->id);
+        })->values();
+        
+        return response()->json([
+            'status' => 200,
+            'schedules' => $availableSchedules,
         ]);
     }
 }
