@@ -1,10 +1,5 @@
 <div class="grid gap-4">
     <div class="flex flex-col gap-2">
-        <label class="text-gray-600 text-2sm">Nhân viên:</label>
-        <div class="text-gray-900 font-medium">{{ $schedule->user->name }}</div>
-    </div>
-    
-    <div class="flex flex-col gap-2">
         <label class="text-gray-600 text-2sm">Ngày làm việc:</label>
         <div class="text-gray-900">{{ formatDateTime($schedule->schedule_date, 'd/m/Y') }}</div>
     </div>
@@ -55,32 +50,16 @@
     </div>
     @endif
     
-    @if(hasPermission('approve-schedule') && $schedule->status == 'pending')
-    <div class="grid grid-cols-2 gap-4 mt-4">
-        <button class="btn btn-success" onclick="approveSchedule({{ $schedule->id }})">
-            <i class="ki-filled ki-check me-2"></i>Duyệt lịch
-        </button>
-        <button class="btn btn-danger" onclick="rejectSchedule({{ $schedule->id }})">
-            <i class="ki-filled ki-cross me-2"></i>Từ chối
-        </button>
-    </div>
-    @endif
-    
-    @if(hasPermission('approve-schedule') && $schedule->status == 'cancel_requested')
-    <div class="grid grid-cols-2 gap-4 mt-4">
-        <button class="btn btn-success" onclick="approveCancelRequest({{ $schedule->id }})">
-            <i class="ki-filled ki-check me-2"></i>Duyệt yêu cầu hủy
-        </button>
-        <button class="btn btn-danger" onclick="rejectCancelRequest({{ $schedule->id }})">
-            <i class="ki-filled ki-cross me-2"></i>Từ chối yêu cầu hủy
-        </button>
-    </div>
-    @endif
-    
-    @if(hasPermission('edit-schedule'))
+    @if($schedule->status == 'pending')
     <div class="mt-4">
-        <button class="btn btn-primary w-full" onclick="editSchedule({{ $schedule->id }})">
-            <i class="ki-filled ki-pencil me-2"></i>Chỉnh sửa lịch
+        <button class="btn btn-danger w-full" onclick="cancelSchedule({{ $schedule->id }})">
+            <i class="ki-filled ki-trash me-2"></i>Hủy lịch
+        </button>
+    </div>
+    @elseif($schedule->status == 'approved' && \Carbon\Carbon::parse($schedule->schedule_date)->gt(\Carbon\Carbon::today()))
+    <div class="mt-4">
+        <button class="btn btn-warning w-full" onclick="requestCancelSchedule({{ $schedule->id }})">
+            <i class="ki-filled ki-cross me-2"></i>Yêu cầu hủy
         </button>
     </div>
     @endif

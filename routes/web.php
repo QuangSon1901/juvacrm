@@ -34,6 +34,7 @@ use App\Http\Controllers\Dashboard\Overview\OverviewController;
 use App\Http\Controllers\Dashboard\Profile\ProfileController;
 use App\Http\Controllers\Dashboard\Setting\SettingController;
 use App\Http\Controllers\Dashboard\Customer\Support\CustomerSupportController;
+use App\Http\Controllers\Dashboard\Profile\MyScheduleController;
 use App\Http\Controllers\Dashboard\Service\ServiceController;
 use App\Http\Controllers\GoogleDriveController;
 use App\Http\Middleware\Authenticate;
@@ -326,7 +327,6 @@ Route::group(
                         Route::group(['middleware' => ['permission:view-schedule']], function () {
                             Route::get('/account/schedule', [ScheduleController::class, "schedule"])->name("schedule");
                             Route::get('/account/schedule/data', [ScheduleController::class, "scheduleData"])->name("data");
-                            Route::get('/account/schedule/part-time', [ScheduleController::class, "partTime"])->name("part-time");
                             Route::get('/account/schedule/statistics', [ScheduleController::class, "getStatistics"])->name("statistics");
                             Route::get('/account/schedule/users-list', [ScheduleController::class, "getUsersList"])->name("users-list");
                             Route::get('/account/schedule/calendar-data', [ScheduleController::class, "getCalendarData"])->name("calendar-data");
@@ -334,22 +334,22 @@ Route::group(
                             Route::get('/account/schedule/{id}/edit', [ScheduleController::class, "getScheduleEdit"])->name("edit");
                         });
                         
+                        // Create schedules (Admin)
                         Route::group(['middleware' => ['permission:create-schedule']], function () {
                             Route::post('/account/schedule/create', [ScheduleController::class, "createSchedule"])->name("create");
                         });
                         
+                        // Edit/Delete schedules (Admin)
                         Route::group(['middleware' => ['permission:edit-schedule']], function () {
                             Route::post('/account/schedule/delete', [ScheduleController::class, "deleteSchedule"])->name("delete");
-                            Route::post('/account/schedule/cancel', [ScheduleController::class, "cancelSchedule"])->name("cancel");
                         });
                         
+                        // Approve schedules (Admin)
                         Route::group(['middleware' => ['permission:approve-schedule']], function () {
                             Route::post('/account/schedule/update-status', [ScheduleController::class, "updateScheduleStatus"])->name("update-status");
+                            Route::post('/account/schedule/approve-cancel', [ScheduleController::class, "approveCancelRequest"])->name("approve-cancel");
+                            Route::post('/account/schedule/reject-cancel', [ScheduleController::class, "rejectCancelRequest"])->name("reject-cancel");
                         });
-
-                        Route::post('/account/schedule/request-cancel', [ScheduleController::class, "requestCancelSchedule"])->name("request-cancel");
-                        Route::post('/account/schedule/approve-cancel', [ScheduleController::class, "approveCancelRequest"])->name("approve-cancel");
-                        Route::post('/account/schedule/reject-cancel', [ScheduleController::class, "rejectCancelRequest"])->name("reject-cancel");
                     }
                 );
 
@@ -481,7 +481,14 @@ Route::group(
                 Route::post('/profile/update', [ProfileController::class, "update"])->name("update");
                 Route::get('/profile/my-salary', [SalaryController::class, "mySalary"])->name("my-salary");
                 Route::get('/profile/my-timesheet', [AttendanceController::class, "myTimesheet"])->name("my-timesheet");
-                Route::get('/profile/my-schedule', [ScheduleController::class, "mySchedule"])->name("my-schedule");
+                
+                // Lịch làm việc cá nhân (mọi nhân viên đều có quyền này)
+                Route::get('/profile/my-schedule', [MyScheduleController::class, "index"])->name("my-schedule");
+                Route::post('/profile/my-schedule/create', [MyScheduleController::class, "createSchedule"])->name("my-schedule.create");
+                Route::post('/profile/my-schedule/cancel', [MyScheduleController::class, "cancelSchedule"])->name("my-schedule.cancel");
+                Route::post('/profile/my-schedule/request-cancel', [MyScheduleController::class, "requestCancelSchedule"])->name("my-schedule.request-cancel");
+                Route::get('/profile/my-schedule/{id}/detail', [MyScheduleController::class, "getScheduleDetail"])->name("my-schedule.detail");
+                
                 Route::get('/profile/my-commission', [CommissionController::class, "myCommission"])->name("my-commission");
             }
         );

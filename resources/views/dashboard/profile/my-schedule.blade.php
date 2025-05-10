@@ -81,23 +81,6 @@ $now = Carbon::now();
             </div>
         </div>
         
-        <!-- Lịch làm việc -->
-        <div class="card card-grid min-w-full">
-            <div class="card-header flex-wrap py-5">
-                <h3 class="card-title">
-                    Lịch làm việc tháng {{ date('m/Y') }}
-                </h3>
-                <div class="flex flex-wrap gap-2">
-                    <div class="relative">
-                        <input class="input input-sm" type="text" id="month-filter" data-flatpickr="true" data-flatpickr-type="month" placeholder="Chọn tháng" value="{{ date('Y-m') }}">
-                    </div>
-                </div>
-            </div>
-            <div class="card-body !p-5">
-                <div id="calendar"></div>
-            </div>
-        </div>
-        
         <!-- Danh sách lịch làm việc -->
         <div class="card card-grid min-w-full">
             <div class="card-header flex-wrap py-5">
@@ -119,57 +102,42 @@ $now = Carbon::now();
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($schedules as $schedule)
+                            @forelse($schedules as $schedule)
                             <tr>
                                 <td>{{ formatDateTime($schedule->schedule_date, 'd/m/Y') }}</td>
                                 <td>{{ formatDateTime($schedule->start_time, 'H:i') }}</td>
                                 <td>{{ formatDateTime($schedule->end_time, 'H:i') }}</td>
                                 <td>{{ number_format($schedule->total_hours, 2) }}</td>
                                 <td>
-                                    @php
-                                        $statusClass = '';
-                                        $statusText = '';
-                                        
-                                        switch($schedule->status) {
-                                            case 'pending':
-                                                $statusClass = 'warning';
-                                                $statusText = 'Chờ duyệt';
-                                                break;
-                                            case 'approved':
-                                                $statusClass = 'success';
-                                                $statusText = 'Đã duyệt';
-                                                break;
-                                            case 'rejected':
-                                                $statusClass = 'danger';
-                                                $statusText = 'Từ chối';
-                                                break;
-                                            case 'cancel_requested':
-                                                $statusClass = 'info';
-                                                $statusText = 'Yêu cầu hủy';
-                                                break;
-                                            default:
-                                                $statusClass = 'gray';
-                                                $statusText = ucfirst($schedule->status);
-                                        }
-                                    @endphp
-                                    
-                                    <span class="badge badge-sm badge-outline badge-{{ $statusClass }}">
-                                        {{ $statusText }}
+                                    <span class="badge badge-sm badge-outline badge-{{ $schedule->getStatusClass() }}">
+                                        {{ $schedule->getStatusText() }}
                                     </span>
                                 </td>
                                 <td>
-                                    @if($schedule->status == 'pending')
-                                    <button class="btn btn-xs btn-danger" onclick="cancelSchedule({{ $schedule->id }})">
-                                        <i class="ki-filled ki-trash me-1"></i>Hủy
-                                    </button>
-                                    @elseif($schedule->status == 'approved' && Carbon::parse($schedule->schedule_date)->gt(Carbon::today()))
-                                    <button class="btn btn-xs btn-warning" onclick="requestCancelSchedule({{ $schedule->id }})">
-                                        <i class="ki-filled ki-cross me-1"></i>Yêu cầu hủy
-                                    </button>
-                                    @endif
+                                    <div class="d-flex">
+                                        <button class="btn btn-xs btn-icon btn-light me-2" onclick="showScheduleDetails({{ $schedule->id }})">
+                                            <i class="ki-filled ki-eye"></i>
+                                        </button>
+                                        
+                                        @if($schedule->canCancel())
+                                        <button class="btn btn-xs btn-icon btn-danger" onclick="cancelSchedule({{ $schedule->id }})">
+                                            <i class="ki-filled ki-trash"></i>
+                                        </button>
+                                        @elseif($schedule->canRequestCancel())
+                                        <button class="btn btn-xs btn-icon btn-warning" onclick="requestCancelSchedule({{ $schedule->id }})">
+                                            <i class="ki-filled ki-cross"></i>
+                                        </button>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    Chưa có lịch làm việc nào
+                                </td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -234,6 +202,25 @@ $now = Carbon::now();
     </div>
 </div>
 
+<!-- Modal chi tiết lịch làm việc -->
+<div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="schedule-detail-modal" style="z-index: 90;">
+    <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
+        <div class="modal-header pr-2.5">
+            <h3 class="modal-title">
+                Chi tiết lịch làm việc
+            </h3>
+            <button class="btn btn-sm btn-icon btn-light btn-clear btn-close shrink-0" data-modal-dismiss="true">
+                <i class="ki-filled ki-cross"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="schedule-detail-content" class="grid gap-5 px-0 py-5">
+                <!-- Nội dung chi tiết sẽ được load bằng AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal yêu cầu hủy lịch -->
 <div class="modal hidden" data-modal="true" data-modal-disable-scroll="false" id="request-cancel-modal" style="z-index: 90;">
     <div class="modal-content max-w-[500px] top-5 lg:top-[15%]">
@@ -288,27 +275,11 @@ $now = Carbon::now();
             onChange: function(selectedDates, dateStr) {
                 // Cập nhật lịch dựa trên tháng đã chọn
                 calendar.gotoDate(new Date(dateStr + '-01'));
+                
+                // Tải lại trang với tháng mới
+                window.location.href = "{{ route('dashboard.profile.my-schedule') }}?month=" + dateStr;
             }
         });
-        
-        // Khởi tạo lịch fullcalendar
-        const calendarEl = document.getElementById('calendar');
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'vi',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek'
-            },
-            events: {!! json_encode($calendarEvents) !!},
-            eventClick: function(info) {
-                // Xử lý khi click vào sự kiện
-                const eventId = info.event.id;
-                showScheduleDetails(eventId);
-            }
-        });
-        calendar.render();
         
         // Xử lý form đăng ký lịch làm việc
         $('#create-schedule-form').on('submit', async function(e) {
@@ -319,13 +290,21 @@ $now = Carbon::now();
             const endTime = $(this).find('input[name="end_time"]').val();
             const note = $(this).find('textarea[name="note"]').val();
             
+            // Hiển thị loading
+            $(this).find('button[type="submit"]').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+            $(this).find('button[type="submit"]').prop('disabled', true);
+            
             try {
-                const res = await axiosTemplate('post', '/account/schedule/create', null, {
+                const res = await axiosTemplate('post', "{{ route('dashboard.profile.my-schedule.create') }}", null, {
                     schedule_date: scheduleDate,
                     start_time: startTime,
                     end_time: endTime,
                     note: note
                 });
+                
+                // Khôi phục nút submit
+                $(this).find('button[type="submit"]').html('Đăng ký');
+                $(this).find('button[type="submit"]').prop('disabled', false);
                 
                 if (res.data.status === 200) {
                     showAlert('success', res.data.message);
@@ -335,6 +314,10 @@ $now = Carbon::now();
                     showAlert('warning', res.data.message);
                 }
             } catch (error) {
+                // Khôi phục nút submit
+                $(this).find('button[type="submit"]').html('Đăng ký');
+                $(this).find('button[type="submit"]').prop('disabled', false);
+                
                 showAlert('error', 'Đã xảy ra lỗi khi đăng ký lịch làm việc');
                 console.error(error);
             }
@@ -347,11 +330,19 @@ $now = Carbon::now();
             const id = $('#cancel-schedule-id').val();
             const reason = $(this).find('textarea[name="reason"]').val();
             
+            // Hiển thị loading
+            $(this).find('button[type="submit"]').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+            $(this).find('button[type="submit"]').prop('disabled', true);
+            
             try {
-                const res = await axiosTemplate('post', '/account/schedule/request-cancel', null, {
+                const res = await axiosTemplate('post', "{{ route('dashboard.profile.my-schedule.request-cancel') }}", null, {
                     id: id,
                     reason: reason
                 });
+                
+                // Khôi phục nút submit
+                $(this).find('button[type="submit"]').html('Yêu cầu hủy');
+                $(this).find('button[type="submit"]').prop('disabled', false);
                 
                 if (res.data.status === 200) {
                     showAlert('success', res.data.message);
@@ -361,6 +352,10 @@ $now = Carbon::now();
                     showAlert('warning', res.data.message);
                 }
             } catch (error) {
+                // Khôi phục nút submit
+                $(this).find('button[type="submit"]').html('Yêu cầu hủy');
+                $(this).find('button[type="submit"]').prop('disabled', false);
+                
                 showAlert('error', 'Đã xảy ra lỗi khi yêu cầu hủy lịch làm việc');
                 console.error(error);
             }
@@ -376,7 +371,7 @@ $now = Carbon::now();
                 'Đồng ý',
                 'Hủy bỏ',
                 async function() {
-                    const res = await axiosTemplate('post', '/account/schedule/cancel', null, {
+                    const res = await axiosTemplate('post', "{{ route('dashboard.profile.my-schedule.cancel') }}", null, {
                         id: id
                     });
                     
@@ -403,7 +398,39 @@ $now = Carbon::now();
     // Hàm xem chi tiết lịch
     function showScheduleDetails(id) {
         try {
-            window.location.href = `/account/schedule/${id}/detail`;
+            // Hiển thị modal
+            KTModal.getInstance(document.querySelector('#schedule-detail-modal')).show();
+            
+            // Hiển thị loading
+            $('#schedule-detail-content').html(`
+                <div class="flex justify-center items-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+            `);
+            
+            // Gọi API lấy chi tiết
+            axiosTemplate('get', "/profile/my-schedule/" + id + "/detail", null, null)
+                .then(res => {
+                    if (res.data.status === 200) {
+                        $('#schedule-detail-content').html(res.data.content);
+                    } else {
+                        $('#schedule-detail-content').html(`
+                            <div class="text-center text-danger">
+                                ${res.data.message || 'Không thể tải thông tin chi tiết'}
+                            </div>
+                        `);
+                    }
+                })
+                .catch(error => {
+                    $('#schedule-detail-content').html(`
+                        <div class="text-center text-danger">
+                            Đã xảy ra lỗi khi tải thông tin
+                        </div>
+                    `);
+                    console.error(error);
+                });
         } catch (error) {
             showAlert('error', 'Đã xảy ra lỗi khi xem chi tiết lịch');
             console.error(error);

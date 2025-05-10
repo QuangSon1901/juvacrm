@@ -76,26 +76,6 @@
             </div>
         </div>
         
-        <!-- Lịch làm việc -->
-        <div class="card card-grid min-w-full">
-            <div class="card-header flex-wrap py-5">
-                <h3 class="card-title">
-                    Lịch làm việc
-                </h3>
-                <div class="flex flex-wrap gap-2">
-                @if(hasPermission('create-schedule'))
-<button class="btn btn-primary btn-sm" data-modal-toggle="#create-schedule-modal">
-    <i class="ki-filled ki-plus me-1"></i>
-    Tạo lịch làm việc
-</button>
-@endif
-                </div>
-            </div>
-            <div class="card-body !p-5">
-                <div id="calendar"></div>
-            </div>
-        </div>
-        
         <!-- Danh sách lịch đăng ký -->
         <div class="card card-grid min-w-full">
             <div class="card-header flex-wrap py-5">
@@ -128,6 +108,13 @@
                     <div class="relative">
                         <input class="input input-sm" type="text" id="date-to-filter" data-filter="date_to" data-flatpickr="true" placeholder="Đến ngày">
                     </div>
+
+                    @if(hasPermission('create-schedule'))
+                    <button class="btn btn-primary btn-sm" data-modal-toggle="#create-schedule-modal">
+                        <i class="ki-filled ki-plus me-1"></i>
+                        Tạo lịch làm việc
+                    </button>
+                    @endif
                 </div>
             </div>
             <div class="card-body">
@@ -289,24 +276,6 @@
         flatpickrMake($("input[name='end_time']"), 'time');
         flatpickrMake($("#date-from-filter"), 'date');
         flatpickrMake($("#date-to-filter"), 'date');
-        
-        // Khởi tạo lịch fullcalendar
-        const calendarEl = document.getElementById('calendar');
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek'
-            },
-            events: {!! json_encode($calendarEvents) !!},
-            eventClick: function(info) {
-                // Xử lý khi click vào sự kiện
-                const eventId = info.event.id;
-                showScheduleDetails(eventId);
-            }
-        });
-        calendar.render();
         
         // Xử lý sự kiện khi thay đổi bộ lọc
         $('[data-filter]').on('change', function() {

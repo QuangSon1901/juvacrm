@@ -206,13 +206,13 @@
                                 </a>
                             </div>
                             
-                            <div class="menu-item">
+                            {{--<div class="menu-item">
                                 <a class="menu-link" href="{{route('dashboard.account.schedule.part-time')}}">
                                     <span class="menu-title">
                                         Đăng ký lịch part-time
                                     </span>
                                 </a>
-                            </div>
+                            </div>--}}
                             @endif
                         </div>
                     </div>
