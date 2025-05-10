@@ -31,44 +31,7 @@ class ScheduleController extends Controller
             'rejectedSchedules' => PartTimeSchedule::rejected()->count(),
         ];
         
-        // Chuẩn bị dữ liệu cho fullcalendar
-        $calendarEvents = [];
-        $allSchedules = PartTimeSchedule::with('user')->get();
-
-        foreach ($allSchedules as $schedule) {
-            $eventColor = '#3788d8'; // Màu mặc định - pending
-            
-            if ($schedule->status == 'approved') {
-                $eventColor = '#198754'; // success
-            } elseif ($schedule->status == 'rejected') {
-                $eventColor = '#dc3545'; // danger
-            } elseif ($schedule->status == 'cancel_requested') {
-                $eventColor = '#0dcaf0'; // info
-            }
-            
-            // Lấy tên nhân viên
-            $userName = $schedule->user ? $schedule->user->name : 'Nhân viên';
-            
-            // Định dạng đúng cho ISO 8601
-            $scheduleDate = Carbon::parse($schedule->schedule_date)->format('Y-m-d');
-            $startTime = Carbon::parse($schedule->start_time)->format('H:i:s');
-            $endTime = Carbon::parse($schedule->end_time)->format('H:i:s');
-            
-            $calendarEvents[] = [
-                'id' => $schedule->id,
-                'title' => $userName . ': ' . substr($startTime, 0, 5) . ' - ' . substr($endTime, 0, 5),
-                'start' => $scheduleDate . 'T' . $startTime,
-                'end' => $scheduleDate . 'T' . $endTime,
-                'color' => $eventColor,
-                'extendedProps' => [
-                    'status' => $schedule->status,
-                    'user_id' => $schedule->user_id,
-                    'user_name' => $userName
-                ]
-            ];
-        }
-        
-        return view('dashboard.account.schedule.index', compact('users', 'stats', 'calendarEvents'));
+        return view('dashboard.account.schedule.index', compact('users', 'stats'));
     }
 
     /**
@@ -112,64 +75,6 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Lấy dữ liệu lịch cho FullCalendar
-     */
-    public function getCalendarData(Request $request)
-    {
-        $month = $request->input('month', date('Y-m'));
-        list($year, $month) = explode('-', $month);
-        
-        // Lấy ngày đầu và cuối của tháng
-        $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('Y-m-d');
-        $endDate = Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('Y-m-d');
-        
-        // Lấy lịch trong khoảng thời gian
-        $schedules = PartTimeSchedule::with('user')
-                                ->whereBetween('schedule_date', [$startDate, $endDate])
-                                ->get();
-        
-        $events = [];
-        
-        foreach ($schedules as $schedule) {
-            $eventColor = '#3788d8'; // Màu mặc định - pending
-            
-            if ($schedule->status == 'approved') {
-                $eventColor = '#198754'; // success
-            } elseif ($schedule->status == 'rejected') {
-                $eventColor = '#dc3545'; // danger
-            } elseif ($schedule->status == 'cancel_requested') {
-                $eventColor = '#0dcaf0'; // info
-            }
-            
-            // Lấy tên nhân viên
-            $userName = $schedule->user ? $schedule->user->name : 'Nhân viên';
-            
-            // Định dạng đúng cho ISO 8601
-            $scheduleDate = Carbon::parse($schedule->schedule_date)->format('Y-m-d');
-            $startTime = Carbon::parse($schedule->start_time)->format('H:i:s');
-            $endTime = Carbon::parse($schedule->end_time)->format('H:i:s');
-            
-            $events[] = [
-                'id' => $schedule->id,
-                'title' => $userName . ': ' . substr($startTime, 0, 5) . ' - ' . substr($endTime, 0, 5),
-                'start' => $scheduleDate . 'T' . $startTime,
-                'end' => $scheduleDate . 'T' . $endTime,
-                'color' => $eventColor,
-                'extendedProps' => [
-                    'status' => $schedule->status,
-                    'user_id' => $schedule->user_id,
-                    'user_name' => $userName
-                ]
-            ];
-        }
-        
-        return response()->json([
-            'status' => 200,
-            'events' => $events
-        ]);
-    }
-
-    /**
      * Lấy dữ liệu danh sách lịch làm việc
      */
     public function scheduleData(Request $request)
@@ -194,32 +99,11 @@ class ScheduleController extends Controller
         $paginationResult = PaginationService::paginate($query, $currentPage, TABLE_PERPAGE_NUM);
         $offset = $paginationResult['sorter']['offset'];
 
-        $result = $paginationResult['data']->map(function ($item, $key) use ($offset) {
-            return [
-                'index' => $offset + $key + 1,
-                'id' => $item->id,
-                'user' => [
-                    'id' => $item->user->id,
-                    'name' => $item->user->name,
-                ],
-                'schedule_date' => formatDateTime($item->schedule_date, 'd/m/Y'),
-                'start_time' => formatDateTime($item->start_time, 'H:i'),
-                'end_time' => formatDateTime($item->end_time, 'H:i'),
-                'total_hours' => $item->total_hours,
-                'status' => $item->status,
-                'status_text' => $item->getStatusText(),
-                'note' => $item->note,
-                'approver' => $item->approver ? [
-                    'id' => $item->approver->id,
-                    'name' => $item->approver->name,
-                ] : null,
-                'approval_time' => $item->approval_time ? formatDateTime($item->approval_time, 'd/m/Y H:i:s') : '-',
-            ];
-        });
+        $schedules = $paginationResult['data'];
 
         return response()->json([
             'status' => 200,
-            'content' => view('dashboard.account.schedule.ajax-index', ['data' => $result])->render(),
+            'content' => view('dashboard.account.schedule.ajax-index', ['data' => $schedules, 'offset' => $offset])->render(),
             'sorter' => $paginationResult['sorter'],
         ]);
     }
@@ -232,8 +116,8 @@ class ScheduleController extends Controller
         // Validate đầu vào
         $validator = ValidatorService::make($request, [
             'schedule_date' => 'required|date_format:d-m-Y',
-            'start_time' => 'required|date_format:H:i:s',
-            'end_time' => 'required|date_format:H:i:s|after:start_time',
+            'start_time' => 'required:s',
+            'end_time' => 'required:s|after:start_time',
             'user_id' => 'required|exists:tbl_users,id',
             'note' => 'nullable|string',
         ]);
@@ -310,9 +194,18 @@ class ScheduleController extends Controller
             'fk_value' => $schedule->id,
         ]);
 
+        // Lấy thống kê mới
+        $stats = [
+            'totalSchedules' => PartTimeSchedule::count(),
+            'approvedSchedules' => PartTimeSchedule::approved()->count(),
+            'pendingSchedules' => PartTimeSchedule::pending()->count(),
+            'rejectedSchedules' => PartTimeSchedule::rejected()->count(),
+        ];
+
         return response()->json([
             'status' => 200,
             'message' => 'Tạo lịch làm việc thành công',
+            'stats' => $stats,
             'schedule' => [
                 'id' => $schedule->id,
                 'user_id' => $schedule->user_id,
@@ -342,7 +235,7 @@ class ScheduleController extends Controller
             ]);
         }
 
-        $schedule = PartTimeSchedule::findOrFail($request->id);
+        $schedule = PartTimeSchedule::with('user')->findOrFail($request->id);
 
         // Chỉ cập nhật nếu đang ở trạng thái pending
         if ($schedule->status !== 'pending') {
@@ -367,9 +260,81 @@ class ScheduleController extends Controller
             'fk_value' => $schedule->id,
         ]);
 
+        // Lấy HTML cho dòng đã cập nhật
+        $rowHtml = view('dashboard.account.schedule.schedule-row', ['schedule' => $schedule, 'index' => 0])->render();
+        
+        // Lấy thống kê mới
+        $stats = [
+            'totalSchedules' => PartTimeSchedule::count(),
+            'approvedSchedules' => PartTimeSchedule::approved()->count(),
+            'pendingSchedules' => PartTimeSchedule::pending()->count(),
+            'rejectedSchedules' => PartTimeSchedule::rejected()->count(),
+        ];
+
         return response()->json([
             'status' => 200,
             'message' => 'Cập nhật trạng thái lịch làm việc thành công',
+            'row_html' => $rowHtml,
+            'stats' => $stats
+        ]);
+    }
+
+    /**
+     * Phê duyệt hàng loạt
+     */
+    public function batchApprove(Request $request)
+    {
+        $validator = ValidatorService::make($request, [
+            'ids' => 'required|array',
+            'ids.*' => 'exists:tbl_part_time_schedules,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $ids = $request->ids;
+        $approvedCount = 0;
+        $currentUserId = Session::get(ACCOUNT_CURRENT_SESSION)['id'];
+        $now = Carbon::now();
+
+        foreach ($ids as $id) {
+            $schedule = PartTimeSchedule::find($id);
+            
+            if ($schedule && $schedule->status === 'pending') {
+                $schedule->update([
+                    'status' => 'approved',
+                    'approver_id' => $currentUserId,
+                    'approval_time' => $now
+                ]);
+                
+                $approvedCount++;
+                
+                LogService::saveLog([
+                    'action' => 'BATCH_APPROVE_WORK_SCHEDULE',
+                    'ip' => $request->getClientIp(),
+                    'details' => "Phê duyệt hàng loạt lịch làm việc #" . $schedule->id,
+                    'fk_key' => 'tbl_part_time_schedules|id',
+                    'fk_value' => $schedule->id,
+                ]);
+            }
+        }
+
+        // Tính toán lại thống kê
+        $stats = [
+            'totalSchedules' => PartTimeSchedule::count(),
+            'approvedSchedules' => PartTimeSchedule::approved()->count(),
+            'pendingSchedules' => PartTimeSchedule::pending()->count(),
+            'rejectedSchedules' => PartTimeSchedule::rejected()->count(),
+        ];
+
+        return response()->json([
+            'status' => 200,
+            'message' => "Đã phê duyệt thành công $approvedCount lịch làm việc",
+            'stats' => $stats
         ]);
     }
 
@@ -414,9 +379,18 @@ class ScheduleController extends Controller
             'fk_value' => $scheduleId,
         ]);
         
+        // Tính toán lại thống kê
+        $stats = [
+            'totalSchedules' => PartTimeSchedule::count(),
+            'approvedSchedules' => PartTimeSchedule::approved()->count(),
+            'pendingSchedules' => PartTimeSchedule::pending()->count(),
+            'rejectedSchedules' => PartTimeSchedule::rejected()->count(),
+        ];
+        
         return response()->json([
             'status' => 200,
             'message' => 'Đã phê duyệt yêu cầu hủy lịch làm việc',
+            'stats' => $stats
         ]);
     }
 
@@ -437,7 +411,7 @@ class ScheduleController extends Controller
             ]);
         }
 
-        $schedule = PartTimeSchedule::findOrFail($request->id);
+        $schedule = PartTimeSchedule::with('user')->findOrFail($request->id);
         
         // Chỉ từ chối nếu đang ở trạng thái yêu cầu hủy
         if ($schedule->status !== 'cancel_requested') {
@@ -461,9 +435,22 @@ class ScheduleController extends Controller
             'fk_value' => $schedule->id,
         ]);
         
+        // Lấy HTML cho dòng đã cập nhật
+        $rowHtml = view('dashboard.account.schedule.schedule-row', ['schedule' => $schedule, 'index' => 0])->render();
+        
+        // Tính toán lại thống kê
+        $stats = [
+            'totalSchedules' => PartTimeSchedule::count(),
+            'approvedSchedules' => PartTimeSchedule::approved()->count(),
+            'pendingSchedules' => PartTimeSchedule::pending()->count(),
+            'rejectedSchedules' => PartTimeSchedule::rejected()->count(),
+        ];
+        
         return response()->json([
             'status' => 200,
             'message' => 'Đã từ chối yêu cầu hủy lịch làm việc',
+            'row_html' => $rowHtml,
+            'stats' => $stats
         ]);
     }
 
@@ -543,9 +530,18 @@ class ScheduleController extends Controller
             'fk_value' => $scheduleId,
         ]);
         
+        // Tính toán lại thống kê
+        $stats = [
+            'totalSchedules' => PartTimeSchedule::count(),
+            'approvedSchedules' => PartTimeSchedule::approved()->count(),
+            'pendingSchedules' => PartTimeSchedule::pending()->count(),
+            'rejectedSchedules' => PartTimeSchedule::rejected()->count(),
+        ];
+        
         return response()->json([
             'status' => 200,
             'message' => 'Xóa lịch làm việc thành công',
+            'stats' => $stats
         ]);
     }
 }

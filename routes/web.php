@@ -343,7 +343,7 @@ Route::group(
                         Route::group(['middleware' => ['permission:edit-schedule']], function () {
                             Route::post('/account/schedule/delete', [ScheduleController::class, "deleteSchedule"])->name("delete");
                         });
-                        
+                        Route::post('/account/schedule/batch-approve', [ScheduleController::class, "batchApprove"])->name("batch-approve")->middleware('permission:approve-schedule');
                         // Approve schedules (Admin)
                         Route::group(['middleware' => ['permission:approve-schedule']], function () {
                             Route::post('/account/schedule/update-status', [ScheduleController::class, "updateScheduleStatus"])->name("update-status");

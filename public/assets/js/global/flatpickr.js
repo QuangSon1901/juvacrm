@@ -1,4 +1,4 @@
-function flatpickrMake(_element, type = 'date') {
+function flatpickrMake(_element, type = 'date', options = {}) {
     let dateFormat = 'd-m-Y';
     switch (type) {
         case 'date':
@@ -21,5 +21,6 @@ function flatpickrMake(_element, type = 'date') {
         time_24hr: true,
         prevArrow: '<i class="ki-outline ki-left"></i>',
         nextArrow: '<i class="ki-outline ki-right"></i>',
+        ...options
     });
 }
