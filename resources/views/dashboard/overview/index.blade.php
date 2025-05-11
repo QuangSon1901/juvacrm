@@ -217,7 +217,7 @@
                 <p class="text-xl font-bold text-success">{{ number_format($contractStats['total_value']/1000000, 1) }}M</p>
                 <div class="flex justify-between text-xs mt-1">
                     <span>Đã thanh toán:</span>
-                    <span class="font-medium">{{ number_format(($contractStats['paid_value']/$contractStats['total_value'])*100, 0) }}%</span>
+                    <span class="font-medium">{{ $contractStats['total_value'] == 0 ? $contractStats['total_value'] : number_format(($contractStats['paid_value']/$contractStats['total_value'])*100, 0) }}%</span>
                 </div>
             </div>
             

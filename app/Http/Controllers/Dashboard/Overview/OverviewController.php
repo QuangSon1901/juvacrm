@@ -152,7 +152,7 @@ class OverviewController extends Controller
             'lead_to_prospect' => $this->calculateConversionRate(Customer::TYPE_LEAD, Customer::TYPE_PROSPECT),
             'prospect_to_customer' => $this->calculateConversionRate(Customer::TYPE_PROSPECT, Customer::TYPE_CUSTOMER),
             'lead_to_customer' => $this->calculateConversionRate(Customer::TYPE_LEAD, Customer::TYPE_CUSTOMER),
-            'response_rate' => 75.4, // Giá trị mẫu, nên tính toán trong thực tế
+            'response_rate' => 0, // Giá trị mẫu, nên tính toán trong thực tế
         ];
 
         // Thêm mới: Lấy 5 khách hàng tiềm năng mới nhất

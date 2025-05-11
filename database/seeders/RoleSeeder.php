@@ -64,77 +64,281 @@ class RoleSeeder extends Seeder
         
         // Set up default role permissions for various roles
         $rolePermissions = [
-            // Manager role permissions
+            // Sales Manager permissions
             [
                 'level_id' => 2,
                 'department_id' => 2, // Sales department
                 'permissions' => [
-                    'view-dashboard', 'view-customer', 'create-customer', 'edit-customer', 
-                    'support-customer', 'view-contract', 'create-contract', 'edit-contract',
-                    'view-task', 'create-task', 'edit-task', 'assign-task',
-                    'view-timekeeping', 'view-schedule', 'create-schedule',
+                    // Dashboard
+                    'view-dashboard',
+                    
+                    // Customer management
+                    'view-customer', 'create-customer', 'edit-customer', 'support-customer',
+                    'view-customer-leads', 'manage-customer-leads', 'view-customer-support', 
+                    'manage-customer-consultation', 'view-customer-appointment', 
+                    'manage-customer-appointment', 'complete-customer-appointment',
+                    
+                    // Contract management
+                    'view-contract', 'create-contract', 'edit-contract', 'manage-contract-services',
+                    'manage-contract-payments', 'export-contract', 'create-contract-tasks',
+                    
+                    // Task management
+                    'view-task', 'create-task', 'edit-task', 'assign-task', 'add-task-comment',
+                    'add-task-feedback',
+                    
+                    // Team management
+                    'view-team',
+                    
+                    // Schedule & timekeeping
+                    'view-timekeeping', 'view-schedule', 'create-schedule', 'view-schedule-statistics',
+                    'view-attendance-report',
+                    
+                    // Basic profile
+                    'view-profile', 'edit-profile', 'view-my-salary', 'view-my-schedule',
+                    'manage-my-schedule', 'view-my-timesheet', 'view-my-commission',
+                    
+                    // Notifications
+                    'view-notifications', 'manage-notifications',
                 ]
             ],
+            
+            // Technical Manager permissions
             [
                 'level_id' => 2,
                 'department_id' => 3, // Technical department
                 'permissions' => [
-                    'view-dashboard', 'view-task', 'create-task', 'edit-task', 'assign-task',
-                    'view-member', 'view-team', 'view-timekeeping', 'view-schedule', 'create-schedule',
+                    // Dashboard
+                    'view-dashboard',
+                    
+                    // Task management
+                    'view-task', 'create-task', 'edit-task', 'assign-task', 'claim-task',
+                    'add-task-comment', 'add-task-feedback', 'resolve-task-feedback',
+                    'view-task-config', 'manage-task-config', 'manage-task-contributions',
+                    'manage-task-missions',
+                    
+                    // Member & team management
+                    'view-member', 'view-team', 'create-team', 'edit-team', 'add-team-member',
+                    'remove-team-member',
+                    
+                    // Schedule & timekeeping
+                    'view-timekeeping', 'edit-timekeeping', 'view-schedule', 'create-schedule', 
+                    'approve-schedule', 'view-schedule-statistics', 'view-attendance-report',
+                    
+                    // Contract (limited view)
+                    'view-contract',
+                    
+                    // Basic profile
+                    'view-profile', 'edit-profile', 'view-my-salary', 'view-my-schedule',
+                    'manage-my-schedule', 'view-my-timesheet',
+                    
+                    // File management
+                    'view-file-explorer', 'upload-file', 'download-file',
+                    
+                    // Notifications
+                    'view-notifications', 'manage-notifications',
                 ]
             ],
+            
+            // Accounting Manager permissions
             [
                 'level_id' => 2,
                 'department_id' => 4, // Accounting department
                 'permissions' => [
-                    'view-dashboard', 'view-contract', 'view-transaction', 'create-transaction',
-                    'edit-transaction', 'view-report', 'view-salary', 'edit-salary', 'approve-salary',
-                    'configure-salary', 'view-timekeeping', 'edit-timekeeping'
+                    // Dashboard
+                    'view-dashboard',
+                    
+                    // Contracts (financial aspects)
+                    'view-contract', 'view-contract', 'manage-contract-payments',
+                    
+                    // Accounting
+                    'view-transaction', 'create-transaction', 'edit-transaction', 'delete-transaction',
+                    'view-deposit-receipt', 'create-deposit-receipt', 'edit-deposit-receipt',
+                    'cancel-deposit-receipt', 'export-deposit-receipt', 'view-report', 'export-report',
+                    'view-commission', 'process-commission', 'bulk-process-commission',
+                    'view-transaction-category', 'manage-transaction-category',
+                    
+                    // Salary management
+                    'view-salary', 'edit-salary', 'approve-salary', 'configure-salary',
+                    'calculate-salary', 'process-salary', 'bulk-process-salary',
+                    'view-salary-advances', 'manage-salary-advances',
+                    
+                    // Timekeeping (for salary calculation)
+                    'view-timekeeping', 'edit-timekeeping', 'approve-timekeeping',
+                    'view-attendance-report',
+                    
+                    // Basic settings
+                    'view-setting', 'view-payment-method', 'manage-payment-method',
+                    'view-currency', 'manage-currency',
+                    
+                    // Basic profile
+                    'view-profile', 'edit-profile', 'view-my-salary', 'view-my-schedule',
+                    'manage-my-schedule', 'view-my-timesheet',
+                    
+                    // Notifications
+                    'view-notifications', 'manage-notifications',
                 ]
             ],
             
-            // Team Leader permissions
+            // Sales Team Leader permissions
             [
                 'level_id' => 3,
-                'department_id' => 2, // Sales team
+                'department_id' => 2, // Sales department
                 'permissions' => [
-                    'view-dashboard', 'view-customer', 'create-customer', 'edit-customer', 
-                    'support-customer', 'view-contract', 'create-contract',
-                    'view-task', 'create-task', 'edit-task',
+                    // Dashboard
+                    'view-dashboard',
+                    
+                    // Customer management (more limited than manager)
+                    'view-customer', 'create-customer', 'edit-customer', 'support-customer',
+                    'view-customer-leads', 'view-customer-support', 'manage-customer-consultation',
+                    'view-customer-appointment', 'manage-customer-appointment',
+                    'complete-customer-appointment',
+                    
+                    // Contract management (more limited than manager)
+                    'view-contract', 'create-contract', 'export-contract',
+                    
+                    // Task management (more limited than manager)
+                    'view-task', 'create-task', 'edit-task', 'add-task-comment',
+                    
+                    // Basic profile
+                    'view-profile', 'edit-profile', 'view-my-salary', 'view-my-schedule',
+                    'manage-my-schedule', 'view-my-timesheet', 'view-my-commission',
+                    
+                    // Notifications
+                    'view-notifications', 'manage-notifications',
                 ]
             ],
+            
+            // Technical Team Leader permissions
             [
                 'level_id' => 3,
-                'department_id' => 3, // Technical team
+                'department_id' => 3, // Technical department
                 'permissions' => [
-                    'view-dashboard', 'view-task', 'create-task', 'edit-task',
+                    // Dashboard
+                    'view-dashboard',
+                    
+                    // Task management
+                    'view-task', 'create-task', 'edit-task', 'claim-task', 'add-task-comment',
+                    'add-task-feedback', 'resolve-task-feedback', 'view-task-config',
+                    'manage-task-contributions',
+                    
+                    // Member & team management (limited)
                     'view-member', 'view-team',
+                    
+                    // Basic profile
+                    'view-profile', 'edit-profile', 'view-my-salary', 'view-my-schedule',
+                    'manage-my-schedule', 'view-my-timesheet',
+                    
+                    // File management
+                    'view-file-explorer', 'upload-file', 'download-file',
+                    
+                    // Notifications
+                    'view-notifications', 'manage-notifications',
                 ]
             ],
             
-            // Staff permissions
+            // Sales Staff permissions
             [
                 'level_id' => 4,
-                'department_id' => 2, // Sales staff
+                'department_id' => 2, // Sales department
                 'permissions' => [
-                    'view-dashboard', 'view-customer', 'create-customer', 
-                    'support-customer', 'view-contract',
-                    'view-task',
+                    // Dashboard
+                    'view-dashboard',
+                    
+                    // Customer management (basic)
+                    'view-customer', 'create-customer', 'support-customer',
+                    'view-customer-leads', 'view-customer-support',
+                    'view-customer-appointment', 'complete-customer-appointment',
+                    
+                    // Contract management (very limited)
+                    'view-contract',
+                    
+                    // Task management (basic)
+                    'view-task', 'add-task-comment',
+                    
+                    // Basic profile
+                    'view-profile', 'edit-profile', 'view-my-salary', 'view-my-schedule',
+                    'manage-my-schedule', 'view-my-timesheet', 'view-my-commission',
+                    
+                    // Notifications
+                    'view-notifications', 'manage-notifications',
+                ]
+            ],
+            
+            // Technical Staff permissions
+            [
+                'level_id' => 4,
+                'department_id' => 3, // Technical department
+                'permissions' => [
+                    // Dashboard
+                    'view-dashboard',
+                    
+                    // Task management (basic)
+                    'view-task', 'claim-task', 'add-task-comment', 'add-task-feedback',
+                    'resolve-task-feedback', 'manage-task-contributions',
+                    
+                    // Basic profile
+                    'view-profile', 'edit-profile', 'view-my-salary', 'view-my-schedule',
+                    'manage-my-schedule', 'view-my-timesheet',
+                    
+                    // File management (basic)
+                    'view-file-explorer', 'upload-file', 'download-file',
+                    
+                    // Notifications
+                    'view-notifications', 'manage-notifications',
+                ]
+            ],
+            
+            // Accounting Staff permissions
+            [
+                'level_id' => 4,
+                'department_id' => 4, // Accounting department
+                'permissions' => [
+                    // Dashboard
+                    'view-dashboard',
+                    
+                    // Accounting (basic)
+                    'view-transaction', 'view-deposit-receipt', 'view-report',
+                    'view-commission', 'view-transaction-category',
+                    
+                    // Salary management (limited)
+                    'view-salary',
+                    
+                    // Basic profile
+                    'view-profile', 'edit-profile', 'view-my-salary', 'view-my-schedule',
+                    'manage-my-schedule', 'view-my-timesheet',
+                    
+                    // Notifications
+                    'view-notifications', 'manage-notifications',
+                ]
+            ],
+            
+            // Intern permissions (all departments get the same basic permissions)
+            [
+                'level_id' => 5,
+                'department_id' => 2, // Sales department
+                'permissions' => [
+                    'view-dashboard', 'view-profile', 'edit-profile', 'view-my-salary',
+                    'view-my-schedule', 'manage-my-schedule', 'view-my-timesheet',
+                    'view-notifications', 'manage-notifications',
                 ]
             ],
             [
-                'level_id' => 4,
-                'department_id' => 3, // Technical staff
+                'level_id' => 5,
+                'department_id' => 3, // Technical department
                 'permissions' => [
-                    'view-dashboard', 'view-task',
+                    'view-dashboard', 'view-profile', 'edit-profile', 'view-my-salary',
+                    'view-my-schedule', 'manage-my-schedule', 'view-my-timesheet',
+                    'view-notifications', 'manage-notifications', 'view-file-explorer',
+                    'upload-file', 'download-file',
                 ]
             ],
             [
-                'level_id' => 4,
-                'department_id' => 4, // Accounting staff
+                'level_id' => 5,
+                'department_id' => 4, // Accounting department
                 'permissions' => [
-                    'view-dashboard', 'view-transaction', 
-                    'view-report', 'view-salary',
+                    'view-dashboard', 'view-profile', 'edit-profile', 'view-my-salary',
+                    'view-my-schedule', 'manage-my-schedule', 'view-my-timesheet',
+                    'view-notifications', 'manage-notifications',
                 ]
             ],
         ];
