@@ -280,15 +280,7 @@
                 </div>
                 <div class="menu-default menu-dropdown gap-0.5 w-[220px] scrollable-y-auto lg:overflow-visible max-h-[50vh]">
                     <div class="menu-item">
-                        <a class="menu-link" href="/">
-                            <span class="menu-title">
-                                Danh mục tài sản
-                            </span>
-                        </a>
-                    </div>
-                    
-                    <div class="menu-item">
-                        <a class="menu-link" href="/">
+                        <a class="menu-link" href="{{ route('dashboard.assets.product.product') }}">
                             <span class="menu-title">
                                 Danh sách sản phẩm
                             </span>

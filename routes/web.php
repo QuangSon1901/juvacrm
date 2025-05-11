@@ -23,6 +23,7 @@ use App\Http\Controllers\Dashboard\Accounting\PaymentMethod\PaymentMethodControl
 use App\Http\Controllers\Dashboard\Accounting\Report\ReportController;
 use App\Http\Controllers\Dashboard\Accounting\Transaction\TransactionController;
 use App\Http\Controllers\Dashboard\Assets\FileExplorerController;
+use App\Http\Controllers\Dashboard\Assets\ProductController;
 use App\Http\Controllers\Dashboard\Contract\ContractController;
 use App\Http\Controllers\Dashboard\Customer\Client\CustomerController;
 use App\Http\Controllers\Dashboard\Customer\Client\CustomerLeadController;
@@ -837,6 +838,24 @@ Route::group(
                         // View file explorer
                         Route::middleware(['permission:view-file-explorer'])->group(function() {
                             Route::get('/file-explorer', [FileExplorerController::class, "index"])->name("file-explorer");
+                        });
+                    }
+                );
+
+                Route::group(
+                    ['namespace' => 'Product', 'as' => 'product.', 'middleware' => []],
+                    function () {
+                        // View product list
+                        Route::middleware(['permission:view-assets'])->group(function() {
+                            Route::get('/product', [ProductController::class, "index"])->name("product");
+                            Route::get('/product/data', [ProductController::class, "data"])->name("data");
+                        });
+
+                        // Manage products (add, edit, change status)
+                        Route::middleware(['permission:manage-assets'])->group(function() {
+                            Route::post('/product/create', [ProductController::class, "create"])->name("create");
+                            Route::post('/product/update', [ProductController::class, "update"])->name("update");
+                            Route::post('/product/change-status', [ProductController::class, "changeStatus"])->name("change-status");
                         });
                     }
                 );
