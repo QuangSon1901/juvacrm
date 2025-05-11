@@ -227,7 +227,7 @@
                                                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-2">
                                                     <div>
                                                         <label class="block text-gray-700 text-sm font-medium mb-1">Hình ảnh mẫu</label>
-                                                        <div class="flex flex-wrap items-center gap-2">
+                                                        <div class="flex flex-wrap items-center gap-2 blocks-preview">
                                                             <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub-service-sample')">
                                                                 <i class="ki-filled ki-file-up"></i>
                                                                 Tải ảnh mẫu
@@ -239,7 +239,7 @@
                                                                 
                                                                 @foreach($sampleImages as $imgId)
                                                                 @if(!empty($imgId))
-                                                                <div class="relative group h-16 w-16 border border-gray-200 rounded overflow-hidden">
+                                                                <div class="relative group h-16 w-16 border border-gray-200 rounded overflow-hidden  block-preview">
                                                                     <img src="https://res.cloudinary.com/{{env('CLOUDINARY_CLOUD_NAME')}}/image/upload/w_80,h_80,c_fill,q_auto,f_auto/uploads/{{ $imgId }}" 
                                                                          class="h-full w-full object-cover cursor-pointer" 
                                                                          alt="Sample image"
@@ -261,7 +261,7 @@
                                                     
                                                     <div>
                                                         <label class="block text-gray-700 text-sm font-medium mb-1">Hình ảnh kết quả</label>
-                                                        <div class="flex flex-wrap items-center gap-2">
+                                                        <div class="flex flex-wrap items-center gap-2 blocks-preview">
                                                             <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub-service-result')">
                                                                 <i class="ki-filled ki-file-up"></i>
                                                                 Tải ảnh kết quả
@@ -564,7 +564,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-2">
                         <div>
                             <label class="block text-gray-700 text-sm font-medium mb-1">Hình ảnh mẫu</label>
-                            <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2 blocks-preview">
                                 <button type="button" class="btn btn-light btn-sm p-1 h-8" onclick="triggerImageUpload(this, 'sub-service-sample')">
                                     <i class="ki-filled ki-file-up"></i>
                                     Tải ảnh mẫu
@@ -869,7 +869,7 @@ function previewMultipleImages(input, type) {
 
 // Xóa ảnh khỏi gallery
 function removeImageFromGallery(button, imageId) {
-    const container = button.closest('.flex');
+    const container = button.closest('.blocks-preview');
     const previewDiv = button.closest('.relative');
     const imageIdsInput = container.querySelector('input[type="hidden"]');
     
