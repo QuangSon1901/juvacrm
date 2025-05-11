@@ -163,7 +163,7 @@
     <div class="card mb-7">
         <div class="card-header">
             <h3 class="card-title">
-                <i class="ki-filled ki-cheque text-primary text-2xl"></i>&nbsp;Tổng quan hợp đồng và doanh thu
+                <i class="ki-filled ki-cheque text-primary text-2xl"></i>&nbsp;Tổng quan hợp đồng
             </h3>
             <a href="{{ route('dashboard.contract.contract') }}" class="btn btn-sm btn-light">
                 Xem tất cả
