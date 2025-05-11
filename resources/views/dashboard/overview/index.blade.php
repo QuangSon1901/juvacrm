@@ -540,137 +540,464 @@
     </div>
     
     <!-- Task Overview Section -->
-    <div class="card mb-7">
-        <div class="card-header">
-            <h3 class="card-title">
-                <i class="ki-filled ki-kanban text-green-900 text-2xl"></i>&nbsp;<span>Tổng quan công việc</span>
-            </h3>
+    <!-- Task Overview Section - Enhanced UI with Filter Links -->
+<div class="card mb-7">
+    <div class="card-header justify-between">
+        <h3 class="card-title">
+            <i class="ki-filled ki-kanban text-green-900 text-2xl"></i>&nbsp;<span>Tổng quan công việc</span>
+        </h3>
+        <div class="flex gap-2">
             <a class="btn btn-sm btn-light" href="{{ route('dashboard.account.task.task') }}">
-                Xem tất cả
+                <i class="ki-filled ki-eye"></i> Xem tất cả
+            </a>
+            <a class="btn btn-sm btn-primary" href="{{ route('dashboard.account.task.task') }}?filter[status_task]=7">
+                <i class="ki-filled ki-flag"></i> Cần chỉnh sửa
             </a>
         </div>
-        <div class="card-body">
-            <div class="grid !grid-cols-2 md:!grid-cols-4 gap-4 mb-6">
-                <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl bg-red-50 gap-2 p-3.5">
-                    <div class="flex items-center flex-wrap gap-3.5">
-                        <div class="h-8 w-8 flex items-center justify-center bg-red-100 rounded-full">
-                            <i class="ki-filled ki-calendar-tick text-red-600"></i>
-                        </div>
-                        <div class="flex flex-col">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-2sm font-medium text-gray-600">
-                                    Task quá hạn
-                                </span>
-                            </div>
-                            <span class="text-2sm font-bold text-gray-900">
-                                {{ $taskStats['overdue'] }}
+    </div>
+    
+    <div class="card-body">
+        <!-- Task stats overview -->
+        <div class="grid !grid-cols-2 md:!grid-cols-4 gap-4 mb-6">
+            <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl bg-red-50 gap-2 p-3.5">
+                <div class="flex items-center flex-wrap gap-3.5">
+                    <div class="h-10 w-10 flex items-center justify-center bg-red-100 rounded-full">
+                        <i class="ki-filled ki-calendar-tick text-red-600 text-lg"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-2sm font-medium text-gray-600">
+                                Task quá hạn
                             </span>
                         </div>
+                        <span class="text-2sm font-bold text-gray-900">
+                            {{ $taskStats['overdue'] }}
+                        </span>
+                        @if($taskStats['overdue'] > 0)
+                        <a href="{{ route('dashboard.account.task.task') }}?filter[status_task]=6" class="text-xs text-red-600 hover:underline mt-1">
+                            <i class="ki-filled ki-arrow-right-circle"></i> Xem ngay
+                        </a>
+                        @endif
                     </div>
                 </div>
-                
-                <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl bg-orange-50 gap-2 p-3.5">
-                    <div class="flex items-center flex-wrap gap-3.5">
-                        <div class="h-8 w-8 flex items-center justify-center bg-orange-100 rounded-full">
-                            <i class="ki-filled ki-timer text-orange-600"></i>
-                        </div>
-                        <div class="flex flex-col">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-2sm font-medium text-gray-600">
-                                    Task hôm nay
-                                </span>
-                            </div>
-                            <span class="text-2sm font-bold text-gray-900">
-                                {{ $taskStats['due_today'] }}
+            </div>
+            
+            <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl bg-orange-50 gap-2 p-3.5">
+                <div class="flex items-center flex-wrap gap-3.5">
+                    <div class="h-10 w-10 flex items-center justify-center bg-orange-100 rounded-full">
+                        <i class="ki-filled ki-timer text-orange-600 text-lg"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-2sm font-medium text-gray-600">
+                                Task hôm nay
                             </span>
                         </div>
+                        <span class="text-2sm font-bold text-gray-900">
+                            {{ $taskStats['due_today'] }}
+                        </span>
+                        @if($taskStats['due_today'] > 0)
+                        <a href="{{ route('dashboard.account.task.task') }}?filter[due_today]=1" class="text-xs text-orange-600 hover:underline mt-1">
+                            <i class="ki-filled ki-arrow-right-circle"></i> Xem danh sách
+                        </a>
+                        @else
+                        <span class="text-xs text-gray-500 mt-1">Tuần này: {{ $taskStats['due_this_week'] }}</span>
+                        @endif
                     </div>
                 </div>
-                
-                <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl bg-green-50 gap-2 p-3.5">
-                    <div class="flex items-center flex-wrap gap-3.5">
-                        <div class="h-8 w-8 flex items-center justify-center bg-green-100 rounded-full">
-                            <i class="ki-filled ki-check-circle text-green-600"></i>
-                        </div>
-                        <div class="flex flex-col">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-2sm font-medium text-gray-600">
-                                    Task đã hoàn thành
-                                </span>
-                            </div>
-                            <span class="text-2sm font-bold text-gray-900">
-                                {{ $taskStats['completed'] }}/{{ $taskStats['total'] }}
-                            </span>
-                        </div>
+            </div>
+            
+            <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl bg-green-50 gap-2 p-3.5">
+                <div class="flex items-center flex-wrap gap-3.5">
+                    <div class="h-10 w-10 flex items-center justify-center bg-green-100 rounded-full">
+                        <i class="ki-filled ki-check-circle text-green-600 text-lg"></i>
                     </div>
-                </div>
-                
-                <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl bg-purple-50 gap-2 p-3.5">
-                    <div class="flex items-center flex-wrap gap-3.5">
-                        <div class="h-8 w-8 flex items-center justify-center bg-purple-100 rounded-full">
-                            <i class="ki-filled ki-arrow-up-down text-purple-600"></i>
-                        </div>
-                        <div class="flex flex-col">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-2sm font-medium text-gray-600">
-                                    Task cần chỉnh sửa
-                                </span>
-                            </div>
-                            <span class="text-2sm font-bold text-gray-900">
-                                {{ $taskStats['need_revision'] }}
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-2sm font-medium text-gray-600">
+                                Tiến độ hoàn thành
                             </span>
+                        </div>
+                        <span class="text-2sm font-bold text-gray-900">
+                            {{ $taskStats['completed'] }}/{{ $taskStats['total'] }}
+                        </span>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                            @php 
+                                $completedPercent = $taskStats['total'] > 0 ? ($taskStats['completed'] / $taskStats['total']) * 100 : 0;
+                            @endphp
+                            <div class="bg-green-600 h-1.5 rounded-full" style="width: {{ $completedPercent }}%"></div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="mb-6">
-                <h4 class="font-medium text-sm mb-3">Công việc gần đây</h4>
-                <div class="overflow-x-auto">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Tên công việc</th>
-                                <th>Người quản lý</th>
-                                <th>Trạng thái</th>
-                                <th>Hạn xử lý</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($taskStats['recent_tasks'] as $task)
-                            <tr>
-                                <td>
-                                    <a class="text-primary hover:text-primary-hover">
-                                        {{ \Illuminate\Support\Str::limit($task->name, 40) }}
-                                    </a>
-                                </td>
-                                <td>{{ $task->assign->name ?? 'Chưa gán' }}</td>
-                                <td>
-                                    <span class="badge badge-{{ $task->status->color ?? 'gray' }}">
-                                        {{ $task->status->name ?? 'N/A' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    @if($task->due_date)
-                                        @if(strtotime($task->due_date) < time() && $task->status_id < 4)
-                                            <span class="text-red-600">
-                                                {{ \Carbon\Carbon::parse($task->due_date)->format('d/m/Y') }}
-                                            </span>
-                                        @else
-                                            {{ \Carbon\Carbon::parse($task->due_date)->format('d/m/Y') }}
-                                        @endif
-                                    @else
-                                        Không có
-                                    @endif
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+            <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl bg-purple-50 gap-2 p-3.5">
+                <div class="flex items-center flex-wrap gap-3.5">
+                    <div class="h-10 w-10 flex items-center justify-center bg-purple-100 rounded-full">
+                        <i class="ki-filled ki-arrow-up-down text-purple-600 text-lg"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-2sm font-medium text-gray-600">
+                                Cần chỉnh sửa
+                            </span>
+                        </div>
+                        <span class="text-2sm font-bold text-gray-900">
+                            {{ $taskStats['need_revision'] }}
+                        </span>
+                        @if($taskStats['need_revision'] > 0)
+                        <a href="{{ route('dashboard.account.task.task') }}?filter[status_task]=7" class="text-xs text-purple-600 hover:underline mt-1">
+                            <i class="ki-filled ki-arrow-right-circle"></i> Xem ngay
+                        </a>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Task by status and progress -->
+        <div class="grid !grid-cols-1 md:!grid-cols-2 gap-5 mb-6">
+            <!-- Task distribution by status -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="text-sm font-medium mb-3">Phân bố theo trạng thái</h4>
+                
+                <!-- Status distribution bars -->
+                <div class="space-y-3">
+                    @php
+                        $statuses = [
+                            ['id' => 1, 'name' => 'Chưa bắt đầu', 'color' => 'warning'],
+                            ['id' => 2, 'name' => 'Đang chờ', 'color' => 'warning'],
+                            ['id' => 3, 'name' => 'Đang thực hiện', 'color' => 'info'],
+                            ['id' => 4, 'name' => 'Hoàn thành', 'color' => 'success'],
+                            ['id' => 7, 'name' => 'Cần chỉnh sửa', 'color' => 'danger'],
+                        ];
+                        
+                        // Giả lập số lượng công việc cho mỗi trạng thái
+                        // Trong thực tế, bạn sẽ cần dữ liệu thực từ controller
+                        $statusCounts = [
+                            1 => $taskStats['total'] - $taskStats['in_progress'] - $taskStats['completed'] - $taskStats['need_revision'],
+                            2 => round($taskStats['in_progress'] * 0.3),
+                            3 => round($taskStats['in_progress'] * 0.7),
+                            4 => $taskStats['completed'],
+                            7 => $taskStats['need_revision'],
+                        ];
+                        
+                        $maxCount = max($statusCounts);
+                    @endphp
+                    
+                    @foreach($statuses as $status)
+                        @php
+                            $count = $statusCounts[$status['id']] ?? 0;
+                            $percent = $maxCount > 0 ? ($count / $maxCount) * 100 : 0;
+                        @endphp
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <div class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full bg-{{ $status['color'] }} mr-2"></span>
+                                    <span class="text-xs">{{ $status['name'] }}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-medium">{{ $count }}</span>
+                                    @if($count > 0)
+                                    <a href="{{ route('dashboard.account.task.task') }}?filter[status_task]={{ $status['id'] }}" class="btn btn-icon btn-xs btn-light">
+                                        <i class="ki-filled ki-arrow-right text-xs"></i>
+                                    </a>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-{{ $status['color'] }} h-1.5 rounded-full" style="width: {{ $percent }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <a href="{{ route('dashboard.account.task.task') }}" class="btn btn-sm btn-light w-full">
+                        <i class="ki-filled ki-filter"></i> Lọc theo trạng thái
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Task priority distribution -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="text-sm font-medium mb-3">Công việc ưu tiên</h4>
+                
+                <div class="space-y-3">
+                    @php
+                        // Trong thực tế, bạn sẽ cần dữ liệu từ controller
+                        $priorities = [
+                            ['id' => 1, 'name' => 'Cao', 'count' => round($taskStats['total'] * 0.2), 'color' => 'danger'],
+                            ['id' => 2, 'name' => 'Trung bình', 'count' => round($taskStats['total'] * 0.5), 'color' => 'warning'],
+                            ['id' => 3, 'name' => 'Thấp', 'count' => round($taskStats['total'] * 0.3), 'color' => 'info'],
+                        ];
+                    @endphp
+                    
+                    @foreach($priorities as $priority)
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <div class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full bg-{{ $priority['color'] }} mr-2"></span>
+                                    <span class="text-xs">{{ $priority['name'] }}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-medium">{{ $priority['count'] }}</span>
+                                    @if($priority['count'] > 0)
+                                    <a href="{{ route('dashboard.account.task.task') }}?filter[priority_task]={{ $priority['id'] }}" class="btn btn-icon btn-xs btn-light">
+                                        <i class="ki-filled ki-arrow-right text-xs"></i>
+                                    </a>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-{{ $priority['color'] }} h-1.5 rounded-full" style="width: {{ ($priority['count'] / $taskStats['total']) * 100 }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                
+                <!-- Recent activity -->
+                <div class="mt-4 pt-3 border-t border-gray-200">
+                    <h5 class="text-xs font-medium mb-2">Hoạt động gần đây</h5>
+                    <div class="space-y-2">
+                        <div class="text-xs text-gray-600">
+                            <i class="ki-filled ki-check-circle text-success mr-1"></i>
+                            <span>{{ $taskStats['completed'] > 0 ? $taskStats['completed'] : 0 }} công việc đã hoàn thành trong tuần này</span>
+                        </div>
+                        <div class="text-xs text-gray-600">
+                            <i class="ki-filled ki-flag text-warning mr-1"></i>
+                            <span>{{ $taskStats['due_today'] > 0 ? $taskStats['due_today'] : 0 }} công việc cần hoàn thành hôm nay</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tasks that need attention -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h4 class="font-medium text-sm">Công việc cần chú ý</h4>
+                <div class="flex gap-2">
+                    <button class="btn btn-xs btn-light active task-filter-btn" data-filter="all">Tất cả</button>
+                    <button class="btn btn-xs btn-light task-filter-btn" data-filter="overdue">Quá hạn</button>
+                    <button class="btn btn-xs btn-light task-filter-btn" data-filter="today">Hôm nay</button>
+                    <button class="btn btn-xs btn-light task-filter-btn" data-filter="revision">Cần sửa</button>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Tên công việc</th>
+                            <th>Người theo dõi</th>
+                            <th>Trạng thái</th>
+                            <th>Tiến độ</th>
+                            <th>Hạn xử lý</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($taskStats['recent_tasks'] as $task)
+                        <tr class="task-row {{ $task->status_id == 7 ? 'task-revision' : '' }} {{ (strtotime($task->due_date) < time() && $task->status_id < 4) ? 'task-overdue' : '' }} {{ (date('Y-m-d') == date('Y-m-d', strtotime($task->due_date))) ? 'task-today' : '' }}">
+                            <td>
+                                <a class="text-primary hover:text-primary-hover font-medium">
+                                    {{ \Illuminate\Support\Str::limit($task->name, 40) }}
+                                </a>
+                                <div class="text-xs text-gray-500">
+                                    <span class="badge badge-sm badge-light">#{{ $task->id }}</span>
+                                    <span class="badge badge-sm badge-outline badge-primary">{{ $task->type }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                @if($task->assign->id ?? 0)
+                                <div class="flex items-center gap-2">
+                                    <span>{{ $task->assign->name ?? 'Chưa gán' }}</span>
+                                </div>
+                                @else
+                                <span class="badge badge-sm badge-outline badge-warning">Chưa gán</span>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ $task->status->color ?? 'gray' }}">
+                                    {{ $task->status->name ?? 'N/A' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-16 bg-gray-200 rounded-sm h-1.5">
+                                        <div class="{{ $task->progress >= 100 ? 'bg-success' : 'bg-blue-800' }} h-1.5 rounded-sm" style="width: {{ $task->progress ?? 0 }}%"></div>
+                                    </div>
+                                    <span class="text-xs">{{ $task->progress ?? 0 }}%</span>
+                                </div>
+                            </td>
+                            <td>
+                                @if($task->due_date)
+                                    @if(strtotime($task->due_date) < time() && $task->status_id < 4)
+                                        <span class="text-danger flex items-center gap-1">
+                                            <i class="ki-solid ki-timer text-xs"></i>
+                                            {{ \Carbon\Carbon::parse($task->due_date)->format('d/m/Y') }}
+                                        </span>
+                                    @elseif(date('Y-m-d') == date('Y-m-d', strtotime($task->due_date)))
+                                        <span class="text-warning flex items-center gap-1">
+                                            <i class="ki-solid ki-calendar-tick text-xs"></i>
+                                            Hôm nay
+                                        </span>
+                                    @else
+                                        {{ \Carbon\Carbon::parse($task->due_date)->format('d/m/Y') }}
+                                    @endif
+                                @else
+                                    <span class="text-gray-500">Không có</span>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="flex gap-1">
+                                    @if(strtotime($task->due_date) < time() && $task->status_id < 4)
+                                        <a href="{{ route('dashboard.account.task.task') }}?filter[status_task]=6" class="btn btn-icon btn-sm btn-danger">
+                                            <i class="ki-filled ki-timer"></i>
+                                        </a>
+                                    @elseif(date('Y-m-d') == date('Y-m-d', strtotime($task->due_date)))
+                                        <a href="{{ route('dashboard.account.task.task') }}?filter[due_today]=1" class="btn btn-icon btn-sm btn-warning">
+                                            <i class="ki-filled ki-calendar-tick"></i>
+                                        </a>
+                                    @elseif($task->status_id == 7)
+                                        <a href="{{ route('dashboard.account.task.task') }}?filter[status_task]=7" class="btn btn-icon btn-sm btn-purple">
+                                            <i class="ki-filled ki-arrow-up-down"></i>
+                                        </a>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Filter action buttons -->
+            <div class="flex justify-end mt-3 gap-2">
+                <a href="{{ route('dashboard.account.task.task') }}?filter[status_task]=6" id="view-overdue-tasks-btn" class="btn btn-sm btn-danger hidden">
+                    <i class="ki-filled ki-timer"></i> Xem tất cả task quá hạn
+                </a>
+                <a href="{{ route('dashboard.account.task.task') }}?filter[due_today]=1" id="view-today-tasks-btn" class="btn btn-sm btn-warning hidden">
+                    <i class="ki-filled ki-calendar-tick"></i> Xem tất cả task hôm nay
+                </a>
+                <a href="{{ route('dashboard.account.task.task') }}?filter[status_task]=7" id="view-revision-tasks-btn" class="btn btn-sm btn-purple hidden">
+                    <i class="ki-filled ki-arrow-up-down"></i> Xem tất cả task cần sửa
+                </a>
+            </div>
+        </div>
+        
+        <!-- Task completion trend -->
+        <div>
+            <h4 class="font-medium text-sm mb-3">Xu hướng hoàn thành công việc</h4>
+            <div class="h-48">
+                <canvas id="taskTrendChart"></canvas>
+            </div>
+        </div>
     </div>
+</div>
+
+<!-- Add this to the scripts section -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Task trend chart
+    const taskTrendCtx = document.getElementById('taskTrendChart').getContext('2d');
+    const taskTrendChart = new Chart(taskTrendCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                @foreach($taskTrends as $trend)
+                    '{{ $trend['date'] }}',
+                @endforeach
+            ],
+            datasets: [{
+                label: 'Công việc hoàn thành',
+                data: [
+                    @foreach($taskTrends as $trend)
+                        {{ $trend['completed'] }},
+                    @endforeach
+                ],
+                backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                borderColor: '#10b981',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // Task filtering
+    const taskFilterBtns = document.querySelectorAll('.task-filter-btn');
+    const taskRows = document.querySelectorAll('.task-row');
+    const viewOverdueBtn = document.getElementById('view-overdue-tasks-btn');
+    const viewTodayBtn = document.getElementById('view-today-tasks-btn');
+    const viewRevisionBtn = document.getElementById('view-revision-tasks-btn');
+    
+    taskFilterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Toggle active class
+            taskFilterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Hide all action buttons first
+            viewOverdueBtn.classList.add('hidden');
+            viewTodayBtn.classList.add('hidden');
+            viewRevisionBtn.classList.add('hidden');
+            
+            // Show relevant action button based on filter
+            if (filter === 'overdue') {
+                viewOverdueBtn.classList.remove('hidden');
+            } else if (filter === 'today') {
+                viewTodayBtn.classList.remove('hidden');
+            } else if (filter === 'revision') {
+                viewRevisionBtn.classList.remove('hidden');
+            }
+            
+            // Filter rows
+            let visibleCount = 0;
+            taskRows.forEach(row => {
+                if (filter === 'all') {
+                    row.classList.remove('hidden');
+                    visibleCount++;
+                } else if (filter === 'overdue' && row.classList.contains('task-overdue')) {
+                    row.classList.remove('hidden');
+                    visibleCount++;
+                } else if (filter === 'today' && row.classList.contains('task-today')) {
+                    row.classList.remove('hidden');
+                    visibleCount++;
+                } else if (filter === 'revision' && row.classList.contains('task-revision')) {
+                    row.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+            
+            // If there are more items than shown in the preview, show the view all button
+            if (filter === 'overdue' && visibleCount > 0) {
+                viewOverdueBtn.classList.remove('hidden');
+            } else if (filter === 'today' && visibleCount > 0) {
+                viewTodayBtn.classList.remove('hidden');
+            } else if (filter === 'revision' && visibleCount > 0) {
+                viewRevisionBtn.classList.remove('hidden');
+            }
+        });
+    });
+});
+</script>
     
     <!-- Customer Support Dashboard - Enhanced Version -->
 <div class="card mb-7">

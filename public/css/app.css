@@ -2627,6 +2627,9 @@ video {
   --tw-text-opacity: 1;
   color: rgb(185 28 28 / var(--tw-text-opacity));
 }
+.hover\:underline:hover {
+  text-decoration-line: underline;
+}
 .hover\:after\:bg-blue-800:hover::after {
   content: var(--tw-content);
   --tw-bg-opacity: 1;
