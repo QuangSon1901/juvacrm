@@ -672,69 +672,303 @@
         </div>
     </div>
     
-    <!-- Customer Support Section -->
-    <div class="card mb-7">
-        <div class="card-header">
-            <h3 class="card-title">
-                <i class="ki-filled ki-user text-blue-600 text-2xl"></i>&nbsp;Chăm sóc khách hàng
-            </h3>
-            <a href="{{ route('dashboard.customer.support.customer-support') }}" class="btn btn-sm btn-light">Xem tất cả</a>
+    <!-- Customer Support Dashboard - Enhanced Version -->
+<div class="card mb-7">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="ki-filled ki-user text-blue-600 text-2xl"></i>&nbsp;Chăm sóc khách hàng
+        </h3>
+        <div class="flex gap-2">
+            <a href="{{ route('dashboard.customer.support.customer-support') }}" class="btn btn-sm btn-light">
+                <i class="ki-filled ki-people"></i> Danh sách KH
+            </a>
+            <a href="{{ route('dashboard.customer.client.customer-leads') }}" class="btn btn-sm btn-primary">
+                <i class="ki-filled ki-abstract-26"></i> Leads
+            </a>
         </div>
-        <div class="card-body">
-            <div class="grid !grid-cols-2 md:!grid-cols-3 gap-3 mb-6">
-                <div class="bg-orange-50 rounded-lg p-3 text-center">
-                    <p class="text-xs text-gray-600">Nguồn khách hàng mới</p>
-                    <p class="text-xl font-bold text-orange-700">{{ $customerStats['leads'] }}</p>
+    </div>
+    <div class="card-body">
+        <!-- Chỉ số KPI chính - Tổng quan hiệu suất -->
+        <div class="grid !grid-cols-2 md:!grid-cols-4 gap-3 mb-6">
+            <div class="bg-primary-50 rounded-lg p-3 border border-primary-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-600">Tổng khách hàng</p>
+                        <p class="text-xl font-bold text-primary">{{ $customerStats['total_customers'] }}</p>
+                    </div>
+                    <div>
+                        <span class="badge badge-sm badge-primary">+{{ $customerStats['new_today'] }} hôm nay</span>
+                    </div>
                 </div>
-                <div class="bg-green-50 rounded-lg p-3 text-center">
-                    <p class="text-xs text-gray-600">Khách hàng đang hỗ trợ</p>
-                    <p class="text-xl font-bold text-green-700">{{ $customerStats['prospects'] }}</p>
-                </div>
-                <div class="bg-blue-50 rounded-lg p-3 text-center">
-                    <p class="text-xs text-gray-600">Khách hàng đã sử dụng dịch vụ</p>
-                    <p class="text-xl font-bold text-blue-700">{{ $customerStats['customers'] }}</p>
+                <div class="flex items-center justify-between mt-2">
+                    <span class="text-xs">Leads: {{ $customerStats['leads'] }}</span>
+                    <span class="text-xs">KH: {{ $customerStats['customers'] }}</span>
                 </div>
             </div>
             
-            <div class="grid !grid-cols-1 md:!grid-cols-2 gap-6 mb-6">
-                <div>
-                    <h4 class="font-medium text-sm mb-3">Cuộc hẹn sắp tới</h4>
-                    <div class="space-y-3">
+            <div class="bg-success-50 rounded-lg p-3 border border-success-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-600">Tỷ lệ chuyển đổi</p>
+                        <p class="text-xl font-bold text-success">{{ number_format($conversion_stats['lead_to_customer'] ?? 0, 1) }}%</p>
+                    </div>
+                    <div class="h-10 w-10 rounded-full bg-success-100 flex items-center justify-center">
+                        <i class="ki-filled ki-abstract-26 text-success"></i>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                    <div class="bg-success h-1.5 rounded-full" style="width: {{ min($conversion_stats['lead_to_customer'] ?? 0, 100) }}%"></div>
+                </div>
+            </div>
+            
+            <div class="bg-warning-50 rounded-lg p-3 border border-warning-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-600">Đang tư vấn</p>
+                        <p class="text-xl font-bold text-warning">{{ $customerStats['active_consultations'] }}</p>
+                    </div>
+                    <div class="h-10 w-10 rounded-full bg-warning-100 flex items-center justify-center">
+                        <i class="ki-filled ki-message-text-2 text-warning"></i>
+                    </div>
+                </div>
+                <p class="text-xs mt-2">{{ $customerStats['active_consultations'] > 0 ? 'Cần hoàn thành tư vấn' : 'Không có tư vấn đang thực hiện' }}</p>
+            </div>
+            
+            <div class="bg-danger-50 rounded-lg p-3 border border-danger-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-600">Cần chăm sóc</p>
+                        <p class="text-xl font-bold text-danger">{{ $customerStats['need_follow_up'] }}</p>
+                    </div>
+                    <div class="h-10 w-10 rounded-full bg-danger-100 flex items-center justify-center">
+                        <i class="ki-filled ki-timer text-danger"></i>
+                    </div>
+                </div>
+                <a href="{{ route('dashboard.customer.support.customer-support') }}?filter[interaction]=old" class="text-danger text-xs font-medium mt-2 inline-block">
+                    <i class="ki-filled ki-arrow-right"></i> Xem danh sách
+                </a>
+            </div>
+        </div>
+        
+        <!-- Main content area - 3 column layout -->
+        <div class="grid !grid-cols-1 md:!grid-cols-3 gap-5 mb-5">
+            <!-- Column 1: Todo list và công việc ưu tiên -->
+            <div>
+                <h4 class="font-medium text-sm mb-3">Cần ưu tiên xử lý</h4>
+                <!-- Cuộc hẹn hôm nay -->
+                <div class="bg-primary-50 p-3 rounded-lg mb-3 border border-primary-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <h5 class="text-sm font-medium">Cuộc hẹn hôm nay</h5>
+                        <span class="badge badge-primary">{{ $statistics['today'] ?? 0 }}</span>
+                    </div>
+                    @if(isset($statistics['today']) && $statistics['today'] > 0)
+                        <a href="/appointment/detail?date={{ now()->format('Y-m-d') }}" class="text-primary text-xs font-medium">
+                            <i class="ki-filled ki-calendar-tick"></i> Xem lịch hẹn hôm nay
+                        </a>
+                    @else
+                        <p class="text-xs text-gray-500">Không có cuộc hẹn hôm nay</p>
+                    @endif
+                </div>
+                
+                <!-- Khách hàng không tương tác >14 ngày -->
+                <div class="bg-warning-50 p-3 rounded-lg mb-3 border border-warning-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <h5 class="text-sm font-medium">KH không tương tác >14 ngày</h5>
+                        <span class="badge badge-warning">{{ $customerStats['need_follow_up'] }}</span>
+                    </div>
+                    @if($customerStats['need_follow_up'] > 0)
+                        <a href="{{ route('dashboard.customer.support.customer-support') }}?filter[interaction]=old" class="text-warning text-xs font-medium">
+                            <i class="ki-filled ki-call"></i> Cần liên hệ lại ngay
+                        </a>
+                    @else
+                        <p class="text-xs text-gray-500">Tất cả khách hàng đều đã được tương tác gần đây</p>
+                    @endif
+                </div>
+                
+                <!-- Tư vấn đang thực hiện -->
+                {{--<div class="bg-success-50 p-3 rounded-lg border border-success-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <h5 class="text-sm font-medium">Tư vấn đang thực hiện</h5>
+                        <span class="badge badge-success">{{ $customerStats['active_consultations'] }}</span>
+                    </div>
+                    <div class="text-xs space-y-1">
+                        @if(isset($recent_consultations) && count($recent_consultations) > 0)
+                            @foreach($recent_consultations->take(3) as $consultation)
+                                <p class="flex justify-between">
+                                    <span class="truncate max-w-[180px]">{{ $consultation->customer->name ?? 'Không có tên' }}</span>
+                                    <span>{{ \Carbon\Carbon::parse($consultation->created_at)->format('d/m') }}</span>
+                                </p>
+                            @endforeach
+                        @else
+                            <p class="text-gray-500">Không có tư vấn đang thực hiện</p>
+                        @endif
+                    </div>
+                </div>--}}
+            </div>
+            
+            <!-- Column 2: Cuộc hẹn sắp tới và lịch -->
+            <div>
+                <h4 class="font-medium text-sm mb-3">Cuộc hẹn sắp tới</h4>
+                <div class="space-y-2 overflow-auto max-h-[250px] pr-1">
+                    @if(isset($customerStats['upcoming_appointments']) && count($customerStats['upcoming_appointments']) > 0)
                         @foreach($customerStats['upcoming_appointments'] as $appointment)
-                        <div class="border border-gray-200 rounded-lg p-3">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="font-medium text-sm">{{ $appointment->name }}</p>
-                                    <p class="text-xs text-gray-500">{{ $appointment->customer->name ?? 'N/A' }}</p>
+                            <div class="flex items-start gap-3 p-3 rounded-lg border border-{{ $appointment->color }}-200 bg-{{ $appointment->color }}-50">
+                                <div class="rounded-full bg-{{ $appointment->color }}-100 p-2 shrink-0">
+                                    <i class="ki-filled ki-calendar text-{{ $appointment->color }}"></i>
                                 </div>
-                                <span class="badge badge-{{ $appointment->color }}">
-                                    {{ \Carbon\Carbon::parse($appointment->start_time)->format('d/m H:i') }}
-                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-start">
+                                        <p class="font-medium text-sm truncate">{{ $appointment->name }}</p>
+                                        <span class="badge badge-{{ $appointment->color }} whitespace-nowrap ml-1">
+                                            {{ \Carbon\Carbon::parse($appointment->start_time)->diffForHumans() }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center text-xs text-gray-600 mt-1">
+                                        <i class="ki-filled ki-profile-user mr-1"></i>
+                                        <span class="truncate">{{ $appointment->customer->name ?? 'N/A' }}</span>
+                                    </div>
+                                    <div class="flex items-center text-xs text-gray-600 mt-0.5">
+                                        <i class="ki-filled ki-calendar-8 mr-1"></i>
+                                        <span>{{ \Carbon\Carbon::parse($appointment->start_time)->format('d/m/Y H:i') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-center py-5 text-gray-500">
+                            <i class="ki-filled ki-calendar-8 text-3xl mb-2"></i>
+                            <p>Không có cuộc hẹn sắp tới</p>
+                            <a href="{{ route('dashboard.customer.support.appointment-detail') }}" class="btn btn-sm btn-light mt-2">
+                                <i class="ki-filled ki-plus"></i> Tạo lịch hẹn
+                            </a>
+                        </div>
+                    @endif
+                </div>
+                <div class="flex justify-end mt-3">
+                    <a href="{{ route('dashboard.customer.support.appointment-detail') }}" class="btn btn-sm btn-light">
+                        <i class="ki-filled ki-calendar"></i> Xem tất cả lịch hẹn
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Column 3: Chỉ số và phân tích hiệu quả -->
+            <div>
+                <h4 class="font-medium text-sm mb-3">Phân tích hiệu quả</h4>
+                
+                <!-- Tỷ lệ chuyển đổi -->
+                <div class="bg-white rounded-lg border border-gray-200 p-3 mb-3">
+                    <h5 class="text-sm font-medium mb-2">Tỷ lệ chuyển đổi</h5>
+                    <div class="space-y-2">
+                        <div>
+                            <div class="flex justify-between text-xs">
+                                <span>Lead → KH tiềm năng</span>
+                                <span class="font-medium">{{ number_format($conversion_stats['lead_to_prospect'] ?? 0, 1) }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                                <div class="bg-primary h-1.5 rounded-full" style="width: {{ min($conversion_stats['lead_to_prospect'] ?? 0, 100) }}%"></div>
                             </div>
                         </div>
-                        @endforeach
-                        
-                        @if(count($customerStats['upcoming_appointments']) === 0)
-                            <p class="text-center text-gray-500 text-sm">Không có cuộc hẹn sắp tới</p>
-                        @endif
+                        <div>
+                            <div class="flex justify-between text-xs">
+                                <span>KH tiềm năng → KH</span>
+                                <span class="font-medium">{{ number_format($conversion_stats['prospect_to_customer'] ?? 0, 1) }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                                <div class="bg-success h-1.5 rounded-full" style="width: {{ min($conversion_stats['prospect_to_customer'] ?? 0, 100) }}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs">
+                                <span>Tỷ lệ phản hồi</span>
+                                <span class="font-medium">{{ number_format($conversion_stats['response_rate'] ?? 0, 1) }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                                <div class="bg-warning h-1.5 rounded-full" style="width: {{ min($conversion_stats['response_rate'] ?? 0, 100) }}%"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div>
-                    <h4 class="font-medium text-sm mb-3">Khách hàng cần chăm sóc</h4>
-                    <div class="border border-orange-200 rounded-lg p-4 bg-orange-50">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="font-medium">Khách hàng không tương tác > 14 ngày</p>
-                            <span class="badge badge-warning">{{ $customerStats['need_follow_up'] }}</span>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-3">Cần liên hệ lại để duy trì mối quan hệ và tăng khả năng ký hợp đồng</p>
-                        <a href="{{ route('dashboard.customer.support.customer-support') }}?filter[interaction]=old" class="btn btn-sm btn-warning">Xem danh sách</a>
+                <!-- Phân bố khách hàng theo trạng thái -->
+                <div class="bg-white rounded-lg border border-gray-200 p-3">
+                    <h5 class="text-sm font-medium mb-2">Phân bố theo trạng thái</h5>
+                    <div class="space-y-2">
+                        @if(isset($customerStats['by_status']))
+                            @foreach($customerStats['by_status'] as $status)
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs">{{ $status->name }}</span>
+                                    <span class="text-xs font-medium">{{ $status->customers_count }}</span>
+                                </div>
+                            @endforeach
+                        @else
+                            <p class="text-xs text-gray-500">Không có dữ liệu</p>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Khách hàng mới và khách hàng tiềm năng -->
+        <div class="mt-5">
+            <h4 class="font-medium text-sm mb-3">Khách hàng tiềm năng mới (5 gần đây nhất)</h4>
+            <div class="overflow-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Khách hàng</th>
+                            <th>Thông tin liên hệ</th>
+                            <th>Điểm tiềm năng</th>
+                            <th>Nguồn</th>
+                            <th>Ngày thêm</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if(isset($recent_leads) && count($recent_leads) > 0)
+                            @foreach($recent_leads as $lead)
+                                <tr>
+                                    <td>
+                                        <a href="/customer/{{ $lead->id }}" class="text-primary font-medium">{{ $lead->name }}</a>
+                                    </td>
+                                    <td>
+                                        <div class="text-xs">{{ $lead->phone ?: 'Không có SĐT' }}</div>
+                                        <div class="text-xs text-gray-500">{{ $lead->email ?: 'Không có email' }}</div>
+                                    </td>
+                                    <td>
+                                        @if($lead->lead_score > 60)
+                                            <span class="badge badge-success">{{ $lead->lead_score }}</span>
+                                        @elseif($lead->lead_score > 30)
+                                            <span class="badge badge-warning">{{ $lead->lead_score }}</span>
+                                        @else
+                                            <span class="badge badge-gray">{{ $lead->lead_score }}</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $lead->source->name ?? 'Không xác định' }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($lead->created_at)->format('d/m/Y') }}</td>
+                                    <td>
+                                        <a href="/customer-consultation/{{ $lead->id }}" class="btn btn-sm btn-light">
+                                            <i class="ki-filled ki-message-text"></i> Tư vấn
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-gray-500">Không có khách hàng tiềm năng mới</td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-end mt-3">
+                <a href="{{ route('dashboard.customer.client.customer-leads') }}" class="btn btn-sm btn-primary">
+                    <i class="ki-filled ki-external-drive"></i> Quản lý leads
+                </a>
+            </div>
+        </div>
     </div>
-    
+</div>
+
     <!-- Financial Overview Section -->
     <div class="card mb-7">
         <div class="card-header">

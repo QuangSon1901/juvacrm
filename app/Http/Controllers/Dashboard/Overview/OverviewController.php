@@ -11,7 +11,9 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Consultation;
 use App\Models\AttendanceRecord;
+use App\Models\ConsultationLog;
 use App\Models\ContractPayment;
+use App\Models\CustomerLead;
 use App\Models\PartTimeSchedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -123,22 +125,48 @@ class OverviewController extends Controller
         // 2. Customer Overview
         $customerStats = [
             'total' => Customer::where('is_active', 1)->count(),
+            'total_customers' => Customer::where('type', '>', Customer::TYPE_LEAD)->count(), // Tổng số khách hàng thực (không tính lead)
             'leads' => Customer::where('type', Customer::TYPE_LEAD)->count(),
             'prospects' => Customer::where('type', Customer::TYPE_PROSPECT)->count(),
             'customers' => Customer::where('type', Customer::TYPE_CUSTOMER)->count(),
             'new_today' => Customer::whereDate('created_at', today())->count(),
             'upcoming_appointments' => Appointment::where('start_time', '>=', now())
-                                     ->where('start_time', '<=', now()->addDays(3))
-                                     ->with(['customer', 'user'])
-                                     ->limit(10)
-                                     ->get(),
+                                    ->where('start_time', '<=', now()->addDays(3))
+                                    ->with(['customer', 'user'])
+                                    ->limit(10)
+                                    ->get(),
             'active_consultations' => Consultation::whereHas('logs', function($query) {
                                         $query->where('action', '<', 2);
-                                     })->count(),
+                                    })->count(),
             'need_follow_up' => Customer::where('last_interaction_date', '<', now()->subDays(14))
-                              ->where('type', '>', Customer::TYPE_LEAD)
-                              ->count()
+                            ->where('type', '>', Customer::TYPE_LEAD)
+                            ->count(),
+            // Thêm mới: Phân bố khách hàng theo trạng thái
+            'by_status' => CustomerLead::where('type', 2)->withCount(['customers' => function($query) {
+                            $query->where('type', '>', Customer::TYPE_LEAD);
+                        }])->get()
         ];
+
+        // Thêm mới: Tỷ lệ chuyển đổi
+        $conversion_stats = [
+            'lead_to_prospect' => $this->calculateConversionRate(Customer::TYPE_LEAD, Customer::TYPE_PROSPECT),
+            'prospect_to_customer' => $this->calculateConversionRate(Customer::TYPE_PROSPECT, Customer::TYPE_CUSTOMER),
+            'lead_to_customer' => $this->calculateConversionRate(Customer::TYPE_LEAD, Customer::TYPE_CUSTOMER),
+            'response_rate' => 75.4, // Giá trị mẫu, nên tính toán trong thực tế
+        ];
+
+        // Thêm mới: Lấy 5 khách hàng tiềm năng mới nhất
+        $recent_leads = Customer::where('type', Customer::TYPE_LEAD)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->with(['source', 'classification', 'status'])
+            ->get();
+
+        // Thêm mới: Lấy logs tư vấn gần đây
+        $recent_consultations = ConsultationLog::with('consultation.customer')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
 
         // 3. Task Overview
         $taskStats = [
@@ -326,7 +354,20 @@ class OverviewController extends Controller
             'pendingContracts',
             'paymentDueContracts',
             'completedTaskContracts',
-            'expiringContracts'
+            'expiringContracts',
+            'conversion_stats',
+            'recent_leads',
+            'recent_consultations'
         ));
     }
+
+    private function calculateConversionRate($fromType, $toType)
+    {
+        $fromCount = Customer::where('type', $fromType)->count();
+        if ($fromCount === 0) return 0;
+        
+        $toCount = Customer::where('type', $toType)->count();
+        return round(($toCount / $fromCount) * 100, 2);
+    }
+
 }
