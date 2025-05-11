@@ -29,9 +29,19 @@ use Illuminate\Support\Facades\Validator;
 
 class ContractController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view("dashboard.contract.index");
+        $filterStatus = $request->input('filter.status');
+        $filterMyContract = $request->input('filter.my_contract', 0);
+        $filterExpiring = $request->input('filter.expiring', 0);
+        $filterCompletedTasks = $request->input('filter.completed_tasks', 0);
+        
+        return view("dashboard.contract.index", [
+            'filterStatus' => $filterStatus,
+            'filterMyContract' => $filterMyContract,
+            'filterExpiring' => $filterExpiring,
+            'filterCompletedTasks' => $filterCompletedTasks
+        ]);
     }
 
     public function complete(Request $request) {
@@ -119,17 +129,31 @@ class ContractController extends Controller
 
         // Xây dựng query cơ bản
         $query = Contract::query()
-            ->with(['user', 'provider', 'tasks', 'payments']) // Thêm relationships cần thiết
-            ->when($request->input('filter.search'), function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('contract_number', 'like', "%{$search}%");
-            })
-            ->when($request->input('filter.my_contract'), function ($query) use ($request) {
-                $query->where('user_id', auth()->id());
-            })
-            ->when($request->has('filter.status') && $request->input('filter.status') !== null, function ($query) use ($request) {
-                $query->where('status', $request->input('filter.status'));
-            });
+        ->with(['user', 'provider', 'tasks', 'payments']) // Thêm relationships cần thiết
+        ->when($request->input('filter.search'), function ($query, $search) {
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('contract_number', 'like', "%{$search}%");
+        })
+        ->when($request->input('filter.my_contract'), function ($query) {
+            $query->where('user_id', auth()->id());
+        })
+        ->when($request->has('filter.status') && $request->input('filter.status') !== null, function ($query) use ($request) {
+            $query->where('status', $request->input('filter.status'));
+        })
+        ->when($request->input('filter.expiring'), function ($query) {
+            $query->where('status', 1)
+                  ->whereNotNull('expiry_date')
+                  ->where('expiry_date', '<=', now()->addDays(3))
+                  ->where('expiry_date', '>=', now());
+        })
+        ->when($request->input('filter.completed_tasks'), function ($query) {
+            $query->where('status', 1)
+                  ->whereHas('tasks', function ($q) {
+                      $q->where('is_active', 1)
+                        ->where('status_id', 4)
+                        ->whereNull('parent_id');
+                  });
+        });
 
         // Phân trang
         $paginationResult = PaginationService::paginate($query, $currentPage, TABLE_PERPAGE_NUM);

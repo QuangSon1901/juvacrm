@@ -415,6 +415,7 @@
                         <h3 class="card-title text-info">
                             <i class="ki-filled ki-check-squared fs-2 me-3"></i>Đã hoàn thành task, chờ xử lý
                         </h3>
+                        <a href="{{ route('dashboard.contract.contract') }}?filter[completed_tasks]=1" class="btn btn-xs btn-light">Xem</a>
                     </div>
                     <div class="card-body p-3">
                         @if(isset($completedTaskContracts) && count($completedTaskContracts) > 0)
@@ -453,7 +454,7 @@
                         <h3 class="card-title text-danger">
                             <i class="ki-filled ki-calendar-remove fs-2 me-3"></i>Sắp quá hạn
                         </h3>
-                        <a href="{{ route('dashboard.contract.contract') }}" class="btn btn-xs btn-danger">Xem</a>
+                        <a href="{{ route('dashboard.contract.contract') }}?filter[expiring]=1" class="btn btn-xs btn-danger">Xem</a>
                     </div>
                     <div class="card-body p-3">
                         @if(isset($expiringContracts) && count($expiringContracts) > 0)

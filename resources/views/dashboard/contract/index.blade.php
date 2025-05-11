@@ -27,19 +27,44 @@
                             <span class="switch-label">
                                 Hợp đồng của tôi
                             </span>
-                            <input name="check" data-filter="my_contract" type="checkbox" value="1">
+                            <input name="check" data-filter="my_contract" type="checkbox" value="1" {{ isset($filterMyContract) && $filterMyContract == 1 ? 'checked' : '' }}>
                         </label>
                     </div>
                     <div class="flex flex-wrap gap-2.5">
                         <select data-filter="status" class="select select-sm w-40">
-                            <option value="" selected>
+                            <option value="" {{ !isset($filterStatus) ? 'selected' : '' }}>
                                 Tất cả trạng thái
                             </option>
-                            <option value="0">Đang chờ</option>
-                            <option value="1">Đang triển khai</option>
-                            <option value="2">Đã kết thúc</option>
-                            <option value="3">Đã huỷ</option>
+                            <option value="0" {{ isset($filterStatus) && $filterStatus == "0" ? 'selected' : '' }}>Đang chờ</option>
+                            <option value="1" {{ isset($filterStatus) && $filterStatus == "1" ? 'selected' : '' }}>Đang triển khai</option>
+                            <option value="2" {{ isset($filterStatus) && $filterStatus == "2" ? 'selected' : '' }}>Đã kết thúc</option>
+                            <option value="3" {{ isset($filterStatus) && $filterStatus == "3" ? 'selected' : '' }}>Đã huỷ</option>
                         </select>
+                        
+                        <!-- Nếu cần hiển thị bộ lọc Sắp hết hạn -->
+                        @if(isset($filterExpiring) && $filterExpiring == 1)
+                        <div class="flex ml-2">
+                            <label class="switch switch-sm">
+                                <span class="switch-label text-red-600">
+                                    Sắp hết hạn
+                                </span>
+                                <input name="check" data-filter="expiring" type="checkbox" value="1" checked>
+                            </label>
+                        </div>
+                        @endif
+                        
+                        <!-- Nếu cần hiển thị bộ lọc Đã hoàn thành task -->
+                        @if(isset($filterCompletedTasks) && $filterCompletedTasks == 1)
+                        <div class="flex ml-2">
+                            <label class="switch switch-sm">
+                                <span class="switch-label text-blue-600">
+                                    Đã hoàn thành task
+                                </span>
+                                <input name="check" data-filter="completed_tasks" type="checkbox" value="1" checked>
+                            </label>
+                        </div>
+                        @endif
+                        
                         <a href="/contract/create-view" class="btn btn-primary btn-sm">
                             Thêm hợp đồng
                         </a>
