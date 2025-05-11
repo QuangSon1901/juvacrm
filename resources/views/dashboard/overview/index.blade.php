@@ -721,40 +721,7 @@
             
             <!-- Task priority distribution -->
             <div class="border border-gray-200 rounded-lg p-4">
-                <h4 class="text-sm font-medium mb-3">Công việc ưu tiên</h4>
-                
-                <div class="space-y-3">
-                    @php
-                        // Trong thực tế, bạn sẽ cần dữ liệu từ controller
-                        $priorities = [
-                            ['id' => 1, 'name' => 'Cao', 'count' => round($taskStats['total'] * 0.2), 'color' => 'danger'],
-                            ['id' => 2, 'name' => 'Trung bình', 'count' => round($taskStats['total'] * 0.5), 'color' => 'warning'],
-                            ['id' => 3, 'name' => 'Thấp', 'count' => round($taskStats['total'] * 0.3), 'color' => 'info'],
-                        ];
-                    @endphp
-                    
-                    @foreach($priorities as $priority)
-                        <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <div class="flex items-center">
-                                    <span class="w-2 h-2 rounded-full bg-{{ $priority['color'] }} mr-2"></span>
-                                    <span class="text-xs">{{ $priority['name'] }}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs font-medium">{{ $priority['count'] }}</span>
-                                    @if($priority['count'] > 0)
-                                    <a href="{{ route('dashboard.account.task.task') }}?filter[priority_task]={{ $priority['id'] }}" class="btn btn-icon btn-xs btn-light">
-                                        <i class="ki-filled ki-arrow-right text-xs"></i>
-                                    </a>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                <div class="bg-{{ $priority['color'] }} h-1.5 rounded-full" style="width: {{ ($priority['count'] / $taskStats['total']) * 100 }}%"></div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
+                <h4 class="text-sm font-medium mb-3">Công việc ưu tiên (Đang bảo trì)</h4>
                 
                 <!-- Recent activity -->
                 <div class="mt-4 pt-3 border-t border-gray-200">
