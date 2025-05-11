@@ -114,7 +114,7 @@ class OverviewController extends Controller
         $expiringContracts = Contract::with(['provider'])
             ->where('status', 1)
             ->whereNotNull('expiry_date')
-            ->where('expiry_date', '<=', now()->addDays(14))
+            ->where('expiry_date', '<=', now()->addDays(3))
             ->where('expiry_date', '>=', now())
             ->orderBy('expiry_date')
             ->limit(10)
