@@ -668,6 +668,9 @@ video {
 .top-\[40px\] {
   top: 40px;
 }
+.left-1 {
+  left: 0.25rem;
+}
 .z-10 {
   z-index: 10;
 }
@@ -1058,6 +1061,9 @@ video {
 }
 .max-h-full {
   max-height: 100%;
+}
+.max-h-\[80px\] {
+  max-height: 80px;
 }
 .min-h-24 {
   min-height: 6rem;

@@ -131,6 +131,7 @@ Route::group(
                 Route::group(
                     ['namespace' => 'Support', 'as' => 'support.', 'middleware' => []],
                     function () {
+                        Route::post('/appointment/complete', [AppointmentController::class, "completeAppointment"])->name("appointment-complete");
                         // View
                         Route::middleware(['permission:view-customer'])->group(function() {
                             Route::get('/customer-support', [CustomerSupportController::class, "index"])->name("customer-support");
@@ -166,6 +167,7 @@ Route::group(
                         Route::middleware(['permission:support-customer'])->group(function() {
                             Route::post('/consultation/add-log', [CustomerSupportController::class, "consultationAddLog"])->name("consultation-add-log");
                             Route::post('/consultation/upload-file', [CustomerSupportController::class, 'uploadFile'])->name('consultation-upload-file');
+                            
                         });
                     }
                 );

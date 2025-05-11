@@ -15,80 +15,54 @@ class AppointmentController extends Controller
 {
     public function detail(Request $request)
     {
-        $date = formatDateTime(trim($request['datetime']) . ' 00:00:00') != ''
-            ? Carbon::parse(formatDateTime(trim($request['datetime']) . ' 00:00:00'))
+        // Xử lý tham số ngày và khách hàng
+        $date = formatDateTime(trim($request['date']) . ' 00:00:00') != ''
+            ? Carbon::parse(formatDateTime(trim($request['date']) . ' 00:00:00'))
             : Carbon::now();
-
-        $appointments_day = Appointment::select('id', 'name', 'note', 'start_time', 'end_time', 'color', 'user_id', 'customer_id', 'created_at')
-            ->whereDate('start_time', $date->toDateString())
-            ->get()
-            ->toArray();
-
-        // Tạo bản sao của $date để không làm thay đổi giá trị gốc
-        $startOfWeek = $date->copy()->startOfWeek();  // Ngày đầu tuần
-        $weekDays = [];
-        $daysOfWeek = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
-        for ($i = 0; $i < 7; $i++) {
-            $weekDays[] = [
-                'date' => $startOfWeek->day,  // Thêm 1 ngày cho mỗi vòng lặp
-                'day' => $daysOfWeek[$i],
-                'full_date' => $startOfWeek->format('Y-m-d')
-            ];
-
-            $startOfWeek->addDay();
-        }
-
-        $appointments_week = Appointment::select('id', 'name', 'note', 'start_time', 'end_time', 'color', 'user_id', 'customer_id', 'created_at')
-            ->whereBetween('start_time', [$date->copy()->startOfWeek()->toDateString(), $date->copy()->endOfWeek()->toDateString()]) // Lọc theo tuần
-            ->get()
-            ->toArray();
-
-        $appointments_month = Appointment::select('id', 'name', 'note', 'start_time', 'end_time', 'color', 'user_id', 'customer_id', 'created_at')
-            ->whereMonth('start_time', $date->month)
-            ->whereYear('start_time', $date->year)
-            ->get()
-            ->toArray();
-
-        // Đếm số lịch hẹn theo trạng thái
-        $upcomingCount = Appointment::where('start_time', '>=', now())->count();
-        $todayCount = Appointment::whereDate('start_time', today())->count();
-        $pastCount = Appointment::where('start_time', '<', now())->count();
-
-        $type = $request['type'] ?? 'day';
-        switch ($type) {
-            case 'day':
-                $currentDateFormat = $date->translatedFormat('l, d') . ' tháng ' . $date->translatedFormat('m, Y');
-                break;
-            case 'week':
-                $currentDateFormat = 'Tuần ' . $date->weekOfYear . ', tháng ' . $date->translatedFormat('m, Y');
-                break;
-            case 'month':
-                $currentDateFormat = 'Tháng ' . $date->translatedFormat('m, Y');
-                break;
-            default:
-                $currentDateFormat = $date->translatedFormat('l, d') . 'Tháng ' . $date->translatedFormat('m, Y');
-                break;
-        }
-
+        
+        $selectedCustomerId = $request['customer_id'] ?? null;
+        
         // Lấy danh sách khách hàng
         $customers = Customer::where('is_active', 1)->orderBy('name')->get();
-
+        
+        // Lấy tất cả lịch hẹn trong tháng hiện tại
+        $appointmentsQuery = Appointment::select('id', 'name', 'note', 'start_time', 'end_time', 'color', 'user_id', 'customer_id', 'is_completed', 'created_at')
+            ->whereMonth('start_time', $date->month)
+            ->whereYear('start_time', $date->year);
+        
+        // Lọc theo khách hàng nếu có
+        if ($selectedCustomerId) {
+            $appointmentsQuery->where('customer_id', $selectedCustomerId);
+        }
+        
+        $appointments = $appointmentsQuery->with('customer')->get();
+        
+        // Đếm số lịch hẹn theo trạng thái
+        $upcomingCount = Appointment::where('start_time', '>=', now());
+        $todayCount = Appointment::whereDate('start_time', today());
+        $pastCount = Appointment::where('start_time', '<', now());
+        
+        // Lọc theo khách hàng nếu có
+        if ($selectedCustomerId) {
+            $upcomingCount->where('customer_id', $selectedCustomerId);
+            $todayCount->where('customer_id', $selectedCustomerId);
+            $pastCount->where('customer_id', $selectedCustomerId);
+        }
+        
+        // Định dạng hiển thị tháng
+        $currentDateFormat = 'Tháng ' . $date->translatedFormat('m, Y');
+        
         return view('dashboard.customer.support.appointment.detail', [
             'currentDateFormat' => $currentDateFormat,
-            'currentDate' => $date->translatedFormat('Y-m-d'),
-            'appointments' => [
-                'day' => $appointments_day,
-                'week' => $appointments_week,
-                'month' => $appointments_month,
-                'week_days' => $weekDays,
-            ],
+            'currentDate' => $date->format('Y-m-d'),
+            'appointments' => $appointments,
+            'customers' => $customers,
+            'selectedCustomerId' => $selectedCustomerId,
             'statistics' => [
-                'upcoming' => $upcomingCount,
-                'today' => $todayCount,
-                'past' => $pastCount
-            ],
-            'type' => $type,
-            'customers' => $customers
+                'upcoming' => $upcomingCount->count(),
+                'today' => $todayCount->count(),
+                'past' => $pastCount->count()
+            ]
         ]);
     }
 
@@ -284,6 +258,56 @@ class AppointmentController extends Controller
                         'email' => $customer->email
                     ]
                 ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Có lỗi xảy ra: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function completeAppointment(Request $request)
+    {
+        $validator = ValidatorService::make($request, [
+            'id' => 'required|exists:tbl_appointments,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        try {
+            $appointment = Appointment::find($request->id);
+            if (!$appointment) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Lịch hẹn không tồn tại.',
+                ]);
+            }
+            
+            $appointment->is_completed = 1;
+            $appointment->save();
+            
+            // Cập nhật lần tương tác cho khách hàng
+            if ($appointment->customer) {
+                $appointment->customer->updateLastInteraction();
+            }
+
+            LogService::saveLog([
+                'action' => CUSTOMER_ENUM_LOG,
+                'ip' => $request->getClientIp(),
+                'details' => 'Đã đánh dấu hoàn thành lịch hẹn: ' . $appointment->name,
+                'fk_key' => 'tbl_customers|id',
+                'fk_value' => $appointment->customer_id,
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Đã đánh dấu hoàn thành lịch hẹn thành công.',
             ]);
         } catch (\Exception $e) {
             return response()->json([
