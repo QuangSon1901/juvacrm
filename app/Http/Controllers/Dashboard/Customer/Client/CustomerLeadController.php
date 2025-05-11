@@ -121,9 +121,7 @@ class CustomerLeadController extends Controller
 
         $result = $paginationResult['data']->map(function ($customer, $key) use ($offset) {
             // Đảm bảo khách hàng có điểm tiềm năng
-            if ($customer->lead_score === null) {
-                $customer->calculateLeadScore();
-            }
+            $customer->calculateLeadScore();
             return [
                 'index' => $offset + $key + 1,
                 'id' => $customer->id,
