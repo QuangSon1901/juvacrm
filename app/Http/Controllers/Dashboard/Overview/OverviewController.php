@@ -35,7 +35,7 @@ class OverviewController extends Controller
                             ->sum('price'),
             'recent' => Contract::with(['user', 'provider'])
                         ->orderBy('created_at', 'desc')
-                        ->limit(5)
+                        ->limit(10)
                         ->get()
         ];
 
@@ -47,9 +47,9 @@ class OverviewController extends Controller
             'customers' => Customer::where('type', Customer::TYPE_CUSTOMER)->count(),
             'new_today' => Customer::whereDate('created_at', today())->count(),
             'upcoming_appointments' => Appointment::where('start_time', '>=', now())
-                                     ->where('start_time', '<=', now()->addDays(7))
+                                     ->where('start_time', '<=', now()->addDays(3))
                                      ->with(['customer', 'user'])
-                                     ->limit(5)
+                                     ->limit(10)
                                      ->get(),
             'active_consultations' => Consultation::whereHas('logs', function($query) {
                                         $query->where('action', '<', 2);
@@ -85,7 +85,7 @@ class OverviewController extends Controller
                             ->where('type', 'SERVICE')
                             ->where('is_active', 1)
                             ->orderBy('updated_at', 'desc')
-                            ->limit(5)
+                            ->limit(10)
                             ->get()
         ];
 
@@ -121,7 +121,7 @@ class OverviewController extends Controller
         $employeeStats = [
             'total' => User::where('is_active', 1)->count(),
             'active_today' => AttendanceRecord::whereDate('work_date', today())
-                           ->where('status', 'present')
+                           ->whereIn('status', ['present', 'late', 'early_leave', 'late_and_early_leave'])
                            ->count(),
             'working_now' => AttendanceRecord::whereDate('work_date', today())
                           ->whereNotNull('check_in_time')

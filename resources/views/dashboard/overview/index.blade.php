@@ -269,6 +269,7 @@
                             <th>Khách hàng</th>
                             <th>Nhân viên</th>
                             <th>Giá trị</th>
+                            <th>Trạng thái</th>
                             <th>Ngày tạo</th>
                         </tr>
                     </thead>
@@ -283,6 +284,17 @@
                             <td>{{ $contract->provider->name ?? 'N/A' }}</td>
                             <td>{{ $contract->user->name ?? 'N/A' }}</td>
                             <td>{{ number_format($contract->total_value, 0, ',', '.') }}đ</td>
+                            <td class="text-gray-800 font-normal">
+                                @if ($contract->status == 0)
+                                    <span class="badge badge-sm badge-outline badge-warning">Chờ duyệt</span>
+                                @elseif ($contract->status == 1)
+                                    <span class="badge badge-sm badge-outline badge-primary">Đang triển khai</span>
+                                @elseif ($contract->status == 2)
+                                    <span class="badge badge-sm badge-outline badge-neutral">Đã kết thúc</span>
+                                @elseif ($contract->status == 3)
+                                    <span class="badge badge-sm badge-outline badge-danger">Đã hủy</span>
+                                @endif    
+                            </td>
                             <td>{{ $contract->created_at->format('d/m/Y') }}</td>
                         </tr>
                         @endforeach
