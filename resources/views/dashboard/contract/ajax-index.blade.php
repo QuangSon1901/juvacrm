@@ -7,7 +7,7 @@
     </td>
     <td class="text-gray-800 font-normal">
         @if ($item['status'] == 0)
-            <span class="badge badge-sm badge-outline badge-warning">Chờ duyệt</span>
+            <span class="badge badge-sm badge-outline badge-warning">Đang chờ</span>
         @elseif ($item['status'] == 1)
             <span class="badge badge-sm badge-outline badge-primary">Đang triển khai</span>
         @elseif ($item['status'] == 2)

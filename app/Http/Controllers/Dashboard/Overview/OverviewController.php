@@ -11,6 +11,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Consultation;
 use App\Models\AttendanceRecord;
+use App\Models\ContractPayment;
 use App\Models\PartTimeSchedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -38,6 +39,86 @@ class OverviewController extends Controller
                         ->limit(10)
                         ->get()
         ];
+        
+        $activeContracts = Contract::with(['user', 'provider', 'tasks'])
+            ->where('status', 1)
+            ->orderBy('updated_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function($contract) {
+                $tasks = $contract->tasks->where('is_active', 1);
+                $totalTasks = $tasks->count();
+                $completedTasks = $tasks->where('status_id', '>=', 4)->count();
+                $taskProgress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+                
+                return (object)[
+                    'id' => $contract->id,
+                    'contract_number' => $contract->contract_number,
+                    'provider' => $contract->provider,
+                    'task_progress' => $taskProgress,
+                    'created_at' => $contract->created_at
+                ];
+            });
+
+        // Lấy hợp đồng do người dùng hiện tại quản lý
+        $myContracts = Contract::with(['provider'])
+            ->where('user_id', auth()->id())
+            ->orderBy('updated_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Lấy hợp đồng chờ duyệt
+        $pendingContracts = Contract::with(['provider'])
+            ->where('status', 0)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Reemplazar esta consulta:
+        $paymentDueContracts = DB::table('tbl_contract_payments')
+            ->join('tbl_contracts', 'tbl_contract_payments.contract_id', '=', 'tbl_contracts.id')
+            ->where('tbl_contract_payments.status', 0)
+            ->where('tbl_contract_payments.is_active', 1)
+            ->where('tbl_contract_payments.due_date', '<=', now()->addDays(7))
+            ->select('tbl_contract_payments.*', 'tbl_contracts.contract_number')
+            ->orderBy('tbl_contract_payments.due_date')
+            ->limit(10)
+            ->get();
+
+        // Con esta consulta usando Eloquent:
+        $paymentDueContracts = ContractPayment::with(['contract', 'contract.provider'])
+            ->where('status', 0)
+            ->where('is_active', 1)
+            ->where('due_date', '<=', now()->addDays(7))
+            ->orderBy('due_date')
+            ->limit(10)
+            ->get();
+
+        // Lấy hợp đồng đã hoàn thành task, đang chờ xử lý
+        $completedTaskContracts = Contract::with(['provider'])
+            ->where('status', 1)
+            ->whereHas('tasks', function ($query) {
+                $query->where('is_active', 1)
+                    ->where('status_id', 4)
+                    ->whereNull('parent_id');
+            })
+            ->withCount(['tasks as completed_tasks_count' => function ($query) {
+                $query->where('is_active', 1)
+                    ->where('status_id', 4);
+            }])
+            ->orderBy('completed_tasks_count', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Lấy hợp đồng sắp hết hạn trong 14 ngày tới
+        $expiringContracts = Contract::with(['provider'])
+            ->where('status', 1)
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '<=', now()->addDays(14))
+            ->where('expiry_date', '>=', now())
+            ->orderBy('expiry_date')
+            ->limit(10)
+            ->get();
 
         // 2. Customer Overview
         $customerStats = [
@@ -108,7 +189,7 @@ class OverviewController extends Controller
             'recent_transactions' => Transaction::with(['category', 'targetClient', 'targetEmployee'])
                                     ->where('status', 1)
                                     ->orderBy('paid_date', 'desc')
-                                    ->limit(5)
+                                    ->limit(10)
                                     ->get(),
             'pending_payments' => DB::table('tbl_contract_payments')
                                ->where('status', 0)
@@ -132,7 +213,7 @@ class OverviewController extends Controller
                         ->count(),
             'top_performers' => User::withCount(['task_mission_reports'])
                                ->orderBy('task_mission_reports_count', 'desc')
-                               ->limit(5)
+                               ->limit(10)
                                ->get()
         ];
 
@@ -220,7 +301,7 @@ class OverviewController extends Controller
         $pendingSchedules = PartTimeSchedule::with('user')
                     ->pending()
                     ->orderBy('schedule_date', 'asc')
-                    ->limit(5)
+                    ->limit(10)
                     ->get();
 
         $pendingSchedulesCount = PartTimeSchedule::pending()->count();
@@ -239,7 +320,13 @@ class OverviewController extends Controller
             'canCheckIn',
             'pendingSchedules',
             'pendingSchedulesCount',
-            'cancelRequestsCount'
+            'cancelRequestsCount',
+            'activeContracts',
+            'myContracts',
+            'pendingContracts',
+            'paymentDueContracts',
+            'completedTaskContracts',
+            'expiringContracts'
         ));
     }
 }

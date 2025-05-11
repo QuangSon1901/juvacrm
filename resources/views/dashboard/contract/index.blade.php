@@ -35,7 +35,7 @@
                             <option value="" selected>
                                 Tất cả trạng thái
                             </option>
-                            <option value="0">Chờ duyệt</option>
+                            <option value="0">Đang chờ</option>
                             <option value="1">Đang triển khai</option>
                             <option value="2">Đã kết thúc</option>
                             <option value="3">Đã huỷ</option>

@@ -907,7 +907,7 @@ class ContractController extends Controller
             'estimate_date' => $contract->estimate_date,
             'total_value' => $contract->total_value,
             'status' => $contract->status,
-            'status_text' => $contract->status == 1 ? 'Đang triển khai' : 'Chờ duyệt',
+            'status_text' => $contract->status == 1 ? 'Đang triển khai' : 'Đang chờ',
             'note' => $contract->note,
             'terms_and_conditions' => $contract->terms_and_conditions,
             'created_at' => $contract->created_at,

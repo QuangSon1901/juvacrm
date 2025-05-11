@@ -245,7 +245,7 @@ $canEdit = ($details['status'] == 0 || $details['status'] == 1);
                     <input class="input hidden" name="name" type="text" placeholder="Tên hợp đồng mới">
                     <select name="status" class="select hidden">
                         <option value="" selected>Chọn trạng thái</option>
-                        <option value="0">Chờ duyệt</option>
+                        <option value="0">Đang chờ</option>
                         <option value="1">Đang triển khai</option>
                         <option value="2">Đã kết thúc</option>
                     </select>
