@@ -177,6 +177,10 @@
                                                     $statusClass = 'info';
                                                     $statusText = 'Về sớm';
                                                     break;
+                                                case 'late_and_early_leave':
+                                                    $statusClass = 'danger';
+                                                    $statusText = 'Đi trễ về sớm';
+                                                    break;
                                                 default:
                                                     $statusClass = 'gray';
                                                     $statusText = $record->status;

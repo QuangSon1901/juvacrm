@@ -1,5 +1,31 @@
 @extends('dashboard.layouts.layout')
 @section('dashboard_content')
+<style>
+    /* Thêm CSS này vào file hoặc thẻ style */
+.contract-list-content {
+    display: none;
+}
+
+.contract-list-content.active {
+    display: block;
+}
+
+.contract-filter-btn.active {
+    position: relative;
+    font-weight: 600;
+    z-index: 1;
+}
+
+.contract-filter-btn.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: currentColor;
+}
+</style>
 <div class="pb-5">
     <!-- Header -->
     <div class="container-fixed flex items-center justify-between flex-wrap gap-3">
@@ -160,384 +186,456 @@
     </div>
     
     <div class="card mb-7">
-        <div class="card-header">
-            <h3 class="card-title">
-                <i class="ki-filled ki-cheque text-primary text-2xl"></i>&nbsp;Tổng quan hợp đồng
-            </h3>
+    <div class="card-header justify-between">
+        <h3 class="card-title">
+            <i class="ki-filled ki-cheque text-primary text-2xl"></i>&nbsp;Tổng quan hợp đồng
+        </h3>
+        <div class="flex gap-2">
+            <a href="{{ route('dashboard.contract.contract') }}?filter[expiring]=1" class="btn btn-sm btn-danger">
+                <i class="ki-filled ki-timer"></i> Sắp quá hạn ({{ count($expiringContracts) }})
+            </a>
             <a href="{{ route('dashboard.contract.contract') }}" class="btn btn-sm btn-light">
-                Xem tất cả
+                <i class="ki-filled ki-document"></i> Xem tất cả
             </a>
         </div>
-        <div class="card-body">
-            <!-- Thông tin tổng quan tài chính - Giữ nguyên -->
-            <div class="grid !grid-cols-1 md:!grid-cols-4 gap-4 mb-6">
-                <div class="flex items-center justify-between flex-wrap border border-gray-200 bg-blue-100 dark:bg-blue-900 rounded-xl gap-2 p-3.5">
-                    <div class="flex items-center flex-wrap gap-3.5">
-                        <div class="flex flex-col">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-2sm font-medium text-gray-600">
-                                    Tổng giá trị hợp đồng
-                                </span>
-                            </div>
-                            <span class="text-2sm font-bold text-gray-900">
-                                {{ number_format($contractStats['total_value'], 0, ',', '.') }}đ
-                            </span>
-                        </div>
-                    </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- KPI chính - Thống kê chính về hợp đồng -->
+        <div class="grid !grid-cols-2 md:!grid-cols-5 gap-3 mb-6">
+            <div class="bg-primary-50 rounded-lg p-3 border border-primary-100 flex flex-col justify-between">
+                <p class="text-xs text-gray-600">Tổng hợp đồng</p>
+                <p class="text-xl font-bold text-primary">{{ $contractStats['total'] }}</p>
+                <div class="flex justify-between text-xs mt-1">
+                    <span>Đang triển khai:</span>
+                    <span class="font-medium">{{ $contractStats['active'] }}</span>
                 </div>
-                
-                <div class="flex items-center justify-between flex-wrap border border-gray-200 bg-green-100 dark:bg-green-900 rounded-xl gap-2 p-3.5">
-                    <div class="flex items-center flex-wrap gap-3.5">
-                        <div class="flex flex-col">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-2sm font-medium text-gray-600">
-                                    Đã thanh toán
-                                </span>
-                            </div>
-                            <span class="text-2sm font-bold text-gray-900">
-                                {{ number_format($contractStats['paid_value'], 0, ',', '.') }}đ
-                            </span>
-                        </div>
-                    </div>
+            </div>
+            
+            <div class="bg-success-50 rounded-lg p-3 border border-success-100 flex flex-col justify-between">
+                <p class="text-xs text-gray-600">Tổng giá trị</p>
+                <p class="text-xl font-bold text-success">{{ number_format($contractStats['total_value']/1000000, 1) }}M</p>
+                <div class="flex justify-between text-xs mt-1">
+                    <span>Đã thanh toán:</span>
+                    <span class="font-medium">{{ number_format(($contractStats['paid_value']/$contractStats['total_value'])*100, 0) }}%</span>
                 </div>
-                
-                <div class="flex items-center justify-between flex-wrap border border-gray-200 bg-pink-100 dark:bg-pink-900 rounded-xl gap-2 p-3.5">
-                    <div class="flex items-center flex-wrap gap-3.5">
-                        <div class="flex flex-col">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-2sm font-medium text-gray-600">
-                                    Chưa thanh toán
-                                </span>
-                            </div>
-                            <span class="text-2sm font-bold text-gray-900">
-                                {{ number_format($contractStats['total_value'] - $contractStats['paid_value'], 0, ',', '.') }}đ
-                            </span>
-                        </div>
-                    </div>
+            </div>
+            
+            <div class="bg-warning-50 rounded-lg p-3 border border-warning-100 flex flex-col justify-between">
+                <p class="text-xs text-gray-600">Cần thanh toán</p>
+                <p class="text-xl font-bold text-warning">{{ $financialStats['pending_payments'] }}</p>
+                <div class="flex justify-between text-xs mt-1">
+                    <span>7 ngày tới:</span>
+                    <span class="font-medium">{{ number_format($contractStats['total_value'] - $contractStats['paid_value'], 0, ',', '.') }}đ</span>
                 </div>
-                
-                <div class="flex items-center justify-between flex-wrap border border-gray-200 bg-purple-100 dark:bg-purple-900 rounded-xl gap-2 p-3.5">
-                    <div class="flex items-center flex-wrap gap-3.5">
-                        <div class="flex flex-col">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-2sm font-medium text-gray-600">
-                                    Thanh toán trong 7 ngày tới
-                                </span>
+            </div>
+            
+            <div class="bg-danger-50 rounded-lg p-3 border border-danger-100 flex flex-col justify-between">
+                <p class="text-xs text-gray-600">Sắp quá hạn</p>
+                <p class="text-xl font-bold text-danger">{{ count($expiringContracts) }}</p>
+                <a href="{{ route('dashboard.contract.contract') }}?filter[expiring]=1" class="text-xs text-danger mt-1">
+                    <i class="ki-filled ki-arrow-right"></i> Xem ngay
+                </a>
+            </div>
+            
+            <div class="bg-info-50 rounded-lg p-3 border border-info-100 flex flex-col justify-between">
+                <p class="text-xs text-gray-600">Task hoàn thành</p>
+                <p class="text-xl font-bold text-info">{{ count($completedTaskContracts) }}</p>
+                <a href="{{ route('dashboard.contract.contract') }}?filter[completed_tasks]=1" class="text-xs text-info mt-1">
+                    <i class="ki-filled ki-arrow-right"></i> Xác nhận ngay
+                </a>
+            </div>
+        </div>
+
+        <!-- Biểu đồ tiến độ và phân loại hợp đồng -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Biểu đồ phân loại hợp đồng -->
+            <div class="card card-bordered shadow-sm">
+                <div class="card-header bg-opacity-10 py-3">
+                    <h3 class="card-title text-gray-700 text-sm font-medium">
+                        Phân loại hợp đồng
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-xs flex items-center"><span class="w-2 h-2 bg-primary rounded-full mr-1"></span> Đang triển khai</span>
+                                <div class="flex items-center">
+                                    <span class="text-xs font-medium">{{ $contractStats['active'] }}</span>
+                                    <a href="{{ route('dashboard.contract.contract') }}?filter[status]=1" class="ml-2 text-primary">
+                                        <i class="ki-filled ki-arrow-right text-xs"></i>
+                                    </a>
+                                </div>
                             </div>
-                            <span class="text-2sm font-bold text-gray-900">
-                                {{ $financialStats['pending_payments'] }}
-                            </span>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-primary h-1.5 rounded-full" style="width: {{ ($contractStats['active'] / max($contractStats['total'], 1)) * 100 }}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-xs flex items-center"><span class="w-2 h-2 bg-warning rounded-full mr-1"></span> Chờ duyệt</span>
+                                <div class="flex items-center">
+                                    <span class="text-xs font-medium">{{ $contractStats['pending_approval'] }}</span>
+                                    <a href="{{ route('dashboard.contract.contract') }}?filter[status]=0" class="ml-2 text-warning">
+                                        <i class="ki-filled ki-arrow-right text-xs"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-warning h-1.5 rounded-full" style="width: {{ ($contractStats['pending_approval'] / max($contractStats['total'], 1)) * 100 }}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-xs flex items-center"><span class="w-2 h-2 bg-success rounded-full mr-1"></span> Đã hoàn thành</span>
+                                <div class="flex items-center">
+                                    <span class="text-xs font-medium">{{ $contractStats['completed'] }}</span>
+                                    <a href="{{ route('dashboard.contract.contract') }}?filter[status]=2" class="ml-2 text-success">
+                                        <i class="ki-filled ki-arrow-right text-xs"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-success h-1.5 rounded-full" style="width: {{ ($contractStats['completed'] / max($contractStats['total'], 1)) * 100 }}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-xs flex items-center"><span class="w-2 h-2 bg-danger rounded-full mr-1"></span> Đã hủy</span>
+                                <div class="flex items-center">
+                                    <span class="text-xs font-medium">{{ $contractStats['canceled'] }}</span>
+                                    <a href="{{ route('dashboard.contract.contract') }}?filter[status]=3" class="ml-2 text-danger">
+                                        <i class="ki-filled ki-arrow-right text-xs"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-danger h-1.5 rounded-full" style="width: {{ ($contractStats['canceled'] / max($contractStats['total'], 1)) * 100 }}%"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Phần mới: Grid hiển thị các hạng mục hợp đồng -->
-            <div class="grid !grid-cols-1 md:!grid-cols-2 gap-5 mb-7">
-                <!-- Hợp đồng đang triển khai -->
-                <div class="card card-bordered shadow-sm">
-                    <div class="card-header bg-opacity-10 flex justify-between items-center py-3">
-                        <h3 class="card-title text-primary">
-                            <i class="ki-filled ki-rocket fs-2 me-3"></i>Đang triển khai ({{ $contractStats['active'] }})
-                        </h3>
-                        <a href="{{ route('dashboard.contract.contract') }}?filter[status]=1" class="btn btn-xs btn-light">Xem</a>
-                    </div>
-                    <div class="card-body p-3">
-                        @if(isset($activeContracts) && count($activeContracts) > 0)
-                        <div class="overflow-auto max-h-48">
-                            <table class="table table-sm m-0">
-                                <thead>
-                                    <tr>
-                                        <th>Số HĐ</th>
-                                        <th>Khách hàng</th>
-                                        <th>Tiến độ</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($activeContracts as $contract)
-                                    <tr>
-                                        <td><a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="text-primary">{{ $contract->contract_number }}</a></td>
-                                        <td>{{ $contract->provider->name ?? 'N/A' }}</td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress h-6px w-100 bg-light-primary">
-                                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $contract->task_progress }}%" aria-valuenow="{{ $contract->task_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                                <span class="ms-3 text-muted">{{ $contract->task_progress }}%</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        @else
-                        <div class="text-center py-5 text-gray-500">
-                            <i class="ki-filled ki-information-5 fs-2x mb-2"></i>
-                            <p>Không có hợp đồng đang triển khai</p>
-                        </div>
-                        @endif
-                    </div>
+            <!-- Tiến độ thanh toán hợp đồng -->
+            <div class="card card-bordered shadow-sm">
+                <div class="card-header bg-opacity-10 py-3">
+                    <h3 class="card-title text-gray-700 text-sm font-medium">
+                        Tiến độ thanh toán
+                    </h3>
                 </div>
-                
-                <!-- Hợp đồng do tôi quản lý -->
-                <div class="card card-bordered shadow-sm">
-                    <div class="card-header bg-opacity-10 flex justify-between items-center py-3">
-                        <h3 class="card-title text-info">
-                            <i class="ki-filled ki-user fs-2 me-3"></i>Hợp đồng của tôi
-                        </h3>
-                        <a href="{{ route('dashboard.contract.contract') }}?filter[my_contract]=1" class="btn btn-xs btn-light">Xem</a>
-                    </div>
-                    <div class="card-body p-3">
-                        @if(isset($myContracts) && count($myContracts) > 0)
-                        <div class="overflow-auto max-h-48">
-                            <table class="table table-sm m-0">
-                                <thead>
-                                    <tr>
-                                        <th>Số HĐ</th>
-                                        <th>Khách hàng</th>
-                                        <th>Trạng thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($myContracts as $contract)
-                                    <tr>
-                                        <td><a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="text-primary">{{ $contract->contract_number }}</a></td>
-                                        <td>{{ $contract->provider->name ?? 'N/A' }}</td>
-                                        <td>
-                                            @if($contract->status == 0)
-                                                <span class="badge badge-warning">Chờ duyệt</span>
-                                            @elseif($contract->status == 1)
-                                                <span class="badge badge-primary">Đang triển khai</span>
-                                            @elseif($contract->status == 2)
-                                                <span class="badge badge-success">Hoàn thành</span>
-                                            @elseif($contract->status == 3)
-                                                <span class="badge badge-danger">Đã hủy</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                <div class="card-body p-4">
+                    <!-- Visualize payment progress -->
+                    <div class="mb-4">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-xs">Tiến độ tổng thanh toán</span>
+                            <span class="text-xs font-medium">{{ number_format(($contractStats['paid_value'] / max($contractStats['total_value'], 1)) * 100, 1) }}%</span>
                         </div>
-                        @else
-                        <div class="text-center py-5 text-gray-500">
-                            <i class="ki-filled ki-information-5 fs-2x mb-2"></i>
-                            <p>Bạn chưa được phân công quản lý hợp đồng nào</p>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-                
-                <!-- Hợp đồng chờ duyệt -->
-                <div class="card card-bordered shadow-sm">
-                    <div class="card-header bg-opacity-10 flex justify-between items-center py-3">
-                        <h3 class="card-title text-warning">
-                            <i class="ki-filled ki-timer fs-2 me-3"></i>Đang chờ ({{ $contractStats['pending_approval'] }})
-                        </h3>
-                        <a href="{{ route('dashboard.contract.contract') }}?filter[status]=0" class="btn btn-xs btn-light">Xem</a>
-                    </div>
-                    <div class="card-body p-3">
-                        @if(isset($pendingContracts) && count($pendingContracts) > 0)
-                        <div class="overflow-auto max-h-48">
-                            <table class="table table-sm m-0">
-                                <thead>
-                                    <tr>
-                                        <th>Số HĐ</th>
-                                        <th>Khách hàng</th>
-                                        <th>Ngày tạo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($pendingContracts as $contract)
-                                    <tr>
-                                        <td><a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="text-primary">{{ $contract->contract_number }}</a></td>
-                                        <td>{{ $contract->provider->name ?? 'N/A' }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($contract->created_at)->format('d/m/Y') }}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        @else
-                        <div class="text-center py-5 text-gray-500">
-                            <i class="ki-filled ki-information-5 fs-2x mb-2"></i>
-                            <p>Không có hợp đồng đang chờ duyệt</p>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-                
-                <!-- Hợp đồng cần thanh toán -->
-                <div class="card card-bordered shadow-sm">
-                    <div class="card-header bg-opacity-10 flex justify-between items-center py-3">
-                        <h3 class="card-title text-success">
-                            <i class="ki-filled ki-dollar fs-2 me-3"></i>Cần thanh toán
-                        </h3>
-                        <a href="{{ route('dashboard.accounting.deposit-receipt.deposit-receipt') }}" class="btn btn-xs btn-light">Xem</a>
-                    </div>
-                    <div class="card-body p-3">
-                        @if(isset($paymentDueContracts) && count($paymentDueContracts) > 0)
-                            <div class="overflow-auto max-h-48">
-                                <table class="table table-sm m-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Số HĐ</th>
-                                            <th>Khách hàng</th>
-                                            <th>Số tiền</th>
-                                            <th>Hạn thanh toán</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($paymentDueContracts as $payment)
-                                        <tr>
-                                            <td><a href="{{ route('dashboard.contract.contract.detail', $payment->contract_id) }}" class="text-primary">{{ $payment->contract->contract_number }}</a></td>
-                                            <td>{{ $payment->contract->provider->name ?? 'N/A' }}</td>
-                                            <td class="text-end">{{ number_format($payment->price, 0, ',', '.') }}đ</td>
-                                            <td>{{ \Carbon\Carbon::parse($payment->due_date)->format('d/m/Y') }}</td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                        <div class="w-full h-6 bg-gray-200 rounded-full relative overflow-hidden">
+                            <div class="bg-success h-full rounded-full absolute left-0" style="width: {{ ($contractStats['paid_value'] / max($contractStats['total_value'], 1)) * 100 }}%"></div>
+                            <div class="absolute inset-0 flex items-center justify-center text-xs font-medium">
+                                {{ number_format($contractStats['paid_value'], 0, ',', '.') }}đ / {{ number_format($contractStats['total_value'], 0, ',', '.') }}đ
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payments due soon -->
+                    <div>
+                        <h4 class="text-sm font-medium mb-3">Thanh toán sắp đến hạn</h4>
+                        <div class="space-y-2 max-h-[100px] overflow-y-auto pr-1">
+                            @if(isset($paymentDueContracts) && count($paymentDueContracts) > 0)
+                                @foreach($paymentDueContracts->take(3) as $payment)
+                                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded-md border border-gray-200">
+                                        <div>
+                                            <span class="text-xs font-medium">{{ $payment->contract->contract_number }}</span>
+                                            <p class="text-xs text-gray-500">{{ number_format($payment->price, 0, ',', '.') }}đ</p>
+                                        </div>
+                                        <div class="text-xs text-right">
+                                            <p class="{{ \Carbon\Carbon::parse($payment->due_date)->isPast() ? 'text-danger' : 'text-warning' }}">
+                                                {{ \Carbon\Carbon::parse($payment->due_date)->diffForHumans() }}
+                                            </p>
+                                            <p class="text-gray-500">{{ \Carbon\Carbon::parse($payment->due_date)->format('d/m/Y') }}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
+                                @if(count($paymentDueContracts) > 3)
+                                    <a href="{{ route('dashboard.accounting.deposit-receipt.deposit-receipt') }}" class="text-center block text-xs text-primary font-medium">
+                                        + {{ count($paymentDueContracts) - 3 }} thanh toán khác
+                                    </a>
+                                @endif
                             @else
-                            <div class="text-center py-5 text-gray-500">
-                                <i class="ki-duotone ki-information-5 fs-2x mb-2"></i>
-                                <p>Không có hợp đồng cần thanh toán trong 7 ngày tới</p>
-                            </div>
+                                <div class="text-center py-3 text-gray-500 text-xs">
+                                    <i class="ki-filled ki-information-5 fs-1x mb-1"></i>
+                                    <p>Không có thanh toán nào sắp đến hạn</p>
+                                </div>
                             @endif
-                    </div>
-                </div>
-                
-                <!-- Hợp đồng đã hoàn thành task, đang chờ xử lý -->
-                <div class="card card-bordered shadow-sm">
-                    <div class="card-header bg-opacity-10 flex justify-between items-center py-3">
-                        <h3 class="card-title text-info">
-                            <i class="ki-filled ki-check-squared fs-2 me-3"></i>Đã hoàn thành task, chờ xử lý
-                        </h3>
-                        <a href="{{ route('dashboard.contract.contract') }}?filter[completed_tasks]=1" class="btn btn-xs btn-light">Xem</a>
-                    </div>
-                    <div class="card-body p-3">
-                        @if(isset($completedTaskContracts) && count($completedTaskContracts) > 0)
-                        <div class="overflow-auto max-h-48">
-                            <table class="table table-sm m-0">
-                                <thead>
-                                    <tr>
-                                        <th>Số HĐ</th>
-                                        <th>Khách hàng</th>
-                                        <th>Số task hoàn thành</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($completedTaskContracts as $contract)
-                                    <tr>
-                                        <td><a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="text-primary">{{ $contract->contract_number }}</a></td>
-                                        <td>{{ $contract->provider->name ?? 'N/A' }}</td>
-                                        <td class="text-center">{{ $contract->completed_tasks_count }}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
                         </div>
-                        @else
-                        <div class="text-center py-5 text-gray-500">
-                            <i class="ki-filled ki-information-5 fs-2x mb-2"></i>
-                            <p>Không có hợp đồng với task hoàn thành đang chờ xử lý</p>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-                
-                <!-- Hợp đồng sắp hết hạn -->
-                <div class="card card-bordered shadow-sm">
-                    <div class="card-header bg-opacity-10 flex justify-between items-center py-3">
-                        <h3 class="card-title text-danger">
-                            <i class="ki-filled ki-calendar-remove fs-2 me-3"></i>Sắp quá hạn
-                        </h3>
-                        <a href="{{ route('dashboard.contract.contract') }}?filter[expiring]=1" class="btn btn-xs btn-danger">Xem</a>
-                    </div>
-                    <div class="card-body p-3">
-                        @if(isset($expiringContracts) && count($expiringContracts) > 0)
-                        <div class="overflow-auto max-h-48">
-                            <table class="table table-sm m-0">
-                                <thead>
-                                    <tr>
-                                        <th>Số HĐ</th>
-                                        <th>Khách hàng</th>
-                                        <th>Ngày quá hạn</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($expiringContracts as $contract)
-                                    <tr>
-                                        <td><a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="text-primary">{{ $contract->contract_number }}</a></td>
-                                        <td>{{ $contract->provider->name ?? 'N/A' }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($contract->expiry_date)->format('d/m/Y') }}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        @else
-                        <div class="text-center py-5 text-gray-500">
-                            <i class="ki-filled ki-information-5 fs-2x mb-2"></i>
-                            <p>Không có hợp đồng sắp hết hạn trong 14 ngày tới</p>
-                        </div>
-                        @endif
                     </div>
                 </div>
             </div>
-            
-            <!-- Phần biểu đồ tóm tắt -->
-            <div class="row mb-6">
-                <div class="col-md-6 mb-6">
-                    <h4 class="font-medium text-sm mb-3">Phân bố hợp đồng theo trạng thái</h4>
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="bg-blue-500 h-2.5 rounded-sm" style="width: {{ ($contractStats['active'] / max($contractStats['total'], 1)) * 100 }}%"></div>
-                        <div class="bg-green-500 h-2.5 rounded-sm" style="width: {{ ($contractStats['completed'] / max($contractStats['total'], 1)) * 100 }}%"></div>
-                        <div class="bg-gray-500 h-2.5 rounded-sm" style="width: {{ ($contractStats['pending_approval'] / max($contractStats['total'], 1)) * 100 }}%"></div>
-                        <div class="bg-red-500 h-2.5 rounded-sm" style="width: {{ ($contractStats['canceled'] / max($contractStats['total'], 1)) * 100 }}%"></div>
-                    </div>
-                    <div class="flex items-center flex-wrap gap-4">
-                        <div class="flex items-center gap-1.5">
-                            <span class="badge badge-dot size-2 badge-primary"></span>
-                            <span class="text-xs">Đang thực hiện ({{ $contractStats['active'] }})</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="badge badge-dot size-2 badge-success"></span>
-                            <span class="text-xs">Hoàn thành ({{ $contractStats['completed'] }})</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="badge badge-dot size-2 badge-gray"></span>
-                            <span class="text-xs">Chờ duyệt ({{ $contractStats['pending_approval'] }})</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="badge badge-dot size-2 badge-danger"></span>
-                            <span class="text-xs">Đã hủy ({{ $contractStats['canceled'] }})</span>
-                        </div>
-                    </div>
+        </div>
+        
+        <!-- Custom tabs for contract lists -->
+        <div class="card card-bordered shadow-sm">
+            <div class="card-header flex flex-wrap gap-2">
+                <div class="flex gap-2">
+                    <button class="btn btn-sm btn-light-danger contract-filter-btn active" data-filter="expiring">
+                        <i class="ki-filled ki-timer me-1"></i>Sắp quá hạn
+                        <span class="badge badge-circle badge-danger ms-1">{{ count($expiringContracts) }}</span>
+                    </button>
+                    <button class="btn btn-sm btn-light-success contract-filter-btn" data-filter="completed">
+                        <i class="ki-filled ki-check-squared me-1"></i>Task hoàn thành
+                        <span class="badge badge-circle badge-success ms-1">{{ count($completedTaskContracts) }}</span>
+                    </button>
+                    <button class="btn btn-sm btn-light-primary contract-filter-btn" data-filter="my">
+                        <i class="ki-filled ki-user me-1"></i>Hợp đồng của tôi
+                    </button>
+                    <button class="btn btn-sm btn-light-warning contract-filter-btn" data-filter="pending">
+                        <i class="ki-filled ki-calendar me-1"></i>Chờ duyệt
+                        <span class="badge badge-circle badge-warning ms-1">{{ count($pendingContracts) }}</span>
+                    </button>
                 </div>
-                
-                <div class="col-md-6">
-                    <h4 class="font-medium text-sm mb-3">Tỷ lệ thanh toán hợp đồng</h4>
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="bg-green-500 h-2.5 rounded-sm" style="width: {{ ($contractStats['paid_value'] / max($contractStats['total_value'], 1)) * 100 }}%"></div>
-                        <div class="bg-orange-500 h-2.5 rounded-sm" style="width: {{ (($contractStats['total_value'] - $contractStats['paid_value']) / max($contractStats['total_value'], 1)) * 100 }}%"></div>
-                    </div>
-                    <div class="flex items-center flex-wrap gap-4">
-                        <div class="flex items-center gap-1.5">
-                            <span class="badge badge-dot size-2 badge-success"></span>
-                            <span class="text-xs">Đã thanh toán ({{ number_format($contractStats['paid_value'], 0, ',', '.') }}đ)</span>
+            </div>
+            <div class="card-body p-0">
+                <!-- Contract List Content -->
+                <div id="contract-list-container">
+                    <!-- Tab Sắp quá hạn -->
+                    <div class="contract-list-content active" id="contracts-expiring">
+                        <div class="table-responsive">
+                            <table class="table table-row-bordered table-row-gray-100 align-middle gs-0 gy-3 m-0">
+                                <thead>
+                                    <tr class="fw-bold text-muted bg-light">
+                                        <th class="min-w-120px">Hợp đồng</th>
+                                        <th>Khách hàng</th>
+                                        <th>Nhân viên phụ trách</th>
+                                        <th>Ngày hết hạn</th>
+                                        <th>Tiến độ</th>
+                                        <th class="text-end">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if(isset($expiringContracts) && count($expiringContracts) > 0)
+                                        @foreach($expiringContracts as $contract)
+                                            <tr>
+                                                <td>
+                                                    <a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="text-primary fw-bold">
+                                                        {{ $contract->contract_number }}
+                                                    </a>
+                                                    <div class="text-muted fs-7">{{ \Illuminate\Support\Str::limit($contract->name, 30) }}</div>
+                                                </td>
+                                                <td>{{ $contract->provider->name ?? 'N/A' }}</td>
+                                                <td>{{ $contract->user->name ?? 'Chưa phân công' }}</td>
+                                                <td>
+                                                    <span class="badge badge-danger">
+                                                        {{ \Carbon\Carbon::parse($contract->expiry_date)->format('d/m/Y') }}
+                                                    </span>
+                                                    <div class="text-muted fs-7">
+                                                        {{ \Carbon\Carbon::parse($contract->expiry_date)->diffForHumans() }}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @php
+                                                        $tasks = $contract->tasks->where('is_active', 1);
+                                                        $totalTasks = $tasks->count();
+                                                        $completedTasks = $tasks->where('status_id', '>=', 4)->count();
+                                                        $taskProgress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+                                                    @endphp
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="progress h-6px w-100 bg-light-primary">
+                                                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $taskProgress }}%" aria-valuenow="{{ $taskProgress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                        <span class="ms-3 text-muted">{{ $taskProgress }}%</span>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end">
+                                                    <a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="btn btn-sm btn-icon btn-light-primary">
+                                                        <i class="ki-filled ki-eye fs-2"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">Không có hợp đồng nào sắp hết hạn</td>
+                                        </tr>
+                                    @endif
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="badge badge-dot size-2 badge-warning"></span>
-                            <span class="text-xs">Chưa thanh toán ({{ number_format($contractStats['total_value'] - $contractStats['paid_value'], 0, ',', '.') }}đ)</span>
+                    </div>
+                    
+                    <!-- Tab Task hoàn thành -->
+                    <div class="contract-list-content hidden" id="contracts-completed">
+                        <div class="table-responsive">
+                            <table class="table table-row-bordered table-row-gray-100 align-middle gs-0 gy-3 m-0">
+                                <thead>
+                                    <tr class="fw-bold text-muted bg-light">
+                                        <th class="min-w-120px">Hợp đồng</th>
+                                        <th>Khách hàng</th>
+                                        <th>Nhân viên phụ trách</th>
+                                        <th>Task hoàn thành</th>
+                                        <th>Trạng thái</th>
+                                        <th class="text-end">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if(isset($completedTaskContracts) && count($completedTaskContracts) > 0)
+                                        @foreach($completedTaskContracts as $contract)
+                                            <tr>
+                                                <td>
+                                                    <a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="text-primary fw-bold">
+                                                        {{ $contract->contract_number }}
+                                                    </a>
+                                                    <div class="text-muted fs-7">{{ \Illuminate\Support\Str::limit($contract->name, 30) }}</div>
+                                                </td>
+                                                <td>{{ $contract->provider->name ?? 'N/A' }}</td>
+                                                <td>{{ $contract->user->name ?? 'Chưa phân công' }}</td>
+                                                <td>
+                                                    <span class="badge badge-success">{{ $contract->completed_tasks_count }} task</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge badge-primary">Đang triển khai</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="btn btn-sm btn-icon btn-light-primary me-1">
+                                                        <i class="ki-filled ki-eye fs-2"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-icon btn-light-success" onclick="completeContract({{ $contract->id }})">
+                                                        <i class="ki-filled ki-check fs-2"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">Không có hợp đồng nào với task hoàn thành</td>
+                                        </tr>
+                                    @endif
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Hợp đồng của tôi -->
+                    <div class="contract-list-content hidden" id="contracts-my">
+                        <div class="table-responsive">
+                            <table class="table table-row-bordered table-row-gray-100 align-middle gs-0 gy-3 m-0">
+                                <thead>
+                                    <tr class="fw-bold text-muted bg-light">
+                                        <th class="min-w-120px">Hợp đồng</th>
+                                        <th>Khách hàng</th>
+                                        <th>Giá trị</th>
+                                        <th>Ngày hiệu lực</th>
+                                        <th>Tiến độ</th>
+                                        <th class="text-end">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if(isset($myContracts) && count($myContracts) > 0)
+                                        @foreach($myContracts as $contract)
+                                            <tr>
+                                                <td>
+                                                    <a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="text-primary fw-bold">
+                                                        {{ $contract->contract_number }}
+                                                    </a>
+                                                    <div class="text-muted fs-7">{{ \Illuminate\Support\Str::limit($contract->name, 30) }}</div>
+                                                </td>
+                                                <td>{{ $contract->provider->name ?? 'N/A' }}</td>
+                                                <td>{{ number_format($contract->total_value, 0, ',', '.') }}đ</td>
+                                                <td>
+                                                    @if($contract->effective_date)
+                                                        {{ \Carbon\Carbon::parse($contract->effective_date)->format('d/m/Y') }}
+                                                    @else
+                                                        <span class="text-muted">Chưa có</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @php
+                                                        $tasks = $contract->tasks->where('is_active', 1);
+                                                        $totalTasks = $tasks->count();
+                                                        $completedTasks = $tasks->where('status_id', '>=', 4)->count();
+                                                        $taskProgress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+                                                    @endphp
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="progress h-6px w-100 bg-light-primary">
+                                                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $taskProgress }}%" aria-valuenow="{{ $taskProgress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                        <span class="ms-3 text-muted">{{ $taskProgress }}%</span>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end">
+                                                    <a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="btn btn-sm btn-icon btn-light-primary">
+                                                        <i class="ki-filled ki-eye fs-2"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">Bạn chưa được phân công quản lý hợp đồng nào</td>
+                                        </tr>
+                                    @endif
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Chờ duyệt -->
+                    <div class="contract-list-content hidden" id="contracts-pending">
+                        <div class="table-responsive">
+                            <table class="table table-row-bordered table-row-gray-100 align-middle gs-0 gy-3 m-0">
+                                <thead>
+                                    <tr class="fw-bold text-muted bg-light">
+                                        <th class="min-w-120px">Hợp đồng</th>
+                                        <th>Khách hàng</th>
+                                        <th>Người tạo</th>
+                                        <th>Giá trị</th>
+                                        <th>Ngày tạo</th>
+                                        <th class="text-end">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if(isset($pendingContracts) && count($pendingContracts) > 0)
+                                        @foreach($pendingContracts as $contract)
+                                            <tr>
+                                                <td>
+                                                    <a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="text-primary fw-bold">
+                                                        {{ $contract->contract_number }}
+                                                    </a>
+                                                    <div class="text-muted fs-7">{{ \Illuminate\Support\Str::limit($contract->name, 30) }}</div>
+                                                </td>
+                                                <td>{{ $contract->provider->name ?? 'N/A' }}</td>
+                                                <td>{{ $contract->creator->name ?? 'N/A' }}</td>
+                                                <td>{{ number_format($contract->total_value, 0, ',', '.') }}đ</td>
+                                                <td>{{ \Carbon\Carbon::parse($contract->created_at)->format('d/m/Y') }}</td>
+                                                <td class="text-end">
+                                                    <a href="{{ route('dashboard.contract.contract.detail', $contract->id) }}" class="btn btn-sm btn-icon btn-light-primary me-1">
+                                                        <i class="ki-filled ki-eye fs-2"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-icon btn-light-success" onclick="createContractTasks({{ $contract->id }})">
+                                                        <i class="ki-filled ki-check fs-2"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">Không có hợp đồng nào đang chờ duyệt</td>
+                                        </tr>
+                                    @endif
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
     
     <!-- Task Overview Section -->
     <!-- Task Overview Section - Enhanced UI with Filter Links -->
@@ -1696,5 +1794,115 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+</script>
+<script>
+    // Thêm vào phần document ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Khởi tạo tab tùy chỉnh cho hợp đồng
+    initContractTabs();
+    
+    // Khởi tạo biểu đồ nếu cần
+    // initContractCharts();
+});
+
+function initContractTabs() {
+    // Lấy tham chiếu đến container cha của phần contract để tránh xung đột
+    const contractCard = document.querySelector('.card-header .contract-filter-btn').closest('.card');
+    
+    if (!contractCard) return;
+    
+    // Tất cả các nút tab trong card này
+    const filterBtns = contractCard.querySelectorAll('.contract-filter-btn');
+    // Tất cả các nội dung tab trong card này
+    const contentPanels = contractCard.querySelectorAll('.contract-list-content');
+    
+    // Gắn sự kiện click cho mỗi nút
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Loại bỏ active khỏi tất cả các nút và thêm cho nút hiện tại
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Ẩn tất cả nội dung và hiển thị nội dung tương ứng
+            contentPanels.forEach(panel => {
+                panel.classList.add('hidden');
+                if (panel.id === `contracts-${filter}`) {
+                    panel.classList.remove('hidden');
+                    panel.classList.add('active');
+                } else {
+                    panel.classList.remove('active');
+                }
+            });
+        });
+    });
+}
+
+function createContractTasks(id) {
+    Notiflix.Confirm.show(
+        'Tạo công việc',
+        'Bạn có chắc chắn muốn tạo công việc cho hợp đồng này? Sau khi tạo sẽ không thể sửa đổi',
+        'Đúng',
+        'Hủy',
+        async () => {
+            let method = "post",
+                url = "/contract/create-task",
+                params = null,
+                data = { id };
+            try {
+                Notiflix.Loading.pulse('Đang tạo công việc...');
+                let res = await axiosTemplate(method, url, params, data);
+                Notiflix.Loading.remove();
+                
+                if (res.data.status === 200) {
+                    showAlert('success', res.data.message);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showAlert('warning', res.data.message || "Đã có lỗi xảy ra!");
+                }
+            } catch (error) {
+                Notiflix.Loading.remove();
+                showAlert('error', "Đã có lỗi xảy ra khi gửi yêu cầu!");
+                console.error(error);
+            }
+        }
+    );
+}
+
+function completeContract(id) {
+    Notiflix.Confirm.show(
+        'Hoàn thành hợp đồng',
+        'Bạn có chắc chắn muốn đánh dấu hợp đồng này là đã hoàn thành? Hành động này sẽ tính hoa hồng cho nhân viên và không thể hoàn tác.',
+        'Đúng',
+        'Hủy',
+        async () => {
+            let method = "post",
+                url = "/contract/complete",
+                params = null,
+                data = { id };
+            try {
+                Notiflix.Loading.pulse('Đang xử lý...');
+                let res = await axiosTemplate(method, url, params, data);
+                Notiflix.Loading.remove();
+                
+                if (res.data.status === 200) {
+                    showAlert('success', res.data.message);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showAlert('warning', res.data.message || "Đã có lỗi xảy ra!");
+                }
+            } catch (error) {
+                Notiflix.Loading.remove();
+                showAlert('error', "Đã có lỗi xảy ra khi gửi yêu cầu!");
+                console.error(error);
+            }
+        }
+    );
+}
 </script>
 @endpush
