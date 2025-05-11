@@ -1211,6 +1211,12 @@ video {
 .w-\[90px\] {
   width: 90px;
 }
+.w-48 {
+  width: 12rem;
+}
+.w-56 {
+  width: 14rem;
+}
 .min-w-0 {
   min-width: 0px;
 }
@@ -2077,6 +2083,10 @@ video {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
 }
+.py-20 {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
 .\!pl-10 {
   padding-left: 2.5rem !important;
 }
@@ -2663,6 +2673,10 @@ video {
 }
 .group:hover .group-hover\:block {
   display: block;
+}
+.group\/item:hover .group-hover\/item\:text-primary {
+  --tw-text-opacity: 1;
+  color: rgb(27 132 255 / var(--tw-text-opacity));
 }
 .dark\:block:is(.dark *) {
   display: block;
