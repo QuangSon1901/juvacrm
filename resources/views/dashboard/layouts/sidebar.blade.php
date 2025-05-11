@@ -205,14 +205,6 @@
                                     </span>
                                 </a>
                             </div>
-                            
-                            {{--<div class="menu-item">
-                                <a class="menu-link" href="{{route('dashboard.account.schedule.part-time')}}">
-                                    <span class="menu-title">
-                                        Đăng ký lịch part-time
-                                    </span>
-                                </a>
-                            </div>--}}
                             @endif
                         </div>
                     </div>
@@ -550,7 +542,7 @@
                                 </span>
                             </a>
                         </div>
-                        @if(hasPermission('view-activity-log'))
+                        @if(hasPermission('view-logs'))
                         <div class="menu-item">
                             <a class="menu-link" href="{{route('dashboard.logs.activity.activity')}}">
                                 <span class="menu-icon">

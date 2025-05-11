@@ -90,6 +90,7 @@
     <!-- End of Header -->
 </div>
 
+@if(hasPermission('view-dashboard'))
 <div class="container-fixed">
     <!-- Summary Cards -->
     <div class="grid !grid-cols-2 md:!grid-cols-4 gap-5 mb-7">
@@ -185,6 +186,7 @@
         </div>
     </div>
     
+    @if(hasPermission('view-contract'))
     <div class="card mb-7">
     <div class="card-header justify-between">
         <h3 class="card-title">
@@ -217,7 +219,7 @@
                 <p class="text-xl font-bold text-success">{{ number_format($contractStats['total_value']/1000000, 1) }}M</p>
                 <div class="flex justify-between text-xs mt-1">
                     <span>Đã thanh toán:</span>
-                    <span class="font-medium">{{ $contractStats['total_value'] == 0 ? $contractStats['total_value'] : number_format(($contractStats['paid_value']/$contractStats['total_value'])*100, 0) }}%</span>
+                    <span class="font-medium">{{ number_format(($contractStats['paid_value']/$contractStats['total_value'])*100, 0) }}%</span>
                 </div>
             </div>
             
@@ -636,7 +638,9 @@
         </div>
     </div>
 </div>
+    @endif
     
+    @if(hasPermission('view-task'))
     <!-- Task Overview Section -->
     <!-- Task Overview Section - Enhanced UI with Filter Links -->
 <div class="card mb-7">
@@ -961,109 +965,9 @@
         </div>
     </div>
 </div>
-
-<!-- Add this to the scripts section -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Task trend chart
-    const taskTrendCtx = document.getElementById('taskTrendChart').getContext('2d');
-    const taskTrendChart = new Chart(taskTrendCtx, {
-        type: 'bar',
-        data: {
-            labels: [
-                @foreach($taskTrends as $trend)
-                    '{{ $trend['date'] }}',
-                @endforeach
-            ],
-            datasets: [{
-                label: 'Công việc hoàn thành',
-                data: [
-                    @foreach($taskTrends as $trend)
-                        {{ $trend['completed'] }},
-                    @endforeach
-                ],
-                backgroundColor: 'rgba(16, 185, 129, 0.6)',
-                borderColor: '#10b981',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
-                }
-            }
-        }
-    });
-
-    // Task filtering
-    const taskFilterBtns = document.querySelectorAll('.task-filter-btn');
-    const taskRows = document.querySelectorAll('.task-row');
-    const viewOverdueBtn = document.getElementById('view-overdue-tasks-btn');
-    const viewTodayBtn = document.getElementById('view-today-tasks-btn');
-    const viewRevisionBtn = document.getElementById('view-revision-tasks-btn');
+    @endif
     
-    taskFilterBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const filter = this.dataset.filter;
-            
-            // Toggle active class
-            taskFilterBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Hide all action buttons first
-            viewOverdueBtn.classList.add('hidden');
-            viewTodayBtn.classList.add('hidden');
-            viewRevisionBtn.classList.add('hidden');
-            
-            // Show relevant action button based on filter
-            if (filter === 'overdue') {
-                viewOverdueBtn.classList.remove('hidden');
-            } else if (filter === 'today') {
-                viewTodayBtn.classList.remove('hidden');
-            } else if (filter === 'revision') {
-                viewRevisionBtn.classList.remove('hidden');
-            }
-            
-            // Filter rows
-            let visibleCount = 0;
-            taskRows.forEach(row => {
-                if (filter === 'all') {
-                    row.classList.remove('hidden');
-                    visibleCount++;
-                } else if (filter === 'overdue' && row.classList.contains('task-overdue')) {
-                    row.classList.remove('hidden');
-                    visibleCount++;
-                } else if (filter === 'today' && row.classList.contains('task-today')) {
-                    row.classList.remove('hidden');
-                    visibleCount++;
-                } else if (filter === 'revision' && row.classList.contains('task-revision')) {
-                    row.classList.remove('hidden');
-                    visibleCount++;
-                } else {
-                    row.classList.add('hidden');
-                }
-            });
-            
-            // If there are more items than shown in the preview, show the view all button
-            if (filter === 'overdue' && visibleCount > 0) {
-                viewOverdueBtn.classList.remove('hidden');
-            } else if (filter === 'today' && visibleCount > 0) {
-                viewTodayBtn.classList.remove('hidden');
-            } else if (filter === 'revision' && visibleCount > 0) {
-                viewRevisionBtn.classList.remove('hidden');
-            }
-        });
-    });
-});
-</script>
-    
+    @if(hasPermission('view-customer'))
     <!-- Customer Support Dashboard - Enhanced Version -->
 <div class="card mb-7">
     <div class="card-header">
@@ -1360,7 +1264,9 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </div>
-
+    @endif
+    
+    @if(hasPermission('view-transaction') || hasPermission('view-report'))
     <!-- Financial Overview Section -->
     <div class="card mb-7">
         <div class="card-header">
@@ -1496,7 +1402,9 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
     </div>
+    @endif
     
+    @if(hasPermission('view-member') || hasPermission('view-team'))
     <!-- Employee Overview Section -->
     <div class="card mb-7">
         <div class="card-header">
@@ -1549,8 +1457,10 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
     </div>
+    @endif
+    
+    @if(hasPermission('view-schedule') && ($pendingSchedulesCount > 0 || $cancelRequestsCount > 0))
     <!-- Lịch làm việc chờ duyệt Section -->
-    @if($pendingSchedulesCount > 0 || $cancelRequestsCount > 0)
     <div class="card mb-7">
         <div class="card-header">
             <h3 class="card-title">
@@ -1613,6 +1523,8 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     @endif
 </div>
+@endif
+
 @endsection
 
 @push("scripts")
@@ -1807,7 +1719,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initContractTabs() {
     // Lấy tham chiếu đến container cha của phần contract để tránh xung đột
-    const contractCard = document.querySelector('.card-header .contract-filter-btn').closest('.card');
+    const contractCard = document.querySelector('.card-header .contract-filter-btn')?.closest('.card');
     
     if (!contractCard) return;
     

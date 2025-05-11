@@ -363,11 +363,9 @@ Route::group(
                         });
                         
                         // Check in/out feature
-                        Route::middleware(['permission:check-in-out'])->group(function () {
-                            Route::get('/account/timekeeping/check-in-out', [AttendanceController::class, "checkInOut"])->name("check-in-out");
-                            Route::post('/account/timekeeping/do-check-in', [AttendanceController::class, "doCheckIn"])->name("do-check-in");
-                            Route::post('/account/timekeeping/do-check-out', [AttendanceController::class, "doCheckOut"])->name("do-check-out");
-                        });
+                        Route::get('/account/timekeeping/check-in-out', [AttendanceController::class, "checkInOut"])->name("check-in-out");
+                        Route::post('/account/timekeeping/do-check-in', [AttendanceController::class, "doCheckIn"])->name("do-check-in");
+                        Route::post('/account/timekeeping/do-check-out', [AttendanceController::class, "doCheckOut"])->name("do-check-out");
                         
                         // Edit timekeeping
                         Route::middleware(['permission:edit-timekeeping'])->group(function () {
