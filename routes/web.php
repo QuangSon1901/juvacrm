@@ -13,7 +13,7 @@ use App\Http\Controllers\Dashboard\Account\Task\TaskConfigController;
 use App\Http\Controllers\Dashboard\Account\Task\TaskController;
 use App\Http\Controllers\Dashboard\Account\Task\TaskMissionController;
 use App\Http\Controllers\Dashboard\Account\Team\TeamController;
-use App\Http\Controllers\Dashboard\Account\Timekeeping\AttendanceController;
+use App\Http\Controllers\Dashboard\Account\TimeKeeping\AttendanceController;
 use App\Http\Controllers\Dashboard\Account\Tranning\Document\DocumentController;
 use App\Http\Controllers\Dashboard\Accounting\Category\TransactionCategoryController;
 use App\Http\Controllers\Dashboard\Accounting\Commissions\CommissionController;
