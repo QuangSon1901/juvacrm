@@ -189,7 +189,7 @@
                         <i class="ki-filled ki-gift text-pink-500 text-2xl"></i>&nbsp;Sinh nhật sắp tới
                     </h3>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="max-height: 300px;overflow-y: scroll;overflow-x: hidden;">
                     @if(isset($upcomingBirthdays) && count($upcomingBirthdays) > 0)
                         <div class="grid !grid-cols-1 gap-4">
                             @foreach($upcomingBirthdays as $employee)
