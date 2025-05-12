@@ -24,7 +24,7 @@
     <link href="{{asset('css/app.css')}}" rel="stylesheet">
     <link href="{{asset('assets/css/before.css')}}" rel="stylesheet">
     <link href="{{asset('assets/css/clone.css')}}" rel="stylesheet">
-    <link href="{{asset('assets/css/style.css')}}" rel="stylesheet">
+    <link href="{{asset('assets/css/style.css?dssdfadcs')}}" rel="stylesheet">
 
     <link href="{{asset('assets/notiflix/dist/notiflix-3.2.8.min.css')}}" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
