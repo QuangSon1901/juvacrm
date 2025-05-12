@@ -334,6 +334,47 @@ class OverviewController extends Controller
 
         $pendingSchedulesCount = PartTimeSchedule::pending()->count();
         $cancelRequestsCount = PartTimeSchedule::cancelRequested()->count();
+
+        $today = Carbon::now()->startOfDay();
+        $threeMonthsLater = $today->copy()->addMonths(3);
+
+        $upcomingBirthdays = User::where('is_active', 1)
+            ->whereNotNull('birth_date')
+            ->get()
+            ->filter(function($employee) use ($today, $threeMonthsLater) {
+                if (!$employee->birth_date) return false;
+                
+                $birthDate = Carbon::parse($employee->birth_date);
+                $birthDateThisYear = Carbon::createFromDate(
+                    $today->year, 
+                    $birthDate->month, 
+                    $birthDate->day
+                )->startOfDay();
+                
+                // Nếu đã qua sinh nhật năm nay, lấy sinh nhật năm sau
+                if ($birthDateThisYear->lt($today)) {
+                    $birthDateThisYear->addYear();
+                }
+                
+                // Chỉ lấy sinh nhật từ hôm nay đến 3 tháng sau
+                return $birthDateThisYear->gte($today) && $birthDateThisYear->lte($threeMonthsLater);
+            })
+            ->sortBy(function($employee) use ($today) {
+                $birthDate = Carbon::parse($employee->birth_date);
+                $birthDateThisYear = Carbon::createFromDate(
+                    $today->year, 
+                    $birthDate->month, 
+                    $birthDate->day
+                )->startOfDay();
+                
+                // Nếu đã qua sinh nhật năm nay, lấy sinh nhật năm sau
+                if ($birthDateThisYear->lt($today)) {
+                    $birthDateThisYear->addYear();
+                }
+                
+                return $birthDateThisYear->timestamp;
+            })
+            ->take(10);
         
         return view("dashboard.overview.index", compact(
             'contractStats',
@@ -357,7 +398,8 @@ class OverviewController extends Controller
             'expiringContracts',
             'conversion_stats',
             'recent_leads',
-            'recent_consultations'
+            'recent_consultations',
+            'upcomingBirthdays'
         ));
     }
 

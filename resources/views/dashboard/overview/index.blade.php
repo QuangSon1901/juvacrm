@@ -93,91 +93,165 @@
 @if(hasPermission('view-dashboard'))
 <div class="container-fixed">
     <!-- Summary Cards -->
-    <div class="grid !grid-cols-2 md:!grid-cols-4 gap-5 mb-7">
-        @if(hasPermission('view-contract'))
-        <div class="card bg-blue-50">
-            <div class="card-body p-5">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-sm text-gray-600">Hợp đồng đang thực hiện</p>
-                        <h2 class="text-2xl font-bold">{{ $contractStats['active'] }}</h2>
-                        <p class="text-xs text-gray-500">Tổng số: {{ $contractStats['total'] }}</p>
-                    </div>
-                    <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                        <i class="ki-filled ki-document text-blue-500 text-2xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-
-        @if(hasPermission('view-schedule'))
-        <div class="card bg-yellow-50">
-            <div class="card-body p-5">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-sm text-gray-600">Lịch chờ duyệt</p>
-                        <h2 class="text-2xl font-bold">{{ $pendingSchedulesCount }}</h2>
-                        <p class="text-xs text-gray-500">Yêu cầu hủy: {{ $cancelRequestsCount }}</p>
-                    </div>
-                    <div class="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                        <i class="ki-filled ki-calendar-tick text-yellow-500 text-2xl"></i>
+    <div class="grid !grid-cols-1 md:!grid-cols-3 gap-5">
+        <div class="col-span-2">
+            <div class="grid !grid-cols-1 md:!grid-cols-3 gap-5 mb-7">
+                @if(hasPermission('view-contract'))
+                <div class="card bg-blue-50">
+                    <div class="card-body p-5">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-600">Hợp đồng đang thực hiện</p>
+                                <h2 class="text-2xl font-bold">{{ $contractStats['active'] }}</h2>
+                                <p class="text-xs text-gray-500">Tổng số: {{ $contractStats['total'] }}</p>
+                            </div>
+                            <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="ki-filled ki-document text-blue-500 text-2xl"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        @endif
+                @endif
         
-        @if(hasPermission('view-task'))
-        <div class="card bg-green-50">
-            <div class="card-body p-5">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-sm text-gray-600">Công việc trong tuần</p>
-                        <h2 class="text-2xl font-bold">{{ $taskStats['due_this_week'] }}</h2>
-                        <p class="text-xs text-gray-500">Quá hạn: {{ $taskStats['overdue'] }}</p>
+                @if(hasPermission('view-schedule'))
+                <div class="card bg-yellow-50">
+                    <div class="card-body p-5">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-600">Lịch chờ duyệt</p>
+                                <h2 class="text-2xl font-bold">{{ $pendingSchedulesCount }}</h2>
+                                <p class="text-xs text-gray-500">Yêu cầu hủy: {{ $cancelRequestsCount }}</p>
+                            </div>
+                            <div class="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
+                                <i class="ki-filled ki-calendar-tick text-yellow-500 text-2xl"></i>
+                            </div>
+                        </div>
                     </div>
-                    <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                        <i class="ki-filled ki-calendar-8 text-green-500 text-2xl"></i>
+                </div>
+                @endif
+                
+                @if(hasPermission('view-task'))
+                <div class="card bg-green-50">
+                    <div class="card-body p-5">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-600">Công việc trong tuần</p>
+                                <h2 class="text-2xl font-bold">{{ $taskStats['due_this_week'] }}</h2>
+                                <p class="text-xs text-gray-500">Quá hạn: {{ $taskStats['overdue'] }}</p>
+                            </div>
+                            <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                                <i class="ki-filled ki-calendar-8 text-green-500 text-2xl"></i>
+                            </div>
+                        </div>
                     </div>
+                </div>
+                @endif
+                
+                @if(hasPermission('view-customer'))
+                <div class="card bg-orange-50">
+                    <div class="card-body p-5">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-600">Khách hàng cần chăm sóc</p>
+                                <h2 class="text-2xl font-bold">{{ $customerStats['need_follow_up'] }}</h2>
+                                <p class="text-xs text-gray-500">Hôm nay: {{ $customerStats['new_today'] }} mới</p>
+                            </div>
+                            <div class="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                                <i class="ki-filled ki-user-square text-orange-500 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+                
+                @if(hasPermission('view-transaction'))
+                <div class="card bg-purple-50">
+                    <div class="card-body p-5">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-600">Tổng doanh thu</p>
+                                <h2 class="text-2xl font-bold">{{ number_format($financialStats['total_income'], 0, ',', '.') }}đ</h2>
+                                <p class="text-xs text-gray-500">Dư: {{ number_format($financialStats['balance'], 0, ',', '.') }}đ</p>
+                            </div>
+                            <div class="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                                <i class="ki-filled ki-dollar text-purple-500 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+        <div class="col-span-1">
+            <div class="card mb-7">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ki-filled ki-gift text-pink-500 text-2xl"></i>&nbsp;Sinh nhật sắp tới
+                    </h3>
+                </div>
+                <div class="card-body">
+                    @if(isset($upcomingBirthdays) && count($upcomingBirthdays) > 0)
+                        <div class="grid !grid-cols-1 gap-4">
+                            @foreach($upcomingBirthdays as $employee)
+                                @php
+                                    $birthDate = \Carbon\Carbon::parse($employee->birth_date);
+                                    $birthDateThisYear = \Carbon\Carbon::createFromDate(
+                                        now()->year, 
+                                        $birthDate->month, 
+                                        $birthDate->day
+                                    )->startOfDay();
+                                    
+                                    // Nếu đã qua sinh nhật năm nay, lấy sinh nhật năm sau
+                                    if ($birthDateThisYear->lt(now()->startOfDay())) {
+                                        $birthDateThisYear->addYear();
+                                    }
+                                    
+                                    $daysLeft = now()->startOfDay()->diffInDays($birthDateThisYear, false);
+                                    $age = $birthDateThisYear->year - $birthDate->year;
+                                @endphp
+                                <div class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg {{ $daysLeft <= 7 ? 'bg-pink-50' : 'bg-gray-50' }}">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-12 w-12 rounded-full bg-{{ $daysLeft <= 7 ? 'pink' : 'gray' }}-100 flex items-center justify-center">
+                                            @if($daysLeft == 0)
+                                                <i class="ki-filled ki-crown-2 text-pink-600 text-xl"></i>
+                                            @elseif($daysLeft <= 7)
+                                                <i class="ki-filled ki-gift text-pink-600 text-xl"></i>
+                                            @else
+                                                <i class="ki-filled ki-calendar-8 text-gray-600 text-xl"></i>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow flex justify-between items-center w-full min-w-0">
+                                        <div>
+                                            <a href="{{ route('dashboard.account.member.detail', $employee->id) }}" class="text-sm font-medium text-gray-800 hover:text-primary truncate">{{ $employee->name }}</a>
+                                            <p class="text-xs text-gray-500">
+                                                <span>{{ $birthDateThisYear->format('d/m') }}</span>
+                                            </p>
+                                        </div>
+                                        <div class="mt-1">
+                                            @if($daysLeft === 0)
+                                                <span class="badge badge-success">Hôm nay 🎉</span>
+                                            @elseif($daysLeft === 1)
+                                                <span class="badge badge-warning">Ngày mai 🎂</span>
+                                            @elseif($daysLeft <= 7)
+                                                <span class="badge badge-warning">Còn {{ $daysLeft }} ngày</span>
+                                            @else
+                                                <span class="badge badge-light">Còn {{ $daysLeft }} ngày</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-5">
+                            <i class="ki-filled ki-calendar-8 text-3xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-500">Không có sinh nhật nào trong 3 tháng tới</p>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
-        @endif
-        
-        @if(hasPermission('view-customer'))
-        <div class="card bg-orange-50">
-            <div class="card-body p-5">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-sm text-gray-600">Khách hàng cần chăm sóc</p>
-                        <h2 class="text-2xl font-bold">{{ $customerStats['need_follow_up'] }}</h2>
-                        <p class="text-xs text-gray-500">Hôm nay: {{ $customerStats['new_today'] }} mới</p>
-                    </div>
-                    <div class="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
-                        <i class="ki-filled ki-user-square text-orange-500 text-2xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-        
-        @if(hasPermission('view-transaction'))
-        <div class="card bg-purple-50">
-            <div class="card-body p-5">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-sm text-gray-600">Tổng doanh thu</p>
-                        <h2 class="text-2xl font-bold">{{ number_format($financialStats['total_income'], 0, ',', '.') }}đ</h2>
-                        <p class="text-xs text-gray-500">Dư: {{ number_format($financialStats['balance'], 0, ',', '.') }}đ</p>
-                    </div>
-                    <div class="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-                        <i class="ki-filled ki-dollar text-purple-500 text-2xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
     </div>
     
     <!-- Weather Card -->
