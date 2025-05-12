@@ -135,6 +135,7 @@ class Customer extends Model
     public function scopeSearch($query, $search)
     {
         if (!empty($search)) return $query->where('name', 'like', "%$search%")
+                                        ->orWhere('id', 'like', "%$search%")
                                         ->orWhere('phone', 'like', "%$search%")
                                         ->orWhere('email', 'like', "%$search%")
                                         ->orWhere('company', 'like', "%$search%");
