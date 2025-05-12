@@ -94,6 +94,7 @@
 <div class="container-fixed">
     <!-- Summary Cards -->
     <div class="grid !grid-cols-2 md:!grid-cols-4 gap-5 mb-7">
+        @if(hasPermission('view-contract'))
         <div class="card bg-blue-50">
             <div class="card-body p-5">
                 <div class="flex justify-between items-center">
@@ -108,7 +109,9 @@
                 </div>
             </div>
         </div>
+        @endif
 
+        @if(hasPermission('view-schedule'))
         <div class="card bg-yellow-50">
             <div class="card-body p-5">
                 <div class="flex justify-between items-center">
@@ -123,7 +126,9 @@
                 </div>
             </div>
         </div>
+        @endif
         
+        @if(hasPermission('view-task'))
         <div class="card bg-green-50">
             <div class="card-body p-5">
                 <div class="flex justify-between items-center">
@@ -138,7 +143,9 @@
                 </div>
             </div>
         </div>
+        @endif
         
+        @if(hasPermission('view-customer'))
         <div class="card bg-orange-50">
             <div class="card-body p-5">
                 <div class="flex justify-between items-center">
@@ -153,7 +160,9 @@
                 </div>
             </div>
         </div>
+        @endif
         
+        @if(hasPermission('view-transaction'))
         <div class="card bg-purple-50">
             <div class="card-body p-5">
                 <div class="flex justify-between items-center">
@@ -168,6 +177,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
     
     <!-- Weather Card -->
