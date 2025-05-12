@@ -378,7 +378,6 @@ img:not(.no-zoom) {
 }
 
 /* Thêm vào phần head của các trang */
-<style>
     /* Highlight cho lịch hẹn sắp tới */
     .appointment-card {
         transition: all 0.2s ease;
@@ -453,4 +452,7 @@ img:not(.no-zoom) {
             opacity: 0;
         }
     }
-</style>
+
+    input {
+        line-height: 4 !important;
+    }
