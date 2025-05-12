@@ -95,7 +95,7 @@
                                         Ngày sinh
                                     </td>
                                     <td class="py-3 text-gray-700 text-sm font-normal">
-                                        {{formatDateTime($details['birth_date'], 'd-m-Y', 'Y-m-d')}}
+                                        {{$details['birth_date']}}
                                     </td>
                                     <td class="py-3 text-center">
                                     @if(hasPermission('edit-member'))
@@ -379,8 +379,17 @@
             let _modal = $('#update-member-modal');
             _modal.find('input[name], select[name]').val('').addClass('hidden');
 
-            _modal.find(`input[name=${_this.attr('data-name')}], select[name=${_this.attr('data-name')}]`).removeClass('hidden');
-        })
+            // Get the field name that should be shown
+            let fieldName = _this.attr('data-name');
+            
+            // Show the appropriate field
+            _modal.find(`input[name=${fieldName}], select[name=${fieldName}]`).removeClass('hidden');
+            
+            // Initialize flatpickr date picker if it's the birth_date field
+            if (fieldName === 'birth_date') {
+                flatpickrMake(_modal.find('input[name=birth_date]'), 'date');
+            }
+        });
 
         $('#update-member-modal form').on('submit', function(e) {
             e.preventDefault();

@@ -123,6 +123,9 @@
 @endpush
 @push('scripts')
 <script>
+    $(function() {
+        flatpickrMake($('input[name=birth_date]'), 'date');
+    })
     async function postCreateMember() {
         let method = "post",
             url = "/member/create",
