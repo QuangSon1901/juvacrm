@@ -26,6 +26,16 @@
     transition: opacity 0.5s ease;
 }
 
+.alert-not-hide {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    opacity: 1;
+}
+
 .alert-success {
     background-color: #d4edda;
     border: 1px solid #155724;

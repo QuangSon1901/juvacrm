@@ -104,7 +104,16 @@ class SystemConfigSeeder extends Seeder
                 'is_active' => 1,
                 'created_at' => '2025-04-25 16:51:30',
                 'updated_at' => '2025-04-25 16:51:30'
-            ]
+            ],
+            [
+                'id' => 11,
+                'config_key' => 'early_checkin_minutes',
+                'config_value' => '60',
+                'description' => 'Số phút cho phép check-in sớm trước giờ làm việc',
+                'is_active' => 1,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
         ]);
     }
 }

@@ -11,15 +11,33 @@
         </div>
     </td>
     <td>{{ formatDateTime($item->work_date, 'd/m/Y') }}</td>
-    <td>{{ $item->check_in_time ? formatDateTime($item->check_in_time, 'H:i:s') : '-' }}</td>
-    <td>{{ $item->check_out_time ? formatDateTime($item->check_out_time, 'H:i:s') : '-' }}</td>
+    <td>
+        {{ $item->check_in_time ? formatDateTime($item->check_in_time, 'H:i:s') : '-' }}
+        @if($item->late_minutes > 0)
+        <span class="badge badge-sm badge-warning">Trễ {{ $item->late_minutes }} phút</span>
+        @endif
+    </td>
+    <td>
+        {{ $item->check_out_time ? formatDateTime($item->check_out_time, 'H:i:s') : '-' }}
+        @if($item->early_leave_minutes > 0)
+        <span class="badge badge-sm badge-info">Sớm {{ $item->early_leave_minutes }} phút</span>
+        @endif
+    </td>
     <td>{{ number_format($item->total_hours, 2) }}</td>
+    <td>{{ number_format($item->valid_hours, 2) }}</td>
     <td>
         <span class="badge badge-sm badge-{{ $item->getStatusClass() }}">
             {{ $item->getStatusText() }}
         </span>
+        @if($item->forgot_checkout)
+        <span class="badge badge-sm badge-danger ms-1">Quên checkout</span>
+        @endif
     </td>
-    <td>{{ $item->note }}</td>
+    <td>
+        @if($item->overtime_hours > 0)
+        <span class="badge badge-sm badge-primary">Tăng ca {{ number_format($item->overtime_hours, 2) }}h</span>
+        @endif
+    </td>
     <td>
     @if(hasPermission('edit-timekeeping'))
         <div class="menu" data-menu="true">
@@ -29,7 +47,17 @@
                 </button>
                 <div class="menu-dropdown menu-default w-full max-w-[175px]" data-menu-dismiss="true">
                     <div class="menu-item">
-                        <button class="menu-link" onclick="openEditAttendanceModal('{{ $item->id }}', '{{ $item->check_in_time ? formatDateTime($item->check_in_time, 'H:i:s') : '' }}', '{{ $item->check_out_time ? formatDateTime($item->check_out_time, 'H:i:s') : '' }}', '{{ $item->status }}', '{{ $item->note }}')">
+                        <button class="menu-link" onclick="viewAttendanceDetail({{ $item->id }})">
+                            <span class="menu-icon">
+                                <i class="ki-filled ki-eye"></i>
+                            </span>
+                            <span class="menu-title">
+                                Xem chi tiết
+                            </span>
+                        </button>
+                    </div>
+                    <div class="menu-item">
+                        <button class="menu-link" onclick="openEditAttendanceModal({{ $item->id }})">
                             <span class="menu-icon">
                                 <i class="ki-filled ki-pencil"></i>
                             </span>
@@ -48,7 +76,7 @@
 
 @if(count($data) === 0)
 <tr>
-    <td colspan="9" class="text-center py-4">
+    <td colspan="10" class="text-center py-4">
         <div class="text-gray-500">Không có dữ liệu</div>
     </td>
 </tr>

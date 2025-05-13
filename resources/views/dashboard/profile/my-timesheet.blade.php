@@ -8,223 +8,166 @@
             </h1>
         </div>
         <div class="flex items-center flex-wrap gap-1.5 lg:gap-2.5">
-            <button class="btn btn-icon btn-icon-lg size-8 rounded-md hover:bg-gray-200 dropdown-open:bg-gray-200 hover:text-primary text-gray-600" data-modal-toggle="#search_modal">
-                <i class="ki-filled ki-magnifier !text-base"></i>
-            </button>
+            <a href="{{ route('dashboard.profile.profile') }}" class="btn btn-sm btn-light">
+                <i class="ki-outline ki-arrow-left me-1"></i>
+                Quay lại
+            </a>
         </div>
     </div>
 </div>
 
 <div class="container-fixed">
     <div class="grid gap-5 lg:gap-7.5">
-        <!-- Thống kê chấm công tháng hiện tại -->
-        <div class="grid !grid-cols-1 lg:!grid-cols-4 gap-5">
-            <div class="card">
-                <div class="card-body">
-                    <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
-                        <div class="flex items-center flex-wrap gap-3.5">
-                            <i class="ki-outline ki-calendar-tick size-6 shrink-0 text-success"></i>
-                            <div class="flex flex-col">
-                                <div class="text-sm font-medium text-gray-900 mb-px">
-                                    Ngày làm việc
-                                </div>
-                                <div class="text-2sm text-gray-700">
-                                    {{$attendanceStats['presentDays'] ?? 0}}
-                                </div>
-                            </div>
+        <!-- Thống kê tháng hiện tại -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="ki-outline ki-chart text-primary me-2"></i>Thống kê tháng {{ $monthStats['month'] }}/{{ $monthStats['year'] }}
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="grid !grid-cols-2 md:!grid-cols-4 gap-3 mb-6">
+                    <div class="bg-primary-50 rounded-lg p-3 border border-primary-100 flex flex-col justify-between">
+                        <p class="text-xs text-gray-600">Ngày làm việc</p>
+                        <p class="text-xl font-bold text-primary">{{ $monthStats['presentDays'] }}/{{ $monthStats['workingDaysInMonth'] }}</p>
+                        <div class="flex justify-between text-xs mt-1">
+                            <span>Tỉ lệ:</span>
+                            <span class="font-medium">{{ number_format(($monthStats['presentDays'] / max(1, $monthStats['workingDaysInMonth'])) * 100, 1) }}%</span>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-body">
-                    <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
-                        <div class="flex items-center flex-wrap gap-3.5">
-                            <i class="ki-outline ki-calendar-cross size-6 shrink-0 text-danger"></i>
-                            <div class="flex flex-col">
-                                <div class="text-sm font-medium text-gray-900 mb-px">
-                                    Ngày vắng mặt
-                                </div>
-                                <div class="text-2sm text-gray-700">
-                                    {{$attendanceStats['absentDays'] ?? 0}}
-                                </div>
-                            </div>
+
+                    <div class="bg-primary-50 rounded-lg p-3 border border-primary-100 flex flex-col justify-between">
+                        <p class="text-xs text-gray-600">Tổng giờ làm việc</p>
+                        <p class="text-xl font-bold text-success">{{ number_format($monthStats['totalWorkHours'], 2) }}</p>
+                        <div class="flex justify-between text-xs mt-1">
+                            <span>Giờ hợp lệ:</span>
+                            <span class="font-medium">{{ number_format($monthStats['totalValidHours'], 2) }}</span>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-body">
-                    <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
-                        <div class="flex items-center flex-wrap gap-3.5">
-                            <i class="ki-outline ki-timer size-6 shrink-0 text-warning"></i>
-                            <div class="flex flex-col">
-                                <div class="text-sm font-medium text-gray-900 mb-px">
-                                    Số lần đi trễ
-                                </div>
-                                <div class="text-2sm text-gray-700">
-                                    {{$attendanceStats['lateDays'] ?? 0}}
-                                </div>
-                            </div>
+
+                    <div class="bg-primary-50 rounded-lg p-3 border border-primary-100 flex flex-col justify-between">
+                        <p class="text-xs text-gray-600">Đi trễ / Về sớm</p>
+                        <p class="text-xl font-bold">
+                            <span class="text-warning">{{ $monthStats['lateDays'] }}</span> / 
+                            <span class="text-danger">{{ $monthStats['earlyLeaveDays'] }}</span>
+                        </p>
+                        <div class="flex justify-between text-xs mt-1">
+                            <span>Đi trễ / Về sớm</span>
+                            <p class="font-medium">
+                                <span class="text-warning">{{ $monthStats['totalLateMinutes'] }}</span> / 
+                                <span class="text-danger">{{ $monthStats['totalEarlyLeaveMinutes'] }}</span> phút    
+                            </p>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-body">
-                    <div class="flex items-center justify-between flex-wrap border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
-                        <div class="flex items-center flex-wrap gap-3.5">
-                            <i class="ki-outline ki-time size-6 shrink-0 text-primary"></i>
-                            <div class="flex flex-col">
-                                <div class="text-sm font-medium text-gray-900 mb-px">
-                                    Tổng giờ làm việc
-                                </div>
-                                <div class="text-2sm text-gray-700">
-                                    {{$attendanceStats['totalHours'] ?? 0}} giờ
-                                </div>
-                            </div>
+
+                    <div class="bg-primary-50 rounded-lg p-3 border border-primary-100 flex flex-col justify-between">
+                        <p class="text-xs text-gray-600">Giờ tăng ca</p>
+                        <p class="text-xl font-bold text-success">{{ number_format($monthStats['totalOvertimeHours'], 2) }}</p>
+                        <div class="flex justify-between text-xs mt-1">
+                            <span>Vắng mặt:</span>
+                            <span class="font-medium">{{ $monthStats['absentDays'] }} ngày</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Bảng chấm công -->
-        <div class="card card-grid min-w-full">
-            <div class="card-header flex-wrap py-5">
-                <h3 class="card-title">
-                    Lịch sử chấm công
-                </h3>
+        <!-- Bảng dữ liệu chấm công -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Lịch sử chấm công</h3>
                 <div class="flex flex-wrap gap-2">
                     <div class="relative">
-                        <input class="input input-sm" type="text" id="month-filter" data-flatpickr="true" data-flatpickr-type="month" placeholder="Chọn tháng">
+                        <input class="input input-sm" value="{{now()}}" type="text" id="month-filter" data-flatpickr="true" data-flatpickr-type="month" placeholder="Chọn tháng">
                     </div>
-                    <button class="btn btn-primary btn-sm" id="btn-check-in-out">
+                    <a href="{{ route('dashboard.account.timekeeping.check-in-out') }}" class="btn btn-primary btn-sm" id="btn-check-in-out">
                         <i class="ki-filled ki-time me-1"></i>
                         Check In/Out
-                    </button>
+                    </a>
                 </div>
             </div>
             <div class="card-body">
-                <div class="datatable-initialized">
-                    <div class="scrollable-x-auto">
-                        <table class="table table-fixed table-border">
-                            <thead>
-                                <tr>
-                                    <th class="w-[60px] text-center">STT</th>
-                                    <th class="w-[150px]">
-                                        <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Ngày</span>
-                                        </span>
-                                    </th>
-                                    <th class="w-[150px]">
-                                        <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Check In</span>
-                                        </span>
-                                    </th>
-                                    <th class="w-[150px]">
-                                        <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Check Out</span>
-                                        </span>
-                                    </th>
-                                    <th class="w-[100px]">
-                                        <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Giờ làm</span>
-                                        </span>
-                                    </th>
-                                    <th class="w-[150px]">
-                                        <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Trạng thái</span>
-                                        </span>
-                                    </th>
-                                    <th class="w-[200px]">
-                                        <span class="sort">
-                                            <span class="sort-label text-gray-700 font-normal">Ghi chú</span>
-                                        </span>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($attendanceRecords as $index => $record)
-                                <tr>
-                                    <td class="text-center">{{ $index + 1 }}</td>
-                                    <td>{{ formatDateTime($record->work_date, 'd/m/Y') }}</td>
-                                    <td>{{ $record->check_in_time ? formatDateTime($record->check_in_time, 'H:i:s') : '--:--:--' }}</td>
-                                    <td>{{ $record->check_out_time ? formatDateTime($record->check_out_time, 'H:i:s') : '--:--:--' }}</td>
-                                    <td>{{ number_format($record->total_hours, 2) }}</td>
-                                    <td>
-                                        @php
-                                            $statusClass = '';
-                                            $statusText = '';
-                                            
-                                            switch($record->status) {
-                                                case 'present':
-                                                    $statusClass = 'success';
-                                                    $statusText = 'Có mặt';
-                                                    break;
-                                                case 'absent':
-                                                    $statusClass = 'danger';
-                                                    $statusText = 'Vắng mặt';
-                                                    break;
-                                                case 'late':
-                                                    $statusClass = 'warning';
-                                                    $statusText = 'Đi trễ';
-                                                    break;
-                                                case 'early_leave':
-                                                    $statusClass = 'info';
-                                                    $statusText = 'Về sớm';
-                                                    break;
-                                                case 'late_and_early_leave':
-                                                    $statusClass = 'danger';
-                                                    $statusText = 'Đi trễ về sớm';
-                                                    break;
-                                                default:
-                                                    $statusClass = 'gray';
-                                                    $statusText = $record->status;
-                                            }
-                                        @endphp
-                                        
-                                        <span class="badge badge-sm badge-outline badge-{{ $statusClass }}">
-                                            {{ $statusText }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $record->note ?: '-' }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="card-footer">
-                        {{ $attendanceRecords->links() }}
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-rounded table-row-bordered table-hover">
+                        <thead>
+                            <tr class="fw-bold fs-7 text-gray-800">
+                                <th>Ngày</th>
+                                <th>Ca làm việc</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Tổng giờ</th>
+                                <th>Giờ hợp lệ</th>
+                                <th>Trạng thái</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($attendanceRecords as $record)
+                            <tr>
+                                <td>{{ formatDateTime($record->work_date, 'd/m/Y') }}</td>
+                                <td>
+                                    @if($record->schedule)
+                                    {{ formatDateTime($record->schedule->start_time, 'H:i') }} - 
+                                    {{ formatDateTime($record->schedule->end_time, 'H:i') }}
+                                    @else
+                                    -
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($record->check_in_time)
+                                    {{ formatDateTime($record->check_in_time, 'H:i:s') }}
+                                    @if($record->late_minutes > 0)
+                                    <span class="badge badge-sm badge-warning ms-1">Trễ {{ $record->late_minutes }} phút</span>
+                                    @endif
+                                    @else
+                                    -
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($record->check_out_time)
+                                    {{ formatDateTime($record->check_out_time, 'H:i:s') }}
+                                    @if($record->early_leave_minutes > 0)
+                                    <span class="badge badge-sm badge-info ms-1">Sớm {{ $record->early_leave_minutes }} phút</span>
+                                    @endif
+                                    @if($record->overtime_hours > 0)
+                                    <span class="badge badge-sm badge-primary ms-1">Tăng ca {{ number_format($record->overtime_hours, 2) }}h</span>
+                                    @endif
+                                    @else
+                                    -
+                                    @endif
+                                </td>
+                                <td>{{ number_format($record->total_hours, 2) }}</td>
+                                <td>{{ number_format($record->valid_hours, 2) }}</td>
+                                <td>
+                                    <span class="badge badge-{{ $record->getStatusClass() }}">
+                                        {{ $record->getStatusText() }}
+                                    </span>
+                                    @if($record->forgot_checkout)
+                                    <span class="badge badge-danger ms-1">Quên checkout</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($record->note)
+                                    <span class="text-muted text-nowrap">{{ Str::limit($record->note, 30) }}</span>
+                                    @else
+                                    -
+                                    @endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="8" class="text-center">Không có dữ liệu chấm công</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-end mt-5">
+                    {{ $attendanceRecords->links() }}
                 </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    $(function() {
-        // Khởi tạo flatpickr cho bộ lọc tháng
-        flatpickrMake($("#month-filter"), 'month');
-        
-        // Xử lý khi thay đổi tháng
-        $("#month-filter").on('change', function() {
-            const selectedMonth = $(this).val();
-            if (selectedMonth) {
-                window.location.href = "{{ route('dashboard.profile.my-timesheet') }}?month=" + selectedMonth;
-            }
-        });
-        
-        // Xử lý nút Check In/Out
-        $("#btn-check-in-out").on('click', function() {
-            window.location.href = "{{ route('dashboard.account.timekeeping.check-in-out') }}";
-        });
-    });
-</script>
-@endpush

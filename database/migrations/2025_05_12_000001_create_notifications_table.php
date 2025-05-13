@@ -1,4 +1,3 @@
-// database/migrations/2025_05_12_000001_create_notifications_table.php
 <?php
 
 use Illuminate\Database\Migrations\Migration;
